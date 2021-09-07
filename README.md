@@ -58,26 +58,26 @@ _en caso de que el valor cumpla con mas de una condicion sale por el primero en 
 ### Tipos
 
 * **con valor de columna**
-	'CASE columna	WHEN valor1 THEN exp1
+	`CASE columna	WHEN valor1 THEN exp1
 			WHEN valor2 THEN exp2
 			WHEN valor3 THEN exp3
-			ELSE opcion END'
+	 ELSE opcion END`
 
 * ** con condicion**
-	'CASE columna WHEN condicion1 THEN exp1 WHEN condicion2 THEN exp2 WHEN condicion3 THEN exp3 ELSE opcion END'
+	`CASE columna 	WHEN condicion1 THEN exp1 
+			WHEN condicion2 THEN exp2 
+			WHEN condicion3 THEN exp3 
+	 ELSE opcion END`
 
 #### Ejemplo 
 quiero un alumno con su condicion(aprobado, desaprobado, promocionado, recursa)
-select nombreAlumno
-from alumnos 
-case biribirbi 	
 
 
 ## TOP
 _no es ansi (estandar internacional) solamente funciona en SQL Server_
 nos devuelve solo una determinada cantidad de filas desde el inicio
 se usa cuando queremos un ranking ( se combina con un **order by **)
-'SELECT TOP col1,col2,coln FROM tabla1 ORDER BY col1'
+`SELECT TOP col1,col2,coln FROM tabla1 ORDER BY col1`
 
 
 
@@ -90,13 +90,13 @@ Se puede usar en cualquier comando ( select/from/where/group by/having/order by)
 
 dependiendo del lugar en que se use viene aplicada una condicion a cumplir.
 * **en el select ** 
-'SELECT col1,(SELECT col5 FROM tabla2 WHERE col3 = tablas1.col1) FROM tabla1)'
+`SELECT col1,(SELECT col5 FROM tabla2 WHERE col3 = tablas1.col1) FROM tabla1)`
 para que esto funcione correctamete el **subselect** me tiene que devolver un unico valor ( para esto nos sirve el TOP :wink:)
 
 * **en el WHERE** 
-	* 'SELECT col1, col2 FROM tabla1 WHERE col1 = (SELECT col3 FROM tabla2 WHERE col3 = tablas1.col1)' _en este caso tengo que hacer que el sub select devuelva 1 unico valor para que pueda compararse con el valor col1_ 
-	*  'SELECT col1, col2 FROM tabla1 WHERE col1 IN (SELECT col3 FROM tabla2 ' _en este_
-	* 'SELECT col1, col2 FROM tabla1 WHERE EXISTS (SELECT col3 FROM tabla2 WHERE col3 = col1)' _no lo toma como un conjunto, pregunta si el subselect existe, si retorna no rows -> el subconj no existe _
+	* `SELECT col1, col2 FROM tabla1 WHERE col1 = (SELECT col3 FROM tabla2 WHERE col3 = tablas1.col1)` _en este caso tengo que hacer que el sub select devuelva 1 unico valor para que pueda compararse con el valor col1_ 
+	* `SELECT col1, col2 FROM tabla1 WHERE col1 IN (SELECT col3 FROM tabla2 ` _en este_
+	* `SELECT col1, col2 FROM tabla1 WHERE EXISTS (SELECT col3 FROM tabla2 WHERE col3 = col1)` _no lo toma como un conjunto, pregunta si el subselect existe, si retorna no rows -> el subconj no existe _
 * **en el GROUP BY** 
 cumple las mismas condiciones que el SELECT esperamos un subselect que nos devuelva una fila y una columna 
 
