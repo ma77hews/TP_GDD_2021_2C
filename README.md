@@ -5,16 +5,17 @@
 
 *palabra*|*que hace*
 ----------|------------
-SELECT - selecciona que columnas queres mostrar 
-FROM - de que tabla muestro las columnas
-JOIN - combino tablas mediante una union
-WHERE - condicion a aplicar una vez que tenemos nuestro universo armado
-GROUP BY - agrupo los resultados en base a una/s columnas 
-HAVING - condicion luego de agrupar el conjunto 
-ORDER BY - ordenamiento de los resultados en base a una condicion
-
-
+SELECT | selecciona que columnas queres mostrar 
+FROM | de que tabla muestro las columnas
+JOIN | combino tablas mediante una union
+WHERE | condicion a aplicar una vez que tenemos nuestro universo armado
+GROUP BY | agrupo los resultados en base a una/s columnas 
+HAVING | condicion luego de agrupar el conjunto 
+ORDER BY | ordenamiento de los resultados en base a una condicion
+<hr>
 ## SELECT
+selecciona las columnas que quiero trabajar
+''
 <hr>
 ## FROM
 <hr>
@@ -43,6 +44,8 @@ uso un left join porque necesito a **todos** los alumnos si usamos un join solo 
 permite establecer una seleccion multiple dentro de un SELECT
 se usa cuando queremos transformar una columna.
 
+_en caso de que el valor cumpla con mas de una condicion sale por el primero en el que tiene true_
+
 ### Tipos
 * **con valor de columna **
 `	CASE columna	WHEN valor1 THEN exp1
@@ -55,3 +58,24 @@ quiero un alumno con su condicion(aprobado, desaprobado, promocionado, recursa)
 select nombreAlumno
 from alumnos 
 case biribirbi 	
+
+
+## TOP
+_no es ansi (estandar internacional) solamente funciona en SQL Server_
+nos devuelve solo una determinada cantidad de filas desde el inicio
+se usa cuando queremos un ranking ( se combina con un **order by **)
+'SELECT TOP col1,col2,coln FROM tabla1 ORDER BY col1'
+
+
+
+## SUBCONSULTAS
+es la posibilidad de incorporar uno o varios selects dentro ( es como una funcion de orden superior) 
+
+### Donde lo uso ?
+Se puede usar en cualquier comando ( select/from/where/group by/having/order by)
+**no se usa en el from**
+
+dependiendo del lugar en que se use viene aplicada una condicion a cumplir.
+* **en el select ** 
+'SELECT col1,(SELECT col5 FROM tabla2 WHERE col3 = tablas1.col1) FROM tabla1'
+para que esto funcione correctamete el **subselect** me tiene que devolver un unico valor
