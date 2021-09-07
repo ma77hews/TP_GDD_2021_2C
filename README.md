@@ -27,8 +27,7 @@ selecciona las columnas que quiero trabajar
 
 ## JOIN 
 
-El objetivo de esto es agrandar mi universo en base al producto cartesiano entre ambas tablas 
-usando el **on** es una interseccion -> _para que un resultado sea visible el elemento tiene que estar en ambos conjuntos_
+El objetivo de esto es agrandar mi universo en base al producto cartesiano entre ambas tablas usando el **on** es una interseccion -> _para que un resultado sea visible el elemento tiene que estar en ambos conjuntos_
 
 #### Ejemplo
 
@@ -93,3 +92,16 @@ para que esto funcione correctamete el **subselect** me tiene que devolver un un
 	* 'SELECT col1, col2 FROM tabla1 WHERE col1 = (SELECT col3 FROM tabla2 WHERE col3 = tablas1.col1)' _en este caso tengo que hacer que el sub select devuelva 1 unico valor para que pueda compararse con el valor col1_ 
 	*  'SELECT col1, col2 FROM tabla1 WHERE col1 IN (SELECT col3 FROM tabla2 ' _en este_
 	* 'SELECT col1, col2 FROM tabla1 WHERE EXISTS (SELECT col3 FROM tabla2 WHERE col3 = col1)' _no lo toma como un conjunto, pregunta si el subselect existe, si retorna no rows -> el subconj no existe _
+* **en el GROUP BY** 
+cumple las mismas condiciones que el SELECT esperamos un subselect que nos devuelva una fila y una columna 
+
+
+<hr>
+
+## UNION
+es una clausula asociada a un SELECT que permite unir varios resultados de SELECT distintos, el resultado es uno, por ello no se puede usar en un ORDER BY. 
+_la condicion que debe cumplir es que tengan el mismo tipo de dato_
+
+### TIPOS
+* **UNION** es del tipo disyuntivo, si tengo mas de una coincidencia no repito
+* **UNION ALL** le da igual, te devuelve todo por mas que se repita.
