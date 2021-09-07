@@ -44,22 +44,27 @@ uso un left join porque necesito a **todos** los alumnos si usamos un join solo 
 * **RIGHT** -> lo mismo que el right.
 
 ### Uso 
+
 **select** columna/s **from** tabla1 **join** tabla2 on tab1.col1 = tab2.col1
 
 <hr>
 
 ## CASE
-permite establecer una seleccion multiple dentro de un SELECT
-se usa cuando queremos transformar una columna.
+
+permite establecer una seleccion multiple dentro de un SELECT se usa cuando queremos transformar una columna.
 
 _en caso de que el valor cumpla con mas de una condicion sale por el primero en el que tiene true_
 
 ### Tipos
-* **con valor de columna **
-`	CASE columna	WHEN valor1 THEN exp1
+
+* **con valor de columna**
+	'CASE columna	WHEN valor1 THEN exp1
 			WHEN valor2 THEN exp2
-'
-* ** con condicion **
+			WHEN valor3 THEN exp3
+			ELSE opcion END'
+
+* ** con condicion**
+	'CASE columna WHEN condicion1 THEN exp1 WHEN condicion2 THEN exp2 WHEN condicion3 THEN exp3 ELSE opcion END'
 
 #### Ejemplo 
 quiero un alumno con su condicion(aprobado, desaprobado, promocionado, recursa)
