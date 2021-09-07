@@ -24,16 +24,19 @@ selecciona las columnas que quiero trabajar
 ## FROM
 
 <hr>
+
 ## JOIN 
 
 El objetivo de esto es agrandar mi universo en base al producto cartesiano entre ambas tablas 
 usando el **on** es una interseccion -> _para que un resultado sea visible el elemento tiene que estar en ambos conjuntos_
 
 #### Ejemplo
+
 **que pasa si uno clientes con facturas y un cliente no tiene facturas?**
 _ no nos devuelve nada porque no cumple la condicion ambas tablas tienen que tener el elemento_
 
 ### Tipos
+
 **cuando se usan ?**
 por ejemplo tengo que traer a los alumnos y la cantidad de materias aprobadas.
 uso un left join porque necesito a **todos** los alumnos si usamos un join solo puede existir el caso en donde algunos alumnos no hayan aprobado ninguna materia, en ese caso se perderia  
