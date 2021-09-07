@@ -12,14 +12,20 @@ WHERE | condicion a aplicar una vez que tenemos nuestro universo armado
 GROUP BY | agrupo los resultados en base a una/s columnas 
 HAVING | condicion luego de agrupar el conjunto 
 ORDER BY | ordenamiento de los resultados en base a una condicion
+
 <hr>
+
 ## SELECT
+
 selecciona las columnas que quiero trabajar
-''
+
 <hr>
+
 ## FROM
+
 <hr>
 ## JOIN 
+
 El objetivo de esto es agrandar mi universo en base al producto cartesiano entre ambas tablas 
 usando el **on** es una interseccion -> _para que un resultado sea visible el elemento tiene que estar en ambos conjuntos_
 
@@ -77,5 +83,10 @@ Se puede usar en cualquier comando ( select/from/where/group by/having/order by)
 
 dependiendo del lugar en que se use viene aplicada una condicion a cumplir.
 * **en el select ** 
-'SELECT col1,(SELECT col5 FROM tabla2 WHERE col3 = tablas1.col1) FROM tabla1'
-para que esto funcione correctamete el **subselect** me tiene que devolver un unico valor
+'SELECT col1,(SELECT col5 FROM tabla2 WHERE col3 = tablas1.col1) FROM tabla1)'
+para que esto funcione correctamete el **subselect** me tiene que devolver un unico valor ( para esto nos sirve el TOP :wink:)
+
+* **en el WHERE** 
+	* 'SELECT col1, col2 FROM tabla1 WHERE col1 = (SELECT col3 FROM tabla2 WHERE col3 = tablas1.col1)' _en este caso tengo que hacer que el sub select devuelva 1 unico valor para que pueda compararse con el valor col1_ 
+	*  'SELECT col1, col2 FROM tabla1 WHERE col1 IN (SELECT col3 FROM tabla2 ' _en este_
+	* 'SELECT col1, col2 FROM tabla1 WHERE EXISTS (SELECT col3 FROM tabla2 WHERE col3 = col1)' _no lo toma como un conjunto, pregunta si el subselect existe, si retorna no rows -> el subconj no existe _
