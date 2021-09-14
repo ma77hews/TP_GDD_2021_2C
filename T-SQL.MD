@@ -2,14 +2,14 @@
 
 *objetos*|*que hace*
 ----------|------------
-**vista**[link](#vistas)|crea el equivalente a una tabla virtual que represetna los datos de una o mas tablas de una forma alternativa.
+**[vista]**(#vistas)|crea el equivalente a una tabla virtual que represetna los datos de una o mas tablas de una forma alternativa.
 **Funciones**|Crea una función definida por el usuario, que es una rutina guardada de Transact-SQL que devuelve un valor
 **procedures**|equivalente a cualquier procedimiento de cualquier lenguaje.
 **triggers**|solamente existen en los motores de bases de datos, es una clase especial de procedimiento almacenado que se eecuta automaticamente.
 
 <hr>
 
-##vistas##
+## Vistas ##
 es un poco mas rapida que un select.
 la base de toda la programcion web del siglo XXI son vistas.
 solo es una estructura de acceso, no tiene datos (quedan guardadas pero de forma dinamica (queda guardado el select y cuando la consultas éste se ejecuta))
@@ -17,7 +17,8 @@ solo es una estructura de acceso, no tiene datos (quedan guardadas pero de forma
   * _cuando se usa?_
     * cuando queremos acceder a una informacion constantemente.
     * cuando queremos ocultar informacion.
-###Operaciones###
+
+### Operaciones ###
 * _insert_
 * _delete_
 * _update_
