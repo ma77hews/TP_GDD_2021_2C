@@ -2,8 +2,8 @@
 
 *objetos*|*que hace*
 ----------|------------
-[vista](#vistas)
-  [Operaciones](Operaciones)
+[vista](#vistas)|
+  [Operaciones](Operaciones)|
   [Sintaxis](Sintaxis)|crea el equivalente a una tabla virtual que represetna los datos de una o mas tablas de una forma alternativa.
 [Funciones](#Funcion)|Crea una función definida por el usuario, que es una rutina guardada de Transact-SQL que devuelve un valor
 [procedures]|equivalente a cualquier procedimiento de cualquier lenguaje.es una colección guardada de instrucciones Transact-SQL que puede tomar y devolver los parámetros proporcionados por el usuario.
