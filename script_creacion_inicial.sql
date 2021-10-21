@@ -83,11 +83,11 @@ CREATE PROCEDURE Creacion_de_Tablas	AS
 	(
 		modelo_id			INT,
 		modelo_vel_max		INT,
-		modelo_cap_tanque	INT, --hay que cambiar el nombre en el der 
-		modelo_cap_carga	INT -- hay que cambiar el nombre en el der
+		modelo_cap_tanque	INT, --hay que cambiar el nombre en el der ==> Modificado por eze
+		modelo_cap_carga	INT -- hay que cambiar el nombre en el der ==> Modif por eze
 	);
 
-	CREATE TABLE [GD2C2021].[SQLI].Orden_De_trabajo 
+	CREATE TABLE [GD2C2021].[SQLI].Orden_De_Trabajo 
 	(
 		odt_id				INT,
 		odt_camion			INT,
@@ -99,9 +99,10 @@ CREATE PROCEDURE Creacion_de_Tablas	AS
 	(
 		tarea_id			INT,
 		odt_id				INT,
+		tarea_mecanico		INT,
 		tarea_fecha_inicio	DATETIME2(3),
 		tarea_fecha_fin		DATETIME2(3),
-		tarea_fe_in_plani	DATETIME2(3)-- hay que cambiar el nombre en el der son largos y tengo que poner un tab mas en todas las lineas una paja 
+		tarea_fe_in_plani	DATETIME2(3)-- hay que cambiar el nombre en el der son largos y tengo que poner un tab mas en todas las lineas una paja ==> Modiicado por eze 
 	);
 
 	CREATE TABLE [GD2C2021].[SQLI].Tipo_Tarea 
@@ -116,7 +117,6 @@ CREATE PROCEDURE Creacion_de_Tablas	AS
 		tarea_tipo			INT,
 		tarea_descripcion	NVARCHAR(255),
 		tarea_tiempo_est	INT, -- cambiar el nombre + revisar nombre variable
-		tarea_mecanico		INT,
 		tarea_nombre		CHAR(50)
 	);
 
@@ -125,6 +125,13 @@ CREATE PROCEDURE Creacion_de_Tablas	AS
 		herra_id			INT,
 		herra_detalle		CHAR(50),
 		herra_precio		DECIMAL(18,2)
+	);
+
+	CREATE TABLE [GD2C2021].[SQLI].Herramienta_Por_Tarea
+	(
+		tarea_codigo		INT,
+		herra_id			INT,
+		mxt_cantidad		INT
 	);
 
 	CREATE TABLE [GD2C2021].[SQLI].Mecanico 
@@ -136,7 +143,56 @@ CREATE PROCEDURE Creacion_de_Tablas	AS
 		meca_dni			DECIMAL(18,0),
 		meca_direccion		NVARCHAR(255),
 		meca_telefono		DECIMAL(18,0),
-		meca_cost_hora		INT
+		meca_cost_hora		INT,
 		meca_mail			NVARCHAR(255),
 		meca_fecha_nac		DATETIME2(3)
+	);
+GO
+-------------------------------Procedure para las PKs y FKs---------------------------------------------------------
+CREATE PROCEDURE asignacion_PK_y_FK AS
+	ALTER TABLE [GD2C2021].[SQLI].Ciudad			ADD PRIMARY KEY (ciudad_id)
+
+	ALTER TABLE [GD2C2021].[SQLI].Herramientas		ADD PRIMARY KEY (herra_id)
+
+	ALTER TABLE [GD2C2021].[SQLI].Recorrido			ADD PRIMARY KEY (reco_id)
+	ALTER TABLE [GD2C2021].[SQLI].Recorrido			ADD FOREIGN KEY (reco_ciudad_destino)	REFERENCES [GD2C2021].[SQLI].Ciudad(ciudad_id) ON DELETE NO ACTION ON UPDATE NO ACTION ;
+	ALTER TABLE [GD2C2021].[SQLI].Recorrido			ADD FOREIGN KEY (reco_ciudad_origen)	REFERENCES [GD2C2021].[SQLI].Ciudad(ciudad_id) ON DELETE NO ACTION ON UPDATE NO ACTION ;
+
+	ALTER TABLE [GD2C2021].[SQLI].Chofer			ADD PRIMARY KEY (chofer_legajo)
+	
+	ALTER TABLE [GD2C2021].[SQLI].Modelo			ADD PRIMARY KEY (modelo_id)
+
+	ALTER TABLE [GD2C2021].[SQLI].Camion			ADD PRIMARY KEY (cami_id)
+	ALTER TABLE [GD2C2021].[SQLI].Camion			ADD FOREIGN KEY (cami_modelo)			REFERENCES [GD2C2021].[SQLI].Modelo(modelo_id) ON DELETE NO ACTION ON UPDATE NO ACTION ;
+	
+	ALTER TABLE [GD2C2021].[SQLI].Paquete			ADD PRIMARY KEY (pack_id)
+		
+	ALTER TABLE [GD2C2021].[SQLI].Viaje				ADD PRIMARY KEY (viaje_id)
+	ALTER TABLE [GD2C2021].[SQLI].Viaje				ADD FOREIGN KEY (viaje_camion)			REFERENCES [GD2C2021].[SQLI].Camion(cami_id) ON DELETE NO ACTION ON UPDATE NO ACTION ;
+	ALTER TABLE [GD2C2021].[SQLI].Viaje				ADD FOREIGN KEY (viaje_chofer)			REFERENCES [GD2C2021].[SQLI].Chofer(chofer_legajo) ON DELETE NO ACTION ON UPDATE NO ACTION ;
+	ALTER TABLE [GD2C2021].[SQLI].Viaje				ADD FOREIGN KEY (viaje_recorrido)		REFERENCES [GD2C2021].[SQLI].Recorrido(reco_id) ON DELETE NO ACTION ON UPDATE NO ACTION ;
+	
+	ALTER TABLE [GD2C2021].[SQLI].Paquete_Por_Viaje	ADD FOREIGN KEY (ppv_viaje)				REFERENCES [GD2C2021].[SQLI].Viaje(viaje_id) ON DELETE NO ACTION ON UPDATE NO ACTION ;
+	ALTER TABLE [GD2C2021].[SQLI].Paquete_Por_Viaje	ADD FOREIGN KEY (ppv_paquete)			REFERENCES [GD2C2021].[SQLI].Paquete(pack_id) ON DELETE NO ACTION ON UPDATE NO ACTION ;
+
+	ALTER TABLE [GD2C2021].[SQLI].Taller			ADD PRIMARY KEY (taller_id)
+	ALTER TABLE [GD2C2021].[SQLI].Taller			ADD FOREIGN KEY (taller_ciudad)			REFERENCES [GD2C2021].[SQLI].Ciudad(ciudad_id) ON DELETE NO ACTION ON UPDATE NO ACTION ;
+
+	ALTER TABLE [GD2C2021].[SQLI].Orden_De_Trabajo	ADD PRIMARY KEY (odt_id)
+	ALTER TABLE [GD2C2021].[SQLI].Orden_De_Trabajo	ADD FOREIGN KEY (odt_camion)			REFERENCES [GD2C2021].[SQLI].Camion(cami_id) ON DELETE NO ACTION ON UPDATE NO ACTION ;
+	
+	ALTER TABLE [GD2C2021].[SQLI].Tipo_Tarea		ADD PRIMARY KEY (tipo_id)
+
+	ALTER TABLE [GD2C2021].[SQLI].Mecanico			ADD PRIMARY KEY (meca_nro_legajo)
+	ALTER TABLE [GD2C2021].[SQLI].Mecanico			ADD FOREIGN KEY (meca_lugar_trabajo)	REFERENCES [GD2C2021].[SQLI].Taller(taller_id) ON DELETE NO ACTION ON UPDATE NO ACTION ;
+
+	ALTER TABLE [GD2C2021].[SQLI].Tareas			ADD PRIMARY KEY (tarea_codigo)
+	ALTER TABLE [GD2C2021].[SQLI].Tareas			ADD FOREIGN KEY (tarea_tipo)			REFERENCES [GD2C2021].[SQLI].Tipo_Tarea(tipo_id) ON DELETE NO ACTION ON UPDATE NO ACTION ;
+	
+	ALTER TABLE [GD2C2021].[SQLI].Herramienta_Por_Tarea	ADD FOREIGN KEY (tarea_codigo)		REFERENCES [GD2C2021].[SQLI].Tareas(tarea_codigo) ON DELETE NO ACTION ON UPDATE NO ACTION ;
+	ALTER TABLE [GD2C2021].[SQLI].Herramienta_Por_Tarea ADD FOREIGN KEY (herra_id)			REFERENCES [GD2C2021].[SQLI].Herramientas(herra_id) ON DELETE NO ACTION ON UPDATE NO ACTION ;
+	
+	ALTER TABLE [GD2C2021].[SQLI].Tarea_Por_ODT		ADD FOREIGN KEY (tarea_id)				REFERENCES [GD2C2021].[SQLI].Tareas(tarea_codigo) ON DELETE NO ACTION ON UPDATE NO ACTION ;
+	ALTER TABLE [GD2C2021].[SQLI].Tarea_Por_ODT		ADD FOREIGN KEY (odt_id)				REFERENCES [GD2C2021].[SQLI].Orden_De_Trabajo(odt_id) ON DELETE NO ACTION ON UPDATE NO ACTION ;
+	ALTER TABLE [GD2C2021].[SQLI].Tarea_Por_ODT		ADD FOREIGN KEY (tarea_mecanico)		REFERENCES [GD2C2021].[SQLI].Mecanico(meca_nro_legajo) ON DELETE NO ACTION ON UPDATE NO ACTION ;
 GO
