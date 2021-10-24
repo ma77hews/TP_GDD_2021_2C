@@ -202,10 +202,11 @@ GO
 -------------------------------- procedures para realizar las migraciones de las tablas --------------------------------
 CREATE PROCEDURE Insercion_Tabla_Ciudad AS
 	INSERT INTO [GD2C2021].[SQLI].Ciudad
-	SELECT		TALLER_CIUDAD
-	FROM		[GD2C2021].[gd_esquema].Maestra
-	where		TALLER_CIUDAD is not null 
-	GROUP BY	TALLER_CIUDAD
+	select distinct RECORRIDO_CIUDAD_ORIGEN from gd_esquema.Maestra where RECORRIDO_CIUDAD_ORIGEN is not null 
+	union 
+	select distinct RECORRIDO_CIUDAD_DESTINO from gd_esquema.Maestra where RECORRIDO_CIUDAD_DESTINO is not null
+	union 
+	select distinct TALLER_CIUDAD from gd_esquema.Maestra where TALLER_CIUDAD is not null 
 GO
 
 CREATE PROCEDURE Insercion_Tabla_Herramientas AS
@@ -216,6 +217,16 @@ CREATE PROCEDURE Insercion_Tabla_Herramientas AS
 	GROUP BY	MATERIAL_COD, MATERIAL_DESCRIPCION, MATERIAL_PRECIO
 GO
 
+CREATE PROCEDURE Insercion_Tabla_Recorrido AS
+	INSERT INTO [GD2C2021].[SQLI].Recorrido(reco_ciudad_origen,reco_ciudad_destino,reco_km, reco_precio)
+	SELECT		ciu1.ciudad_id, ciu2.ciudad_id, RECORRIDO_KM, RECORRIDO_PRECIO
+	FROM		[GD2C2021].[gd_esquema].Maestra as MASTERTABLE
+	join		[GD2C2021].[SQLI].[ciudad] ciu1 on MASTERTABLE.RECORRIDO_CIUDAD_ORIGEN = ciu1.ciudad_nombre
+	join		[GD2C2021].[SQLI].[ciudad] ciu2 on MASTERTABLE.RECORRIDO_CIUDAD_DESTINO = ciu2.ciudad_nombre
+	where		(ciu1.ciudad_id is not null) or (ciu2.ciudad_id is not null) or (RECORRIDO_KM is not null) or (RECORRIDO_PRECIO is not null)
+	group by	ciu1.ciudad_id, ciu2.ciudad_id, RECORRIDO_KM, RECORRIDO_PRECIO
+GO
+
 
 -------------------------------- procedure migracion ----------------------------------------------------------------
 
@@ -223,6 +234,7 @@ CREATE PROCEDURE Migracion AS
 
 	EXEC Insercion_Tabla_Ciudad
 	EXEC Insercion_Tabla_Herramientas
+	EXEC Insercion_Tabla_Recorrido
 	
 GO
 
@@ -253,6 +265,8 @@ CREATE PROCEDURE Reseteo_Procedures AS
 	IF EXISTS (SELECT * FROM  sys.procedures WHERE  NAME = 'PK_Y_FK' AND type = 'p')							DROP PROCEDURE dbo.PK_Y_FK
 	IF EXISTS (SELECT * FROM  sys.procedures WHERE  NAME = 'Insercion_Tabla_Ciudad' AND type = 'p')				DROP PROCEDURE dbo.Insercion_Tabla_Ciudad
 	IF EXISTS (SELECT * FROM  sys.procedures WHERE  NAME = 'Insercion_Tabla_Herramientas' AND type = 'p')		DROP PROCEDURE dbo.Insercion_Tabla_Herramientas
+	IF EXISTS (SELECT * FROM  sys.procedures WHERE  NAME = 'Insercion_Tabla_Recorrido' AND type = 'p')		DROP PROCEDURE dbo.Insercion_Tabla_Recorrido
+
 	IF EXISTS (SELECT * FROM  sys.procedures WHERE  NAME = 'Migracion' AND type = 'p')							DROP PROCEDURE dbo.Migracion
 	IF EXISTS (SELECT * FROM  sys.procedures WHERE  NAME = 'Reseteo_Tablas' AND type = 'p')						DROP PROCEDURE dbo.Reseteo_Tablas
 	IF EXISTS (SELECT * FROM  sys.procedures WHERE  NAME = 'Reseteo_Procedures' AND type = 'p')					DROP PROCEDURE dbo.Reseteo_Procedures
