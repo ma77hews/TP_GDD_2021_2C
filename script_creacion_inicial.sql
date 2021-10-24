@@ -1,6 +1,13 @@
 -------------------------------- procedure para la creacion de tablas -------------------------------------------------
 CREATE PROCEDURE Creacion_de_Tablas	AS
 
+	CREATE TABLE [GD2C2021].[SQLI].Ciudad 
+	(
+		ciudad_id			INT IDENTITY,
+		ciudad_nombre		NVARCHAR(255)
+	);
+	
+
 	CREATE TABLE [GD2C2021].[SQLI].Viaje 
 	(
 		viaje_id			INT IDENTITY,
@@ -14,14 +21,14 @@ CREATE PROCEDURE Creacion_de_Tablas	AS
 
 	CREATE TABLE [GD2C2021].[SQLI].Paquete_Por_Viaje
 	(
-		ppv_viaje			INT,
+		ppv_viaje			INT IDENTITY,
 		ppv_paquete			INT,
 		ppv_cant_paquete	INT,
 	);
 
 	CREATE TABLE [GD2C2021].[SQLI].Recorrido 
 	(
-		reco_id				INT,
+		reco_id				INT IDENTITY,
 		reco_ciudad_origen	INT,
 		reco_ciudad_destino	INT,
 		reco_km				INT,
@@ -30,7 +37,7 @@ CREATE PROCEDURE Creacion_de_Tablas	AS
 
 	CREATE TABLE [GD2C2021].[SQLI].Chofer 
 	(
-		chofer_legajo		INT,
+		chofer_legajo		INT IDENTITY,
 		chofer_nombre		NVARCHAR(255),
 		chofer_apellido		NVARCHAR(255),
 		chofer_dni			DECIMAL(18,0),
@@ -43,7 +50,7 @@ CREATE PROCEDURE Creacion_de_Tablas	AS
 
 	CREATE TABLE [GD2C2021].[SQLI].Paquete 
 	(
-		pack_id				INT,
+		pack_id				INT IDENTITY,
 		pack_alto_max		DECIMAL(18,2),
 		pack_ancho_max		DECIMAL(18,2),
 		pack_largo_max		DECIMAL(18,2),
@@ -53,15 +60,9 @@ CREATE PROCEDURE Creacion_de_Tablas	AS
 		pack_cantidad		INT
 	);
 
-	CREATE TABLE [GD2C2021].[SQLI].Ciudad 
-	(
-		ciudad_id			INT,
-		ciudad_nombre		NVARCHAR(255)
-	);
-	
 	CREATE TABLE [GD2C2021].[SQLI].Taller 
 	(
-		taller_id			INT,
+		taller_id			INT IDENTITY,
 		taller_direccion	NVARCHAR(255),
 		taller_telefono		DECIMAL(18,0),
 		taller_mail			NVARCHAR(255),
@@ -71,7 +72,7 @@ CREATE PROCEDURE Creacion_de_Tablas	AS
 
 	CREATE TABLE [GD2C2021].[SQLI].Camion 
 	(
-		cami_id				INT,
+		cami_id				INT IDENTITY,
 		cami_modelo			INT,
 		cami_patente		CHAR(7),
 		cami_nro_chasis		NVARCHAR(255),
@@ -81,7 +82,7 @@ CREATE PROCEDURE Creacion_de_Tablas	AS
 	
 	CREATE TABLE [GD2C2021].[SQLI].Modelo 
 	(
-		modelo_id			INT,
+		modelo_id			INT IDENTITY,
 		modelo_vel_max		INT,
 		modelo_cap_tanque	INT, --hay que cambiar el nombre en el der ==> Modificado por eze
 		modelo_cap_carga	INT -- hay que cambiar el nombre en el der ==> Modif por eze
@@ -89,7 +90,7 @@ CREATE PROCEDURE Creacion_de_Tablas	AS
 
 	CREATE TABLE [GD2C2021].[SQLI].Orden_De_Trabajo 
 	(
-		odt_id				INT,
+		odt_id				INT IDENTITY,
 		odt_camion			INT,
 		odt_estado			NVARCHAR(255),
 		odt_fecha_generado	NVARCHAR(255)
@@ -97,7 +98,7 @@ CREATE PROCEDURE Creacion_de_Tablas	AS
 
 	CREATE TABLE [GD2C2021].[SQLI].Tarea_Por_ODT 
 	(
-		tarea_id			INT,
+		tarea_id			INT IDENTITY,
 		odt_id				INT,
 		tarea_mecanico		INT,
 		tarea_fecha_inicio	DATETIME2(3),
@@ -107,13 +108,13 @@ CREATE PROCEDURE Creacion_de_Tablas	AS
 
 	CREATE TABLE [GD2C2021].[SQLI].Tipo_Tarea 
 	(
-		tipo_id				INT,
+		tipo_id				INT IDENTITY,
 		tipo_tarea			NVARCHAR(255)
 	)
 
 	CREATE TABLE [GD2C2021].[SQLI].Tareas 
 	(
-		tarea_codigo		INT,
+		tarea_codigo		INT IDENTITY,
 		tarea_tipo			INT,
 		tarea_descripcion	NVARCHAR(255),
 		tarea_tiempo_est	INT, -- cambiar el nombre + revisar nombre variable
@@ -122,21 +123,21 @@ CREATE PROCEDURE Creacion_de_Tablas	AS
 
 	CREATE TABLE [GD2C2021].[SQLI].Herramientas 
 	(
-		herra_id			INT,
+		herra_id			INT IDENTITY,
 		herra_detalle		CHAR(50),
 		herra_precio		DECIMAL(18,2)
 	);
 
 	CREATE TABLE [GD2C2021].[SQLI].Herramienta_Por_Tarea
 	(
-		tarea_codigo		INT,
+		tarea_codigo		INT IDENTITY,
 		herra_id			INT,
 		mxt_cantidad		INT
 	);
 
 	CREATE TABLE [GD2C2021].[SQLI].Mecanico 
 	(
-		meca_nro_legajo		INT,
+		meca_nro_legajo		INT IDENTITY,
 		meca_nombre			NVARCHAR(255),
 		meca_apellido		NVARCHAR(255),
 		meca_lugar_trabajo	INT,
@@ -199,6 +200,7 @@ CREATE PROCEDURE PK_Y_FK AS
 GO
 
 -------------------------------- procedure migracion ----------------------------------------------------------------
+/*
 CREATE PROCEDURE Migracion AS
 
 	EXEC Insercion_Tabla_Ciudad
@@ -215,6 +217,7 @@ CREATE PROCEDURE Migracion AS
 	EXEC Insersion_Tabla_Compra_PCS
 	EXEC Insersion_Tabla_Compra_Accesorios
 GO
+*/
 -------------------------------- procedures para reseteos de tablas -------------------------------------------------
 CREATE PROCEDURE Reseteo_Tablas AS
 
@@ -282,7 +285,7 @@ CREATE PROCEDURE Play AS
 		EXEC ('create schema SQLI')
 		EXEC Creacion_de_Tablas
 		EXEC PK_Y_FK
-		EXEC Migracion
+		--EXEC Migracion
 	END
 
 GO
