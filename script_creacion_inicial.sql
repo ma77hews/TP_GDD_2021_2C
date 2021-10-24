@@ -149,50 +149,145 @@ CREATE PROCEDURE Creacion_de_Tablas	AS
 	);
 GO
 -------------------------------Procedure para las PKs y FKs---------------------------------------------------------
-CREATE PROCEDURE asignacion_PK_y_FK AS
-	ALTER TABLE [GD2C2021].[SQLI].Ciudad			ADD PRIMARY KEY (ciudad_id)
+CREATE PROCEDURE PK_Y_FK AS
 
-	ALTER TABLE [GD2C2021].[SQLI].Herramientas		ADD PRIMARY KEY (herra_id)
+	ALTER TABLE [GD2C2021].[SQLI].Ciudad				ADD PRIMARY KEY (ciudad_id)
 
-	ALTER TABLE [GD2C2021].[SQLI].Recorrido			ADD PRIMARY KEY (reco_id)
-	ALTER TABLE [GD2C2021].[SQLI].Recorrido			ADD FOREIGN KEY (reco_ciudad_destino)	REFERENCES [GD2C2021].[SQLI].Ciudad(ciudad_id) ON DELETE NO ACTION ON UPDATE NO ACTION ;
-	ALTER TABLE [GD2C2021].[SQLI].Recorrido			ADD FOREIGN KEY (reco_ciudad_origen)	REFERENCES [GD2C2021].[SQLI].Ciudad(ciudad_id) ON DELETE NO ACTION ON UPDATE NO ACTION ;
+	ALTER TABLE [GD2C2021].[SQLI].Herramientas			ADD PRIMARY KEY (herra_id)
 
-	ALTER TABLE [GD2C2021].[SQLI].Chofer			ADD PRIMARY KEY (chofer_legajo)
+	ALTER TABLE [GD2C2021].[SQLI].Recorrido				ADD PRIMARY KEY (reco_id)
+	ALTER TABLE [GD2C2021].[SQLI].Recorrido				ADD FOREIGN KEY (reco_ciudad_destino)		REFERENCES [GD2C2021].[SQLI].Ciudad(ciudad_id) ON DELETE NO ACTION ON UPDATE NO ACTION ;
+	ALTER TABLE [GD2C2021].[SQLI].Recorrido				ADD FOREIGN KEY (reco_ciudad_origen)		REFERENCES [GD2C2021].[SQLI].Ciudad(ciudad_id) ON DELETE NO ACTION ON UPDATE NO ACTION ;
+
+	ALTER TABLE [GD2C2021].[SQLI].Chofer				ADD PRIMARY KEY (chofer_legajo)
 	
-	ALTER TABLE [GD2C2021].[SQLI].Modelo			ADD PRIMARY KEY (modelo_id)
+	ALTER TABLE [GD2C2021].[SQLI].Modelo				ADD PRIMARY KEY (modelo_id)
 
-	ALTER TABLE [GD2C2021].[SQLI].Camion			ADD PRIMARY KEY (cami_id)
-	ALTER TABLE [GD2C2021].[SQLI].Camion			ADD FOREIGN KEY (cami_modelo)			REFERENCES [GD2C2021].[SQLI].Modelo(modelo_id) ON DELETE NO ACTION ON UPDATE NO ACTION ;
+	ALTER TABLE [GD2C2021].[SQLI].Camion				ADD PRIMARY KEY (cami_id)
+	ALTER TABLE [GD2C2021].[SQLI].Camion				ADD FOREIGN KEY (cami_modelo)				REFERENCES [GD2C2021].[SQLI].Modelo(modelo_id) ON DELETE NO ACTION ON UPDATE NO ACTION ;
 	
-	ALTER TABLE [GD2C2021].[SQLI].Paquete			ADD PRIMARY KEY (pack_id)
+	ALTER TABLE [GD2C2021].[SQLI].Paquete				ADD PRIMARY KEY (pack_id)
 		
-	ALTER TABLE [GD2C2021].[SQLI].Viaje				ADD PRIMARY KEY (viaje_id)
-	ALTER TABLE [GD2C2021].[SQLI].Viaje				ADD FOREIGN KEY (viaje_camion)			REFERENCES [GD2C2021].[SQLI].Camion(cami_id) ON DELETE NO ACTION ON UPDATE NO ACTION ;
-	ALTER TABLE [GD2C2021].[SQLI].Viaje				ADD FOREIGN KEY (viaje_chofer)			REFERENCES [GD2C2021].[SQLI].Chofer(chofer_legajo) ON DELETE NO ACTION ON UPDATE NO ACTION ;
-	ALTER TABLE [GD2C2021].[SQLI].Viaje				ADD FOREIGN KEY (viaje_recorrido)		REFERENCES [GD2C2021].[SQLI].Recorrido(reco_id) ON DELETE NO ACTION ON UPDATE NO ACTION ;
+	ALTER TABLE [GD2C2021].[SQLI].Viaje					ADD PRIMARY KEY (viaje_id)
+	ALTER TABLE [GD2C2021].[SQLI].Viaje					ADD FOREIGN KEY (viaje_camion)				REFERENCES [GD2C2021].[SQLI].Camion(cami_id) ON DELETE NO ACTION ON UPDATE NO ACTION ;
+	ALTER TABLE [GD2C2021].[SQLI].Viaje					ADD FOREIGN KEY (viaje_chofer)				REFERENCES [GD2C2021].[SQLI].Chofer(chofer_legajo) ON DELETE NO ACTION ON UPDATE NO ACTION ;
+	ALTER TABLE [GD2C2021].[SQLI].Viaje					ADD FOREIGN KEY (viaje_recorrido)			REFERENCES [GD2C2021].[SQLI].Recorrido(reco_id) ON DELETE NO ACTION ON UPDATE NO ACTION ;
 	
-	ALTER TABLE [GD2C2021].[SQLI].Paquete_Por_Viaje	ADD FOREIGN KEY (ppv_viaje)				REFERENCES [GD2C2021].[SQLI].Viaje(viaje_id) ON DELETE NO ACTION ON UPDATE NO ACTION ;
-	ALTER TABLE [GD2C2021].[SQLI].Paquete_Por_Viaje	ADD FOREIGN KEY (ppv_paquete)			REFERENCES [GD2C2021].[SQLI].Paquete(pack_id) ON DELETE NO ACTION ON UPDATE NO ACTION ;
+	ALTER TABLE [GD2C2021].[SQLI].Paquete_Por_Viaje		ADD FOREIGN KEY (ppv_viaje)					REFERENCES [GD2C2021].[SQLI].Viaje(viaje_id) ON DELETE NO ACTION ON UPDATE NO ACTION ;
+	ALTER TABLE [GD2C2021].[SQLI].Paquete_Por_Viaje		ADD FOREIGN KEY (ppv_paquete)				REFERENCES [GD2C2021].[SQLI].Paquete(pack_id) ON DELETE NO ACTION ON UPDATE NO ACTION ;
 
-	ALTER TABLE [GD2C2021].[SQLI].Taller			ADD PRIMARY KEY (taller_id)
-	ALTER TABLE [GD2C2021].[SQLI].Taller			ADD FOREIGN KEY (taller_ciudad)			REFERENCES [GD2C2021].[SQLI].Ciudad(ciudad_id) ON DELETE NO ACTION ON UPDATE NO ACTION ;
+	ALTER TABLE [GD2C2021].[SQLI].Taller				ADD PRIMARY KEY (taller_id)
+	ALTER TABLE [GD2C2021].[SQLI].Taller				ADD FOREIGN KEY (taller_ciudad)				REFERENCES [GD2C2021].[SQLI].Ciudad(ciudad_id) ON DELETE NO ACTION ON UPDATE NO ACTION ;
 
-	ALTER TABLE [GD2C2021].[SQLI].Orden_De_Trabajo	ADD PRIMARY KEY (odt_id)
-	ALTER TABLE [GD2C2021].[SQLI].Orden_De_Trabajo	ADD FOREIGN KEY (odt_camion)			REFERENCES [GD2C2021].[SQLI].Camion(cami_id) ON DELETE NO ACTION ON UPDATE NO ACTION ;
+	ALTER TABLE [GD2C2021].[SQLI].Orden_De_Trabajo		ADD PRIMARY KEY (odt_id)
+	ALTER TABLE [GD2C2021].[SQLI].Orden_De_Trabajo		ADD FOREIGN KEY (odt_camion)				REFERENCES [GD2C2021].[SQLI].Camion(cami_id) ON DELETE NO ACTION ON UPDATE NO ACTION ;
 	
-	ALTER TABLE [GD2C2021].[SQLI].Tipo_Tarea		ADD PRIMARY KEY (tipo_id)
+	ALTER TABLE [GD2C2021].[SQLI].Tipo_Tarea			ADD PRIMARY KEY (tipo_id)
 
-	ALTER TABLE [GD2C2021].[SQLI].Mecanico			ADD PRIMARY KEY (meca_nro_legajo)
-	ALTER TABLE [GD2C2021].[SQLI].Mecanico			ADD FOREIGN KEY (meca_lugar_trabajo)	REFERENCES [GD2C2021].[SQLI].Taller(taller_id) ON DELETE NO ACTION ON UPDATE NO ACTION ;
+	ALTER TABLE [GD2C2021].[SQLI].Mecanico				ADD PRIMARY KEY (meca_nro_legajo)
+	ALTER TABLE [GD2C2021].[SQLI].Mecanico				ADD FOREIGN KEY (meca_lugar_trabajo)		REFERENCES [GD2C2021].[SQLI].Taller(taller_id) ON DELETE NO ACTION ON UPDATE NO ACTION ;
 
-	ALTER TABLE [GD2C2021].[SQLI].Tareas			ADD PRIMARY KEY (tarea_codigo)
-	ALTER TABLE [GD2C2021].[SQLI].Tareas			ADD FOREIGN KEY (tarea_tipo)			REFERENCES [GD2C2021].[SQLI].Tipo_Tarea(tipo_id) ON DELETE NO ACTION ON UPDATE NO ACTION ;
+	ALTER TABLE [GD2C2021].[SQLI].Tareas				ADD PRIMARY KEY (tarea_codigo)
+	ALTER TABLE [GD2C2021].[SQLI].Tareas				ADD FOREIGN KEY (tarea_tipo)				REFERENCES [GD2C2021].[SQLI].Tipo_Tarea(tipo_id) ON DELETE NO ACTION ON UPDATE NO ACTION ;
 	
-	ALTER TABLE [GD2C2021].[SQLI].Herramienta_Por_Tarea	ADD FOREIGN KEY (tarea_codigo)		REFERENCES [GD2C2021].[SQLI].Tareas(tarea_codigo) ON DELETE NO ACTION ON UPDATE NO ACTION ;
-	ALTER TABLE [GD2C2021].[SQLI].Herramienta_Por_Tarea ADD FOREIGN KEY (herra_id)			REFERENCES [GD2C2021].[SQLI].Herramientas(herra_id) ON DELETE NO ACTION ON UPDATE NO ACTION ;
+	ALTER TABLE [GD2C2021].[SQLI].Herramienta_Por_Tarea	ADD FOREIGN KEY (tarea_codigo)				REFERENCES [GD2C2021].[SQLI].Tareas(tarea_codigo) ON DELETE NO ACTION ON UPDATE NO ACTION ;
+	ALTER TABLE [GD2C2021].[SQLI].Herramienta_Por_Tarea ADD FOREIGN KEY (herra_id)					REFERENCES [GD2C2021].[SQLI].Herramientas(herra_id) ON DELETE NO ACTION ON UPDATE NO ACTION ;
 	
-	ALTER TABLE [GD2C2021].[SQLI].Tarea_Por_ODT		ADD FOREIGN KEY (tarea_id)				REFERENCES [GD2C2021].[SQLI].Tareas(tarea_codigo) ON DELETE NO ACTION ON UPDATE NO ACTION ;
-	ALTER TABLE [GD2C2021].[SQLI].Tarea_Por_ODT		ADD FOREIGN KEY (odt_id)				REFERENCES [GD2C2021].[SQLI].Orden_De_Trabajo(odt_id) ON DELETE NO ACTION ON UPDATE NO ACTION ;
-	ALTER TABLE [GD2C2021].[SQLI].Tarea_Por_ODT		ADD FOREIGN KEY (tarea_mecanico)		REFERENCES [GD2C2021].[SQLI].Mecanico(meca_nro_legajo) ON DELETE NO ACTION ON UPDATE NO ACTION ;
+	ALTER TABLE [GD2C2021].[SQLI].Tarea_Por_ODT			ADD FOREIGN KEY (tarea_id)					REFERENCES [GD2C2021].[SQLI].Tareas(tarea_codigo) ON DELETE NO ACTION ON UPDATE NO ACTION ;
+	ALTER TABLE [GD2C2021].[SQLI].Tarea_Por_ODT			ADD FOREIGN KEY (odt_id)					REFERENCES [GD2C2021].[SQLI].Orden_De_Trabajo(odt_id) ON DELETE NO ACTION ON UPDATE NO ACTION ;
+	ALTER TABLE [GD2C2021].[SQLI].Tarea_Por_ODT			ADD FOREIGN KEY (tarea_mecanico)			REFERENCES [GD2C2021].[SQLI].Mecanico(meca_nro_legajo) ON DELETE NO ACTION ON UPDATE NO ACTION ;
 GO
+
+-------------------------------- procedure migracion ----------------------------------------------------------------
+CREATE PROCEDURE Migracion AS
+
+	EXEC Insercion_Tabla_Ciudad
+	EXEC Insercion_Tabla_Sucursal
+	EXEC Insersion_Tabla_Accesorio
+	EXEC Insersion_Tabla_Cliente
+	EXEC Insersion_Tabla_Factura_Cliente
+	EXEC Insersion_Tabla_Factura_Accesorio
+	EXEC Insersion_Tabla_Microprocesadores
+	EXEC Insersion_Tabla_Placa_Video
+	EXEC Insersion_Tabla_Disco_Rigido
+	EXEC Insersion_Tabla_Memoria
+	EXEC Insersion_Tabla_PC
+	EXEC Insersion_Tabla_Compra_PCS
+	EXEC Insersion_Tabla_Compra_Accesorios
+GO
+-------------------------------- procedures para reseteos de tablas -------------------------------------------------
+CREATE PROCEDURE Reseteo_Tablas AS
+
+	IF (OBJECT_ID('GD2C2021.SQLI.Ciudad')IS NOT NULL)					DROP TABLE [GD2C2021].[SQLI].Ciudad
+	IF (OBJECT_ID('GD2C2021.SQLI.Herramientas')IS NOT NULL)				DROP TABLE [GD2C2021].[SQLI].Herramientas
+	IF (OBJECT_ID('GD2C2021.SQLI.Recorrido')IS NOT NULL)				DROP TABLE [GD2C2021].[SQLI].Recorrido
+	IF (OBJECT_ID('GD2C2021.SQLI.Chofer')IS NOT NULL)					DROP TABLE [GD2C2021].[SQLI].Chofer
+	IF (OBJECT_ID('GD2C2021.SQLI.Modelo')IS NOT NULL)					DROP TABLE [GD2C2021].[SQLI].Modelo
+	IF (OBJECT_ID('GD2C2021.SQLI.Camion')IS NOT NULL)					DROP TABLE [GD2C2021].[SQLI].Camion
+	IF (OBJECT_ID('GD2C2021.SQLI.Paquete')IS NOT NULL)					DROP TABLE [GD2C2021].[SQLI].Paquete
+	IF (OBJECT_ID('GD2C2021.SQLI.Viaje')IS NOT NULL)					DROP TABLE [GD2C2021].[SQLI].Viaje
+	IF (OBJECT_ID('GD2C2021.SQLI.Paquete_Por_Viaje')IS NOT NULL)		DROP TABLE [GD2C2021].[SQLI].Paquete_Por_Viaje
+	IF (OBJECT_ID('GD2C2021.SQLI.Taller')IS NOT NULL)					DROP TABLE [GD2C2021].[SQLI].Taller
+	IF (OBJECT_ID('GD2C2021.SQLI.Orden_De_Trabajo')IS NOT NULL)			DROP TABLE [GD2C2021].[SQLI].Orden_De_Trabajo
+	IF (OBJECT_ID('GD2C2021.SQLI.Tipo_Tarea')IS NOT NULL)				DROP TABLE [GD2C2021].[SQLI].Tipo_Tarea
+	IF (OBJECT_ID('GD2C2021.SQLI.Mecanico')IS NOT NULL)					DROP TABLE [GD2C2021].[SQLI].Mecanico
+	IF (OBJECT_ID('GD2C2021.SQLI.Tareas')IS NOT NULL)					DROP TABLE [GD2C2021].[SQLI].Tareas
+	IF (OBJECT_ID('GD2C2021.SQLI.Herramienta_Por_Tarea')IS NOT NULL)	DROP TABLE [GD2C2021].[SQLI].Herramienta_Por_Tarea
+	IF (OBJECT_ID('GD2C2021.SQLI.Tarea_Por_ODT')IS NOT NULL)			DROP TABLE [GD2C2021].[SQLI].Tarea_Por_ODT
+GO
+
+CREATE PROCEDURE Reseteo_Procedures AS
+
+	IF EXISTS (SELECT * FROM  sys.procedures WHERE  NAME = 'Creacion_de_Tablas' AND type = 'p')					DROP PROCEDURE dbo.Creacion_de_Tablas
+	IF EXISTS (SELECT * FROM  sys.procedures WHERE  NAME = 'PK_Y_FK' AND type = 'p')							DROP PROCEDURE dbo.PK_Y_FK
+	IF EXISTS (SELECT * FROM  sys.procedures WHERE  NAME = 'Insercion_Tabla_Ciudad' AND type = 'p')				DROP PROCEDURE dbo.Insercion_Tabla_Ciudad
+	IF EXISTS (SELECT * FROM  sys.procedures WHERE  NAME = 'Insercion_Tabla_Sucursal' AND type = 'p')			DROP PROCEDURE dbo.Insercion_Tabla_Sucursal
+	IF EXISTS (SELECT * FROM  sys.procedures WHERE  NAME = 'Insersion_Tabla_Accesorio' AND type = 'p')			DROP PROCEDURE dbo.Insersion_Tabla_Accesorio
+	IF EXISTS (SELECT * FROM  sys.procedures WHERE  NAME = 'Insersion_Tabla_Factura_Accesorio' AND type = 'p')	DROP PROCEDURE dbo.Insersion_Tabla_Factura_Accesorio
+	IF EXISTS (SELECT * FROM  sys.procedures WHERE  NAME = 'Insersion_Tabla_Factura_Cliente' AND type = 'p')	DROP PROCEDURE dbo.Insersion_Tabla_Factura_Cliente
+	IF EXISTS (SELECT * FROM  sys.procedures WHERE  NAME = 'Insersion_Tabla_Microprocesadores' AND type = 'p')	DROP PROCEDURE dbo.Insersion_Tabla_Microprocesadores
+	IF EXISTS (SELECT * FROM  sys.procedures WHERE  NAME = 'Insersion_Tabla_Placa_Video' AND type = 'p')		DROP PROCEDURE dbo.Insersion_Tabla_Placa_Video
+	IF EXISTS (SELECT * FROM  sys.procedures WHERE  NAME = 'Insersion_Tabla_Disco_Rigido' AND type = 'p')		DROP PROCEDURE dbo.Insersion_Tabla_Disco_Rigido
+	IF EXISTS (SELECT * FROM  sys.procedures WHERE  NAME = 'Insersion_Tabla_Memoria' AND type = 'p')			DROP PROCEDURE dbo.Insersion_Tabla_Memoria
+	IF EXISTS (SELECT * FROM  sys.procedures WHERE  NAME = 'Insersion_Tabla_Cliente' AND type = 'p')			DROP PROCEDURE dbo.Insersion_Tabla_Cliente
+	IF EXISTS (SELECT * FROM  sys.procedures WHERE  NAME = 'Insersion_Tabla_PC' AND type = 'p')					DROP PROCEDURE dbo.Insersion_Tabla_PC
+	IF EXISTS (SELECT * FROM  sys.procedures WHERE  NAME = 'Insersion_Tabla_Compra_PCS' AND type = 'p')			DROP PROCEDURE dbo.Insersion_Tabla_Compra_PCS
+	IF EXISTS (SELECT * FROM  sys.procedures WHERE  NAME = 'Insersion_Tabla_Compra_Accesorios' AND type = 'p')	DROP PROCEDURE dbo.Insersion_Tabla_Compra_Accesorios
+	IF EXISTS (SELECT * FROM  sys.procedures WHERE  NAME = 'Migracion' AND type = 'p')							DROP PROCEDURE dbo.Migracion
+	IF EXISTS (SELECT * FROM  sys.procedures WHERE  NAME = 'Reseteo_Tablas' AND type = 'p')						DROP PROCEDURE dbo.Reseteo_Tablas
+	IF EXISTS (SELECT * FROM  sys.procedures WHERE  NAME = 'Reseteo_Procedures' AND type = 'p')					DROP PROCEDURE dbo.Reseteo_Procedures
+	IF EXISTS (SELECT * FROM  sys.procedures WHERE  NAME = 'Reseteo' AND type = 'p')							DROP PROCEDURE dbo.Reseteo
+	IF EXISTS (SELECT * FROM  sys.procedures WHERE  NAME = 'Play' AND type = 'p')								DROP PROCEDURE dbo.Play
+
+GO
+
+CREATE PROCEDURE Reseteo AS
+
+	EXEC Reseteo_Tablas
+	EXEC Reseteo_Procedures
+
+GO
+-------------------------------- procedure principal ----------------------------------------------------------------
+/* si se toca f5 para iniciar y ya habia algo creado hay que tocar f5 2 veces porque tira un error que no supe sacar
+( consulta a los ayudantes) pero funciona de 10 sin contar esa falopeada */
+CREATE PROCEDURE Play AS
+	IF EXISTS (SELECT * FROM   sys.schemas WHERE  NAME = 'SQLI')
+	BEGIN
+		EXEC Reseteo
+		DROP SCHEMA SELECT_ASTERISCO
+	END
+	ELSE
+	BEGIN
+		EXEC ('use [GD2C2021]')
+		EXEC ('create schema SQLI')
+		EXEC Creacion_de_Tablas
+		EXEC PK_Y_FK
+		EXEC Migracion
+	END
+
+GO
+
+
+-------------------------------- TOCA PLAY PAPAAAA ----------------------------------------------------------------
+EXEC Play
+
