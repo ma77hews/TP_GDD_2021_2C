@@ -6,7 +6,6 @@ CREATE PROCEDURE Creacion_de_Tablas	AS
 		ciudad_id			INT IDENTITY,
 		ciudad_nombre		NVARCHAR(255)
 	);
-	
 
 	CREATE TABLE [GD2C2021].[SQLI].Viaje 
 	(
@@ -124,6 +123,7 @@ CREATE PROCEDURE Creacion_de_Tablas	AS
 	CREATE TABLE [GD2C2021].[SQLI].Herramientas 
 	(
 		herra_id			INT IDENTITY,
+		herra_code			NVARCHAR(100),
 		herra_detalle		CHAR(50),
 		herra_precio		DECIMAL(18,2)
 	);
@@ -199,25 +199,33 @@ CREATE PROCEDURE PK_Y_FK AS
 	ALTER TABLE [GD2C2021].[SQLI].Tarea_Por_ODT			ADD FOREIGN KEY (tarea_mecanico)			REFERENCES [GD2C2021].[SQLI].Mecanico(meca_nro_legajo)	ON DELETE NO ACTION ON UPDATE NO ACTION ;
 GO
 
+-------------------------------- procedures para realizar las migraciones de las tablas --------------------------------
+CREATE PROCEDURE Insercion_Tabla_Ciudad AS
+	INSERT INTO [GD2C2021].[SQLI].Ciudad
+	SELECT		TALLER_CIUDAD
+	FROM		[GD2C2021].[gd_esquema].Maestra
+	where		TALLER_CIUDAD is not null 
+	GROUP BY	TALLER_CIUDAD
+GO
+
+CREATE PROCEDURE Insercion_Tabla_Herramientas AS
+	INSERT INTO [GD2C2021].[SQLI].Herramientas(herra_code, herra_detalle, herra_precio)
+	SELECT		MATERIAL_COD, MATERIAL_DESCRIPCION, MATERIAL_PRECIO
+	FROM		[GD2C2021].[gd_esquema].Maestra
+	where		(MATERIAL_COD is not null) or (MATERIAL_DESCRIPCION is not null) and (MATERIAL_PRECIO is not null)
+	GROUP BY	MATERIAL_COD, MATERIAL_DESCRIPCION, MATERIAL_PRECIO
+GO
+
+
 -------------------------------- procedure migracion ----------------------------------------------------------------
-/*
+
 CREATE PROCEDURE Migracion AS
 
 	EXEC Insercion_Tabla_Ciudad
-	EXEC Insercion_Tabla_Sucursal
-	EXEC Insersion_Tabla_Accesorio
-	EXEC Insersion_Tabla_Cliente
-	EXEC Insersion_Tabla_Factura_Cliente
-	EXEC Insersion_Tabla_Factura_Accesorio
-	EXEC Insersion_Tabla_Microprocesadores
-	EXEC Insersion_Tabla_Placa_Video
-	EXEC Insersion_Tabla_Disco_Rigido
-	EXEC Insersion_Tabla_Memoria
-	EXEC Insersion_Tabla_PC
-	EXEC Insersion_Tabla_Compra_PCS
-	EXEC Insersion_Tabla_Compra_Accesorios
+	EXEC Insercion_Tabla_Herramientas
+	
 GO
-*/
+
 -------------------------------- procedures para reseteos de tablas -------------------------------------------------
 CREATE PROCEDURE Reseteo_Tablas AS
 
@@ -244,18 +252,7 @@ CREATE PROCEDURE Reseteo_Procedures AS
 	IF EXISTS (SELECT * FROM  sys.procedures WHERE  NAME = 'Creacion_de_Tablas' AND type = 'p')					DROP PROCEDURE dbo.Creacion_de_Tablas
 	IF EXISTS (SELECT * FROM  sys.procedures WHERE  NAME = 'PK_Y_FK' AND type = 'p')							DROP PROCEDURE dbo.PK_Y_FK
 	IF EXISTS (SELECT * FROM  sys.procedures WHERE  NAME = 'Insercion_Tabla_Ciudad' AND type = 'p')				DROP PROCEDURE dbo.Insercion_Tabla_Ciudad
-	IF EXISTS (SELECT * FROM  sys.procedures WHERE  NAME = 'Insercion_Tabla_Sucursal' AND type = 'p')			DROP PROCEDURE dbo.Insercion_Tabla_Sucursal
-	IF EXISTS (SELECT * FROM  sys.procedures WHERE  NAME = 'Insersion_Tabla_Accesorio' AND type = 'p')			DROP PROCEDURE dbo.Insersion_Tabla_Accesorio
-	IF EXISTS (SELECT * FROM  sys.procedures WHERE  NAME = 'Insersion_Tabla_Factura_Accesorio' AND type = 'p')	DROP PROCEDURE dbo.Insersion_Tabla_Factura_Accesorio
-	IF EXISTS (SELECT * FROM  sys.procedures WHERE  NAME = 'Insersion_Tabla_Factura_Cliente' AND type = 'p')	DROP PROCEDURE dbo.Insersion_Tabla_Factura_Cliente
-	IF EXISTS (SELECT * FROM  sys.procedures WHERE  NAME = 'Insersion_Tabla_Microprocesadores' AND type = 'p')	DROP PROCEDURE dbo.Insersion_Tabla_Microprocesadores
-	IF EXISTS (SELECT * FROM  sys.procedures WHERE  NAME = 'Insersion_Tabla_Placa_Video' AND type = 'p')		DROP PROCEDURE dbo.Insersion_Tabla_Placa_Video
-	IF EXISTS (SELECT * FROM  sys.procedures WHERE  NAME = 'Insersion_Tabla_Disco_Rigido' AND type = 'p')		DROP PROCEDURE dbo.Insersion_Tabla_Disco_Rigido
-	IF EXISTS (SELECT * FROM  sys.procedures WHERE  NAME = 'Insersion_Tabla_Memoria' AND type = 'p')			DROP PROCEDURE dbo.Insersion_Tabla_Memoria
-	IF EXISTS (SELECT * FROM  sys.procedures WHERE  NAME = 'Insersion_Tabla_Cliente' AND type = 'p')			DROP PROCEDURE dbo.Insersion_Tabla_Cliente
-	IF EXISTS (SELECT * FROM  sys.procedures WHERE  NAME = 'Insersion_Tabla_PC' AND type = 'p')					DROP PROCEDURE dbo.Insersion_Tabla_PC
-	IF EXISTS (SELECT * FROM  sys.procedures WHERE  NAME = 'Insersion_Tabla_Compra_PCS' AND type = 'p')			DROP PROCEDURE dbo.Insersion_Tabla_Compra_PCS
-	IF EXISTS (SELECT * FROM  sys.procedures WHERE  NAME = 'Insersion_Tabla_Compra_Accesorios' AND type = 'p')	DROP PROCEDURE dbo.Insersion_Tabla_Compra_Accesorios
+	IF EXISTS (SELECT * FROM  sys.procedures WHERE  NAME = 'Insercion_Tabla_Herramientas' AND type = 'p')		DROP PROCEDURE dbo.Insercion_Tabla_Herramientas
 	IF EXISTS (SELECT * FROM  sys.procedures WHERE  NAME = 'Migracion' AND type = 'p')							DROP PROCEDURE dbo.Migracion
 	IF EXISTS (SELECT * FROM  sys.procedures WHERE  NAME = 'Reseteo_Tablas' AND type = 'p')						DROP PROCEDURE dbo.Reseteo_Tablas
 	IF EXISTS (SELECT * FROM  sys.procedures WHERE  NAME = 'Reseteo_Procedures' AND type = 'p')					DROP PROCEDURE dbo.Reseteo_Procedures
@@ -285,7 +282,7 @@ CREATE PROCEDURE Play AS
 		EXEC ('create schema SQLI')
 		EXEC Creacion_de_Tablas
 		EXEC PK_Y_FK
-		--EXEC Migracion
+		EXEC Migracion
 	END
 
 GO
