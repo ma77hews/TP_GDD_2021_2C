@@ -232,18 +232,20 @@ GO
 CREATE PROCEDURE Insercion_Tabla_Taller AS
 	INSERT INTO [GD2C2021].[SQLI].Taller (taller_direccion, taller_telefono, taller_mail, taller_nombre, taller_ciudad)
 	SELECT		TALLER_DIRECCION, TALLER_TELEFONO, TALLER_MAIL, TALLER_NOMBRE, ciu.ciudad_id
-	FROM [GD2C2021].[gd_esquema].Maestra AS MASTERTABLE
-	join [GD2C2021].[SQLI].Ciudad ciu on MASTERTABLE.TALLER_CIUDAD = ciu.ciudad_nombre
-	where  (TALLER_DIRECCION is not null) or (TALLER_TELEFONO is not null) or (TALLER_MAIL is not null) or (TALLER_NOMBRE is not null) or (ciu.ciudad_id is not null)
-	group by TALLER_DIRECCION, TALLER_TELEFONO, TALLER_MAIL, TALLER_NOMBRE, ciu.ciudad_id
+	FROM		[GD2C2021].[gd_esquema].Maestra AS MASTERTABLE
+	join		[GD2C2021].[SQLI].Ciudad ciu on MASTERTABLE.TALLER_CIUDAD = ciu.ciudad_nombre
+	where		(TALLER_DIRECCION is not null) or (TALLER_TELEFONO is not null) or (TALLER_MAIL is not null) or (TALLER_NOMBRE is not null) or (ciu.ciudad_id is not null)
+	group by	TALLER_DIRECCION, TALLER_TELEFONO, TALLER_MAIL, TALLER_NOMBRE, ciu.ciudad_id
 GO
 
 CREATE PROCEDURE Insercion_Tabla_Chofer AS
-	INSERT INTO [GD2C2021].[SQLI].Chofer (chofer_legajo, chofer_nombre, chofer_apellido, chofer_dni, chofer_direccion, chofer_telefono, chofer_mail, chofer_fecha_nac, chofer_costo_hora)
-	SELECT		CHOFER_NRO_LEGAJO, CHOFER_NOMBRE, CHOFER_APELLIDO, CHOFER_DNI, CHOFER_DIRECCION, CHOFER_TELEFONO, CHOFER_MAIL, CHOFER_FECHA_NAC, CHOFER_COSTO_HORA		
-	FROM [GD2C2021].[gd_esquema].Maestra AS MASTERTABLE
-	where (CHOFER_NRO_LEGAJO is not null) or (CHOFER_NOMBRE is not null) or (CHOFER_APELLIDO is not null) or (CHOFER_DNI is not null) or (CHOFER_DIRECCION is not null) or (CHOFER_TELEFONO is not null) or (CHOFER_MAIL is not null) or (CHOFER_FECHA_NAC is not null) or (CHOFER_COSTO_HORA is not null)
-	group by CHOFER_NRO_LEGAJO, CHOFER_NOMBRE, CHOFER_APELLIDO, CHOFER_DNI, CHOFER_DIRECCION, CHOFER_TELEFONO, CHOFER_MAIL, CHOFER_FECHA_NAC, CHOFER_COSTO_HORA
+	SET IDENTITY_INSERT [GD2C2021].[SQLI].Chofer ON
+	INSERT INTO			[GD2C2021].[SQLI].Chofer (chofer_legajo, chofer_nombre, chofer_apellido, chofer_dni, chofer_direccion, chofer_telefono, chofer_mail, chofer_fecha_nac, chofer_costo_hora)
+	SELECT				CHOFER_NRO_LEGAJO, CHOFER_NOMBRE, CHOFER_APELLIDO, CHOFER_DNI, CHOFER_DIRECCION, CHOFER_TELEFONO, CHOFER_MAIL, CHOFER_FECHA_NAC, CHOFER_COSTO_HORA		
+	FROM				[GD2C2021].[gd_esquema].Maestra AS MASTERTABLE
+	where				(CHOFER_NRO_LEGAJO is not null) or (CHOFER_NOMBRE is not null) or (CHOFER_APELLIDO is not null) or (CHOFER_DNI is not null) or (CHOFER_DIRECCION is not null) or (CHOFER_TELEFONO is not null) or (CHOFER_MAIL is not null) or (CHOFER_FECHA_NAC is not null) or (CHOFER_COSTO_HORA is not null)
+	group by			CHOFER_NRO_LEGAJO, CHOFER_NOMBRE, CHOFER_APELLIDO, CHOFER_DNI, CHOFER_DIRECCION, CHOFER_TELEFONO, CHOFER_MAIL, CHOFER_FECHA_NAC, CHOFER_COSTO_HORA
+	SET IDENTITY_INSERT [GD2C2021].[SQLI].Chofer OFF
 GO
 
 CREATE PROCEDURE Insercion_Tabla_Modelo AS
@@ -263,8 +265,6 @@ CREATE PROCEDURE Insercion_Tabla_Camion AS
 	group by		modelo.modelo_id, MODELO_CAMION, CAMION_PATENTE, CAMION_NRO_CHASIS, CAMION_NRO_MOTOR, CAMION_FECHA_ALTA
 GO
 
-EXEC Insercion_Tabla_Modelo
-EXEC Insercion_Tabla_Camion
 CREATE PROCEDURE Insercion_Tabla_Mecanico AS
 	INSERT INTO [GD2C2021].[SQLI].Mecanico(meca_nro_legajo, meca_nombre, meca_apellido, meca_dni, meca_direccion, meca_telefono, meca_cost_hora, meca_mail, meca_fecha_nac, meca_lugar_trabajo)
 	SELECT		MECANICO_NRO_LEGAJO, MECANICO_NOMBRE, MECANICO_APELLIDO,  MECANICO_DNI, MECANICO_DIRECCION, MECANICO_TELEFONO, MECANICO_COSTO_HORA, MECANICO_MAIL, MECANICO_FECHA_NAC, tal.taller_id
@@ -278,27 +278,23 @@ CREATE PROCEDURE Insercion_Tabla_Tipo_Tarea AS
 	INSERT INTO [GD2C2021].[SQLI].Tipo_Tarea(tipo_tarea)
 	SELECT		TIPO_TAREA
 	FROM		[GD2C2021].[gd_esquema].Maestra AS MASTERTABLE
-	where TIPO_TAREA is not null
-	group by TIPO_TAREA
+	where		TIPO_TAREA is not null
+	group by	TIPO_TAREA
 GO
 
 CREATE PROCEDURE Insercion_Tabla_Tareas AS
-	INSERT INTO [GD2C2021].[SQLI].Tareas(tarea_tipo, tarea_descripcion, tarea_tiempo_est)
-	SELECT		tipo.tipo_id, TAREA_DESCRIPCION, TAREA_TIEMPO_ESTIMADO
-	FROM		[GD2C2021].[gd_esquema].Maestra AS MASTERTABLE
-	join		[GD2C2021].[SQLI].Tipo_tarea tipo on MASTERTABLE.TIPO_TAREA = tipo.tipo_tarea-- no tengo como joinear contra tipo_tarea
-	where		(tipo.tipo_id is not null) or (TAREA_DESCRIPCION is not null) or (TAREA_TIEMPO_ESTIMADO is not null)
-	group by	tipo.tipo_id, TAREA_DESCRIPCION, TAREA_TIEMPO_ESTIMADO
+	SET IDENTITY_INSERT [GD2C2021].[SQLI].Tareas ON
+	INSERT INTO			[GD2C2021].[SQLI].Tareas(tarea_codigo, tarea_tipo, tarea_descripcion, tarea_tiempo_est)
+	SELECT				TAREA_CODIGO, tipo.tipo_id, TAREA_DESCRIPCION, TAREA_TIEMPO_ESTIMADO
+	FROM				[GD2C2021].[gd_esquema].Maestra AS MASTERTABLE
+	join				[GD2C2021].[SQLI].Tipo_tarea tipo on MASTERTABLE.TIPO_TAREA = tipo.tipo_tarea-- no tengo como joinear contra tipo_tarea
+	where				(TAREA_CODIGO is not null) or (tipo.tipo_id is not null) or (TAREA_DESCRIPCION is not null) or (TAREA_TIEMPO_ESTIMADO is not null)
+	group by			TAREA_CODIGO, tipo.tipo_id, TAREA_DESCRIPCION, TAREA_TIEMPO_ESTIMADO
+	SET IDENTITY_INSERT [GD2C2021].[SQLI].Tareas OFF
 GO
-/*
-SELECT * FROM [GD2C2021].[SQLI].Viaje
-SELECT * FROM [GD2C2021].[SQLI].Camion
-SELECT * FROM [GD2C2021].[SQLI].Chofer
-SELECT * FROM [GD2C2021].[SQLI].Recorrido
-SELECT CAMION_PATENTE, CAMION_NRO_CHASIS, CAMION_NRO_MOTOR, CAMION_FECHA_ALTA FROM [GD2C2021].[gd_esquema].Maestra
-*/
+
 CREATE PROCEDURE Insercion_Tabla_Viaje AS-- todavia no funciona, chequear
-	INSERT INTO		[GD2C2021].[SQLI].Viaje (viaje_camion, viaje_chofer, viaje_recorrido, viaje_fechaini, viaje_fechafin, viaje_itsconsu)-- viaje_itsconsu nombre raro, cambiar
+	INSERT INTO		[GD2C2021].[SQLI].Viaje (viaje_camion, viaje_chofer, viaje_recorrido, viaje_fechaini, viaje_fechafin, viaje_itsconsu)
 	SELECT DISTINCT	cam.cami_id, cho.chofer_legajo, rec.reco_id, VIAJE_FECHA_INICIO, VIAJE_FECHA_FIN, VIAJE_CONSUMO_COMBUSTIBLE
 	FROM			[GD2C2021].[gd_esquema].Maestra AS MASTERTABLE
 	join			[GD2C2021].[SQLI].Camion cam  on MASTERTABLE.CAMION_NRO_CHASIS = cam.cami_nro_chasis
@@ -308,31 +304,47 @@ CREATE PROCEDURE Insercion_Tabla_Viaje AS-- todavia no funciona, chequear
 	group by		cam.cami_id, cho.chofer_legajo, rec.reco_id, VIAJE_FECHA_INICIO, VIAJE_FECHA_FIN, VIAJE_CONSUMO_COMBUSTIBLE
 GO
 
-
-/*
 CREATE PROCEDURE Insercion_Tabla_Paquete AS
 	INSERT INTO [GD2C2021].[SQLI].Paquete (pack_alto_max, pack_ancho_max, pack_largo_max, pack_descripcion, pack_precio, pack_peso_maximo, pack_cantidad)
 	SELECT		PAQUETE_ALTO_MAX, PAQUETE_ANCHO_MAX, PAQUETE_LARGO_MAX, PAQUETE_DESCRIPCION, PAQUETE_PRECIO, PAQUETE_PESO_MAX, PAQUETE_CANTIDAD
 	FROM		[GD2C2021].[gd_esquema].Maestra AS MASTERTABLE
-	where (PAQUETE_ALTO_MAX is not null) or (PAQUETE_ANCHO_MAX is not null) or (PAQUETE_LARGO_MAX is not null) or (PAQUETE_DESCRIPCION is not null) or (PAQUETE_PRECIO is not null) or (PAQUETE_PESO_MAX is not null) or (PAQUETE_CANTIDAD is not null) 
-	group by PAQUETE_ALTO_MAX, PAQUETE_ANCHO_MAX, PAQUETE_LARGO_MAX, PAQUETE_DESCRIPCION, PAQUETE_PRECIO, PAQUETE_PESO_MAX, PAQUETE_CANTIDAD
+	where		(PAQUETE_ALTO_MAX is not null) or (PAQUETE_ANCHO_MAX is not null) or (PAQUETE_LARGO_MAX is not null) or (PAQUETE_DESCRIPCION is not null) or (PAQUETE_PRECIO is not null) or (PAQUETE_PESO_MAX is not null) or (PAQUETE_CANTIDAD is not null) 
+	group by	PAQUETE_ALTO_MAX, PAQUETE_ANCHO_MAX, PAQUETE_LARGO_MAX, PAQUETE_DESCRIPCION, PAQUETE_PRECIO, PAQUETE_PESO_MAX, PAQUETE_CANTIDAD
 GO
-SELECT * FROM [GD2C2021].[SQLI].Tarea_Por_ODT
-/*CREATE PROCEDURE Insercion_Tabla_ODT AS
+
+CREATE PROCEDURE Insercion_Tabla_Orden_De_Trabajo AS -- TODO me devuelve campos con null
 	INSERT INTO [GD2C2021].[SQLI].Orden_De_Trabajo (odt_camion, odt_estado, odt_fecha_generado)
 	SELECT		cam.cami_id, ORDEN_TRABAJO_ESTADO, ORDEN_TRABAJO_FECHA
 	FROM		[GD2C2021].[gd_esquema].Maestra AS MASTERTABLE
-	join		[GD2C2021].[SQLI].Camion cam on MASTERTABLE.CAMIO
-GO*/
+	join		[GD2C2021].[SQLI].Camion cam on MASTERTABLE.CAMION_NRO_CHASIS = cam.cami_nro_chasis
+	where		(CAMION_NRO_CHASIS is not null) and (cam.cami_id is not null) and (ORDEN_TRABAJO_ESTADO is not null) and (ORDEN_TRABAJO_FECHA is not null)
+	group by	cam.cami_id, ORDEN_TRABAJO_ESTADO, ORDEN_TRABAJO_FECHA
+GO
 
 /*
+SELECT * FROM [GD2C2021].[SQLI].Tareas
+SELECT * FROM [GD2C2021].[SQLI].Herramientas
+SELECT * FROM [GD2C2021].[SQLI].Herramienta_Por_Tarea
+
+CREATE PROCEDURE Insercion_Tabla_Herramienta_Por_Tarea AS
+	INSERT INTO [GD2C2021].[SQLI].Herramienta_Por_Tarea(tarea_codigo, herra_id)
+	SELECT DISTINCT		tar.tarea_codigo, her.herra_id
+	FROM		[GD2C2021].[gd_esquema].Maestra AS MASTERTABLE
+	join		[GD2C2021].[SQLI].Tareas tar on MASTERTABLE.TAREA_CODIGO = tar.tarea_codigo
+	join		[GD2C2021].[SQLI].Herramientas her on MASTERTABLE.MATERIAL_COD = her.herra_code
+	where		(tar.tarea_codigo is not null) or (her.herra_code is not null)
+	group by	tar.tarea_codigo, her.herra_id
+GO
+
+DROP PROCEDURE Insercion_Tabla_Herramienta_Por_Tarea
+EXEC Insercion_Tabla_Herramienta_Por_Tarea
 
 CREATE PROCEDURE Insercion_Tabla_Tarea_Por_ODT AS
 	INSERT INTO [GD2C2021].[SQLI].Tarea_Por_ODT(tarea_mecanico, tarea_fecha_inicio, tarea_fecha_fin, tarea_fe_in_plani)
 	SELECT		fk, TAREA_FECHA_INICIO, TAREA_FECHA_FIN, TAREA_FECHA_INICIO_PLANIFICADO
 	--TODO			
 */
-*/
+
 -------------------------------- procedure migracion ----------------------------------------------------------------
 
 CREATE PROCEDURE Migracion AS
@@ -346,10 +358,11 @@ CREATE PROCEDURE Migracion AS
 	EXEC Insercion_Tabla_Mecanico
 	EXEC Insercion_Tabla_Tipo_Tarea
 	EXEC Insercion_Tabla_Tareas
-	-- EXEC Insercion_Tabla_Recorrido
+	EXEC Insercion_Tabla_Recorrido
+	EXEC Insercion_Tabla_Orden_De_Trabajo
 	--EXEC Insercion_Tabla_Tarea_Por_ODT
-	--EXEC Insercion_Tabla_Paquete
-	
+	EXEC Insercion_Tabla_Paquete
+	EXEC Insercion_Tabla_Viaje
 GO
 
 -------------------------------- procedures para reseteos de tablas -------------------------------------------------
