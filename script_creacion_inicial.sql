@@ -107,7 +107,7 @@ CREATE PROCEDURE Creacion_de_Tablas	AS
 
 	CREATE TABLE [GD2C2021].[SQLI].Tipo_Tarea 
 	(
-		tipo_id				INT IDENTITY
+		tipo_id				INT IDENTITY,
 		tipo_tarea			NVARCHAR(255)
 	)
 
@@ -140,15 +140,16 @@ CREATE PROCEDURE Creacion_de_Tablas	AS
 		meca_nro_legajo		INT IDENTITY,
 		meca_nombre			NVARCHAR(255),
 		meca_apellido		NVARCHAR(255),
-		meca_lugar_trabajo	INT,
 		meca_dni			DECIMAL(18,0),
 		meca_direccion		NVARCHAR(255),
 		meca_telefono		DECIMAL(18,0),
 		meca_cost_hora		INT,
 		meca_mail			NVARCHAR(255),
-		meca_fecha_nac		DATETIME2(3)
+		meca_fecha_nac		DATETIME2(3),
+		meca_lugar_trabajo	INT
 	);
 GO
+
 -------------------------------Procedure para las PKs y FKs---------------------------------------------------------
 CREATE PROCEDURE PK_Y_FK AS
 
@@ -229,11 +230,11 @@ GO
 
 CREATE PROCEDURE Insercion_Tabla_Taller AS
 	INSERT INTO [GD2C2021].[SQLI].Taller (taller_direccion, taller_telefono, taller_mail, taller_nombre, taller_ciudad)
-	SELECT		TALLER_DIRECC, TALLER_TELEFONO, TALLER_MAIL, TALLER_NOMBRE, ciudad_id
+	SELECT		TALLER_DIRECCION, TALLER_TELEFONO, TALLER_MAIL, TALLER_NOMBRE, ciu.ciudad_id
 	FROM [GD2C2021].[gd_esquema].Maestra AS MASTERTABLE
-	join [GD2C2021].[SQLI].Ciudad on MASTERTABLE.TALLER_CIUDAD = ciudad_id
-	where (ciudad_id is not null) or (TALLER_TELEFONO is not null) or (TALLER_MAIL is not null) or (TALLER_DIRECCION is not null) or (TALLER_NOMBRE is not null)
-	group by TALLER_NOMBRE, TALLER_CIUDAD, TALLER_DIRECCION, TALLER_MAIL, TALLER_TELEFONO
+	join [GD2C2021].[SQLI].Ciudad ciu on MASTERTABLE.TALLER_CIUDAD = ciu.ciudad_nombre
+	where  (TALLER_DIRECCION is not null) or (TALLER_TELEFONO is not null) or (TALLER_MAIL is not null) or (TALLER_NOMBRE is not null) or (ciu.ciudad_id is not null)
+	group by TALLER_DIRECCION, TALLER_TELEFONO, TALLER_MAIL, TALLER_NOMBRE, ciu.ciudad_id
 GO
 
 CREATE PROCEDURE Insercion_Tabla_Chofer AS
@@ -291,6 +292,28 @@ GO
 	FROM		[GD2C2021].[gd_esquema].Maestra AS MASTERTABLE
 	join		[GD2C2021].[SQLI].Camion cam on MASTERTABLE.CAMIO
 GO*/
+
+CREATE PROCEDURE Insercion_Tabla_Mecanico AS
+	INSERT INTO [GD2C2021].[SQLI].Mecanico(meca_nombre, meca_apellido, meca_dni, meca_direccion, meca_telefono, meca_cost_hora, meca_mail, meca_fecha_nac, meca_lugar_trabajo)
+	SELECT		MECANICO_NOMBRE, MECANICO_APELLIDO,  MECANICO_DNI, MECANICO_DIRECCION, MECANICO_TELEFONO, MECANICO_COSTO_HORA, MECANICO_MAIL, MECANICO_FECHA_NAC, tal.taller_id
+	FROM		[GD2C2021].[gd_esquema].Maestra AS MASTERTABLE
+	join		[GD2C2021].[SQLI].Taller tal on MASTERTABLE.TALLER_NOMBRE = tal.taller_nombre
+	where		(MECANICO_NOMBRE is not null) or (MECANICO_APELLIDO is not null) or (MECANICO_DNI is not null) or (MECANICO_DIRECCION is not null) or (MECANICO_TELEFONO is not null) or (MECANICO_COSTO_HORA is not null) or (MECANICO_MAIL is not null) or (MECANICO_FECHA_NAC is not null) or (tal.taller_id is not null)
+	group by	MECANICO_NOMBRE, MECANICO_APELLIDO, MECANICO_DNI, MECANICO_DIRECCION, MECANICO_TELEFONO, MECANICO_COSTO_HORA, MECANICO_MAIL, MECANICO_FECHA_NAC, tal.taller_id
+GO
+
+/*CREATE PROCEDURE Insercion_Tabla_Tareas AS
+	INSERT INTO [GD2C2021].[SQLI].Tareas(tarea_codigo, tarea_tipo, tarea_descripcion, tarea_tiempo_est, tarea_nombre)-- no existe la columna TAREA_NOMBRE en la master
+	SELECT		TAREA_CODIGO, fk, TAREA_DESCRIPCION, TAREA_TIEMPO_ESTIMADO, 
+	FROM		[GD2C2021].[SQLI].Maestra AS MASTERTABLE
+	--join		[GD2C2021].[SQLI].Tipo_tarea tipo on -- no tengo como joinear contra tipo_tarea
+	--TODO
+
+CREATE PROCEDURE Insercion_Tabla_Tarea_Por_ODT AS
+	INSERT INTO [GD2C2021].[SQLI].Tarea_Por_ODT(tarea_mecanico, tarea_fecha_inicio, tarea_fecha_fin, tarea_fe_in_plani)
+	SELECT		fk, TAREA_FECHA_INICIO, TAREA_FECHA_FIN, TAREA_FECHA_INICIO_PLANIFICADO
+	--TODO			
+*/
 -------------------------------- procedure migracion ----------------------------------------------------------------
 
 CREATE PROCEDURE Migracion AS
@@ -304,6 +327,9 @@ CREATE PROCEDURE Migracion AS
 	EXEC Insercion_Tabla_Paquete
 	EXEC Insercion_Tabla_Camion
 	EXEC Insercion_Tabla_Tipo_Tarea
+	EXEC Insercion_Tabla_Mecanico
+	EXEC Insercion_Tabla_Tareas
+	EXEC Insercion_Tabla_Tarea_Por_ODT
 GO
 
 -------------------------------- procedures para reseteos de tablas -------------------------------------------------
