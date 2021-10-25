@@ -85,7 +85,8 @@ CREATE PROCEDURE Creacion_de_Tablas	AS
 		modelo_detalle		NVARCHAR(255),
 		modelo_vel_max		INT,
 		modelo_cap_tanque	INT, --hay que cambiar el nombre en el der ==> Modificado por eze
-		modelo_cap_carga	INT -- hay que cambiar el nombre en el der ==> Modif por eze
+		modelo_cap_carga	INT, -- hay que cambiar el nombre en el der ==> Modif por eze
+		modelo_marca		INT
 	);
 
 	CREATE TABLE [GD2C2021].[SQLI].Orden_De_Trabajo 
@@ -149,6 +150,12 @@ CREATE PROCEDURE Creacion_de_Tablas	AS
 		meca_fecha_nac		DATETIME2(3),
 		meca_lugar_trabajo	INT
 	);
+
+	CREATE TABLE [GD2C2021].[SQLI].Marca
+	(	
+		marca_id	INT IDENTITY,
+		marca_nombre	CHAR(20)
+	);
 GO
 
 -------------------------------Procedure para las PKs y FKs---------------------------------------------------------
@@ -164,7 +171,10 @@ CREATE PROCEDURE PK_Y_FK AS
 
 	ALTER TABLE [GD2C2021].[SQLI].Chofer				ADD PRIMARY KEY (chofer_legajo)
 	
+	ALTER TABLE [GD2C2021].[SQLI].Marca					ADD PRIMARY KEY (marca_id)
+
 	ALTER TABLE [GD2C2021].[SQLI].Modelo				ADD PRIMARY KEY (modelo_id)
+	ALTER TABLE [GD2C2021].[SQLI].Modelo				ADD FOREIGN KEY (modelo_marca)				REFERENCES [GD2C2021].[SQLI].Marca(marca_id)			ON DELETE NO ACTION ON UPDATE NO ACTION ;
 
 	ALTER TABLE [GD2C2021].[SQLI].Camion				ADD PRIMARY KEY (cami_id)
 	ALTER TABLE [GD2C2021].[SQLI].Camion				ADD FOREIGN KEY (cami_modelo)				REFERENCES [GD2C2021].[SQLI].Modelo(modelo_id)			ON DELETE NO ACTION ON UPDATE NO ACTION ;
@@ -248,12 +258,21 @@ CREATE PROCEDURE Insercion_Tabla_Chofer AS
 	SET IDENTITY_INSERT [GD2C2021].[SQLI].Chofer OFF
 GO
 
-CREATE PROCEDURE Insercion_Tabla_Modelo AS
-	INSERT INTO [GD2C2021].[SQLI].Modelo(modelo_detalle, modelo_vel_max, modelo_cap_tanque, modelo_cap_carga)
-	SELECT		MODELO_CAMION, MODELO_VELOCIDAD_MAX, MODELO_CAPACIDAD_TANQUE, MODELO_CAPACIDAD_CARGA
+CREATE PROCEDURE Insercion_Tabla_Marca AS
+	INSERT INTO [GD2C2021].[SQLI].Marca(marca_nombre)
+	SELECT		 MARCA_CAMION_MARCA
 	FROM		[GD2C2021].[gd_esquema].Maestra AS MASTERTABLE
-	where		(MODELO_CAMION is not null) or (MODELO_VELOCIDAD_MAX is not null) or (MODELO_CAPACIDAD_TANQUE is not null) or (MODELO_CAPACIDAD_CARGA is not null)
-	group by	MODELO_CAMION, MODELO_VELOCIDAD_MAX, MODELO_CAPACIDAD_TANQUE, MODELO_CAPACIDAD_CARGA
+	where		MARCA_CAMION_MARCA is not null
+	group by	MARCA_CAMION_MARCA
+GO
+
+CREATE PROCEDURE Insercion_Tabla_Modelo AS
+	INSERT INTO [GD2C2021].[SQLI].Modelo(modelo_detalle, modelo_vel_max, modelo_cap_tanque, modelo_cap_carga, modelo_marca)
+	SELECT		MODELO_CAMION, MODELO_VELOCIDAD_MAX, MODELO_CAPACIDAD_TANQUE, MODELO_CAPACIDAD_CARGA, mar.marca_id
+	FROM		[GD2C2021].[gd_esquema].Maestra AS MASTERTABLE
+	join		[GD2C2021].[SQLI].Marca mar on MASTERTABLE.MARCA_CAMION_MARCA = mar.marca_nombre
+	where		(MODELO_CAMION is not null) or (MODELO_VELOCIDAD_MAX is not null) or (MODELO_CAPACIDAD_TANQUE is not null) or (MODELO_CAPACIDAD_CARGA is not null) or (mar.marca_id is not null)
+	group by	MODELO_CAMION, mar.marca_id, MODELO_VELOCIDAD_MAX, MODELO_CAPACIDAD_TANQUE, MODELO_CAPACIDAD_CARGA
 GO
 
 CREATE PROCEDURE Insercion_Tabla_Camion AS
@@ -353,6 +372,7 @@ CREATE PROCEDURE Migracion AS
 	EXEC Insercion_Tabla_Herramientas
 	EXEC Insercion_Tabla_Chofer
 	EXEC Insercion_Tabla_Taller
+	EXEC Insercion_Tabla_Marca
 	EXEC Insercion_Tabla_Modelo
 	EXEC Insercion_Tabla_Camion
 	EXEC Insercion_Tabla_Mecanico
@@ -374,6 +394,7 @@ CREATE PROCEDURE Reseteo_Tablas AS
 	IF (OBJECT_ID('GD2C2021.SQLI.Recorrido')IS NOT NULL)				DROP TABLE [GD2C2021].[SQLI].Recorrido
 	IF (OBJECT_ID('GD2C2021.SQLI.Chofer')IS NOT NULL)					DROP TABLE [GD2C2021].[SQLI].Chofer
 	IF (OBJECT_ID('GD2C2021.SQLI.Modelo')IS NOT NULL)					DROP TABLE [GD2C2021].[SQLI].Modelo
+	IF (OBJECT_ID('GD2C2021.SQLI.Marca')IS NOT NULL)					DROP TABLE [GD2C2021].[SQLI].Marca
 	IF (OBJECT_ID('GD2C2021.SQLI.Camion')IS NOT NULL)					DROP TABLE [GD2C2021].[SQLI].Camion
 	IF (OBJECT_ID('GD2C2021.SQLI.Paquete')IS NOT NULL)					DROP TABLE [GD2C2021].[SQLI].Paquete
 	IF (OBJECT_ID('GD2C2021.SQLI.Viaje')IS NOT NULL)					DROP TABLE [GD2C2021].[SQLI].Viaje
@@ -396,6 +417,7 @@ CREATE PROCEDURE Reseteo_Procedures AS
 	IF EXISTS (SELECT * FROM  sys.procedures WHERE  NAME = 'Insercion_Tabla_Taller' AND type = 'p')				DROP PROCEDURE dbo.Insercion_Tabla_Taller
 	IF EXISTS (SELECT * FROM  sys.procedures WHERE  NAME = 'Insercion_Tabla_Chofer' AND type = 'p')				DROP PROCEDURE dbo.Insercion_Tabla_Chofer
 	IF EXISTS (SELECT * FROM  sys.procedures WHERE  NAME = 'Insercion_Tabla_Modelo' AND type = 'p')				DROP PROCEDURE dbo.Insercion_Tabla_Modelo
+	IF EXISTS (SELECT * FROM  sys.procedures WHERE  NAME = 'Insercion_Tabla_Marca' AND type = 'p')				DROP PROCEDURE dbo.Insercion_Tabla_Marca
 	IF EXISTS (SELECT * FROM  sys.procedures WHERE  NAME = 'Insercion_Tabla_Camion' AND type = 'p')				DROP PROCEDURE dbo.Insercion_Tabla_Camion
 	IF EXISTS (SELECT * FROM  sys.procedures WHERE  NAME = 'Insercion_Tabla_Mecanico' AND type = 'p')			DROP PROCEDURE dbo.Insercion_Tabla_Mecanico
 	IF EXISTS (SELECT * FROM  sys.procedures WHERE  NAME = 'Insercion_Tabla_Paquete' AND type = 'p')			DROP PROCEDURE dbo.Insercion_Tabla_Paquete
@@ -435,7 +457,6 @@ CREATE PROCEDURE Play AS
 	END
 
 GO
-
 
 -------------------------------- TOCA PLAY PAPAAAA ----------------------------------------------------------------
 EXEC Play
