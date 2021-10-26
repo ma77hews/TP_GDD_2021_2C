@@ -138,7 +138,6 @@ CREATE PROCEDURE Creacion_de_Tablas	AS
 
 	CREATE TABLE [GD2C2021].[SQLI].Mecanico 
 	(
-		meca_id				INT IDENTITY,
 		meca_nro_legajo		INT ,
 		meca_nombre			NVARCHAR(255),
 		meca_apellido		NVARCHAR(255),
@@ -197,7 +196,6 @@ CREATE PROCEDURE PK_Y_FK AS
 	
 	ALTER TABLE [GD2C2021].[SQLI].Tipo_Tarea			ADD PRIMARY KEY (tipo_id)
 
-	ALTER TABLE [GD2C2021].[SQLI].Mecanico				ADD PRIMARY KEY (meca_id)
 	ALTER TABLE [GD2C2021].[SQLI].Mecanico				ADD FOREIGN KEY (meca_lugar_trabajo)		REFERENCES [GD2C2021].[SQLI].Taller(taller_id)			ON DELETE NO ACTION ON UPDATE NO ACTION ;
 
 	ALTER TABLE [GD2C2021].[SQLI].Tareas				ADD PRIMARY KEY (tarea_codigo)
@@ -208,7 +206,7 @@ CREATE PROCEDURE PK_Y_FK AS
 	
 	ALTER TABLE [GD2C2021].[SQLI].Tarea_Por_ODT			ADD FOREIGN KEY (tarea_id)					REFERENCES [GD2C2021].[SQLI].Tareas(tarea_codigo)		ON DELETE NO ACTION ON UPDATE NO ACTION ;
 	ALTER TABLE [GD2C2021].[SQLI].Tarea_Por_ODT			ADD FOREIGN KEY (odt_id)					REFERENCES [GD2C2021].[SQLI].Orden_De_Trabajo(odt_id)	ON DELETE NO ACTION ON UPDATE NO ACTION ;
-	ALTER TABLE [GD2C2021].[SQLI].Tarea_Por_ODT			ADD FOREIGN KEY (tarea_mecanico)			REFERENCES [GD2C2021].[SQLI].Mecanico(meca_id)	ON DELETE NO ACTION ON UPDATE NO ACTION ;
+	ALTER TABLE [GD2C2021].[SQLI].Tarea_Por_ODT			ADD FOREIGN KEY (tarea_mecanico)			REFERENCES [GD2C2021].[SQLI].Mecanico(meca_nro_legajo)	ON DELETE NO ACTION ON UPDATE NO ACTION ;
 GO
 
 -------------------------------- procedures para realizar las migraciones de las tablas --------------------------------
@@ -340,10 +338,35 @@ CREATE PROCEDURE Insercion_Tabla_Orden_De_Trabajo AS -- TODO me devuelve campos 
 	group by	cam.cami_id, ORDEN_TRABAJO_ESTADO, ORDEN_TRABAJO_FECHA
 GO
 
+CREATE PROCEDURE Insercion_Tabla_Tarea_Por_ODT AS
+	INSERT INTO [GD2C2021].[SQLI].Tarea_Por_ODT (tarea_id, odt_id, tarea_mecanico, tarea_fecha_inicio, tarea_fecha_fin, tarea_fe_in_plani)
+	SELECT tar.tarea_codigo, ord.odt_id, mec.meca_nro_legajo, TAREA_FECHA_INICIO, TAREA_FECHA_FIN, TAREA_FECHA_INICIO_PLANIFICADO
+	FROM [GD2C2021].[gd_esquema].Maestra as MASTERTABLE
+	join [GD2C2021].[SQLI].Tareas tar on MASTERTABLE.TAREA_CODIGO = tar.tarea_codigo
+	join [GD2C2021].[SQLI].Orden_De_Trabajo ord on MASTERTABLE.ORDEN_TRABAJO_ESTADO = ord.odt_estado and MASTERTABLE.ORDEN_TRABAJO_FECHA = ord.odt_fecha_generado
+	join [GD2C2021].[SQLI].Mecanico mec on MASTERTABLE.MECANICO_NRO_LEGAJO = mec.meca_nro_legajo
+	where (MASTERTABLE.TAREA_CODIGO is not null) or (MASTERTABLE.ORDEN_TRABAJO_ESTADO is not null) or (MASTERTABLE.ORDEN_TRABAJO_FECHA is not null)
+			or (MASTERTABLE.MECANICO_NRO_LEGAJO is not null) or (TAREA_FECHA_INICIO is not null) or (TAREA_FECHA_FIN is not null) or (TAREA_FECHA_INICIO_PLANIFICADO is not null)
+	 group by tar.tarea_codigo, ord.odt_id, mec.meca_nro_legajo, TAREA_FECHA_INICIO, TAREA_FECHA_FIN, TAREA_FECHA_INICIO_PLANIFICADO
+GO
+
+CREATE PROCEDURE Insercion_Tabla_Pack_Por_Viaje AS
+    INSERT INTO [GD2C2021].[SQLI].Paquete_Por_Viaje (ppv_viaje, ppv_paquete, ppv_cant_paquete)
+    SELECT      via.viaje_id, pac.pack_id, PAQUETE_CANTIDAD 
+    FROM        [GD2C2021].[gd_esquema].Maestra as MASTERTABLE
+    join        [GD2C2021].[SQLI].Paquete pac on MASTERTABLE.PAQUETE_ALTO_MAX = pac.pack_alto_max AND MASTERTABLE.PAQUETE_ANCHO_MAX = pac.pack_ancho_max
+        and        MASTERTABLE.PAQUETE_LARGO_MAX = pac.pack_largo_max and MASTERTABLE.PAQUETE_PESO_MAX = pac.pack_peso_maximo and
+        MASTERTABLE.PAQUETE_DESCRIPCION = pac.pack_descripcion and MASTERTABLE.PAQUETE_PRECIO = pac.pack_precio
+    join        [GD2C2021].[SQLI].Viaje via on MASTERTABLE.VIAJE_CONSUMO_COMBUSTIBLE = via.viaje_itsconsu and MASTERTABLE.VIAJE_FECHA_FIN = via.viaje_fechafin and 
+        MASTERTABLE.VIAJE_FECHA_INICIO = via.viaje_fechaini
+	where		(MASTERTABLE.PAQUETE_LARGO_MAX is not null)
+	group by	via.viaje_id, pac.pack_id, PAQUETE_CANTIDAD
+GO
+
 /*
-SELECT * FROM [GD2C2021].[SQLI].Tareas
-SELECT * FROM [GD2C2021].[SQLI].Herramientas
-SELECT * FROM [GD2C2021].[SQLI].Herramienta_Por_Tarea
+EXEC Insercion_Tabla_Tarea_Por_ODT
+DROP PROCEDURE Insercion_Tabla_Tarea_Por_ODT
+EXEC Insercion_Tabla_Herramienta_Por_Tarea
 
 CREATE PROCEDURE Insercion_Tabla_Herramienta_Por_Tarea AS
 	INSERT INTO [GD2C2021].[SQLI].Herramienta_Por_Tarea(tarea_codigo, herra_id)
@@ -355,8 +378,7 @@ CREATE PROCEDURE Insercion_Tabla_Herramienta_Por_Tarea AS
 	group by	tar.tarea_codigo, her.herra_id
 GO
 
-DROP PROCEDURE Insercion_Tabla_Herramienta_Por_Tarea
-EXEC Insercion_Tabla_Herramienta_Por_Tarea
+
 
 CREATE PROCEDURE Insercion_Tabla_Tarea_Por_ODT AS
 	INSERT INTO [GD2C2021].[SQLI].Tarea_Por_ODT(tarea_mecanico, tarea_fecha_inicio, tarea_fecha_fin, tarea_fe_in_plani)
