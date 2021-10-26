@@ -76,10 +76,9 @@ CREATE PROCEDURE Creacion_de_Tablas	AS
 		taller_nombre		NVARCHAR(255),
 		taller_ciudad		INT
 	)
-
+	
 		CREATE TABLE [GD2C2021].[SQLI].Mecanico 
 	(
-		meca_id				INT IDENTITY,
 		meca_nro_legajo		INT ,
 		meca_nombre			NVARCHAR(255),
 		meca_apellido		NVARCHAR(255),
@@ -126,7 +125,7 @@ CREATE PROCEDURE Creacion_de_Tablas	AS
 
 
 
-
+	
 
 
 
@@ -197,7 +196,7 @@ CREATE PROCEDURE PK_Y_FK AS
 	ALTER TABLE [GD2C2021].[SQLI].Taller				ADD PRIMARY KEY (taller_id)
 	ALTER TABLE [GD2C2021].[SQLI].Taller				ADD FOREIGN KEY (taller_ciudad)				REFERENCES [GD2C2021].[SQLI].Ciudad(ciudad_id)			ON DELETE NO ACTION ON UPDATE NO ACTION ;
 
-	ALTER TABLE [GD2C2021].[SQLI].Mecanico				ADD PRIMARY KEY (meca_id)
+	ALTER TABLE [GD2C2021].[SQLI].Mecanico				ADD PRIMARY KEY (meca_nro_legajo)
 
 	ALTER TABLE [GD2C2021].[SQLI].Tipo_Tarea			ADD PRIMARY KEY (tipo_id)
 
@@ -209,19 +208,6 @@ CREATE PROCEDURE PK_Y_FK AS
 	ALTER TABLE [GD2C2021].[SQLI].Paquete				ADD FOREIGN KEY (pack_tipo)					REFERENCES [GD2C2021].[SQLI].Tipo_paquete(t_pack_id)	ON DELETE NO ACTION ON UPDATE NO ACTION ;
 	ALTER TABLE [GD2C2021].[SQLI].Paquete				ADD FOREIGN KEY (pack_viaje)				REFERENCES [GD2C2021].[SQLI].Viaje(viaje_id)			ON DELETE NO ACTION ON UPDATE NO ACTION ;
 		
-	
-		
-		
-
-
-
-
-
-
-	ALTER TABLE [GD2C2021].[SQLI].Paquete_Por_Viaje		ADD FOREIGN KEY (ppv_viaje)					REFERENCES [GD2C2021].[SQLI].Viaje(viaje_id)			ON DELETE NO ACTION ON UPDATE NO ACTION ;
-	ALTER TABLE [GD2C2021].[SQLI].Paquete_Por_Viaje		ADD FOREIGN KEY (ppv_paquete)				REFERENCES [GD2C2021].[SQLI].Paquete(pack_id)			ON DELETE NO ACTION ON UPDATE NO ACTION ;
-
-	
 	ALTER TABLE [GD2C2021].[SQLI].Orden_De_Trabajo		ADD PRIMARY KEY (odt_id)	
 	ALTER TABLE [GD2C2021].[SQLI].Orden_De_Trabajo		ADD FOREIGN KEY (odt_camion)				REFERENCES [GD2C2021].[SQLI].Camion(cami_id)			ON DELETE NO ACTION ON UPDATE NO ACTION ;
 	
@@ -281,7 +267,7 @@ GO
 
 CREATE PROCEDURE Insercion_Tabla_Recorrido AS
 	INSERT INTO [GD2C2021].[SQLI].Recorrido(reco_ciudad_origen,reco_ciudad_destino,reco_km, reco_precio)
-	SELECT DISTINCT c1.ciudad_nombre,c2.ciudad_nombre,RECORRIDO_KM,RECORRIDO_PRECIO
+	SELECT DISTINCT c1.ciudad_id,c2.ciudad_id,RECORRIDO_KM,RECORRIDO_PRECIO
 	FROM gd_esquema.Maestra
 	JOIN [GD2C2021].[SQLI].[Ciudad] c1 ON c1.ciudad_nombre = RECORRIDO_CIUDAD_ORIGEN
 	JOIN [GD2C2021].[SQLI].[Ciudad] c2 ON c2.ciudad_nombre = RECORRIDO_CIUDAD_DESTINO
@@ -297,7 +283,7 @@ GO
 CREATE PROCEDURE Insercion_Tabla_Mecanico AS
 	INSERT INTO [GD2C2021].[SQLI].Mecanico(meca_nro_legajo, meca_nombre, meca_apellido,meca_dni,meca_direccion,meca_telefono,meca_cost_hora,meca_mail,meca_fecha_nac)
 	SELECT DISTINCT MECANICO_NRO_LEGAJO,MECANICO_NOMBRE,MECANICO_APELLIDO,MECANICO_DNI,MECANICO_DIRECCION,MECANICO_TELEFONO,MECANICO_COSTO_HORA,MECANICO_MAIL,MECANICO_FECHA_NAC
-	FROM			gd_esquema.Maestra
+	FROM			[GD2C2021].[gd_esquema].Maestra AS MASTERTABLE
 	WHERE			(MECANICO_NRO_LEGAJO is not null)
 GO
 
@@ -328,7 +314,6 @@ CREATE PROCEDURE Insercion_Tabla_Herramientas AS
 	GROUP BY	MATERIAL_COD, MATERIAL_DESCRIPCION, MATERIAL_PRECIO
 GO
 
-
 CREATE PROCEDURE Insercion_Tabla_Tareas AS
 	SET IDENTITY_INSERT [GD2C2021].[SQLI].Tareas ON
 	INSERT INTO			[GD2C2021].[SQLI].Tareas(tarea_codigo, tarea_tipo, tarea_descripcion, tarea_tiempo_est)
@@ -340,26 +325,28 @@ CREATE PROCEDURE Insercion_Tabla_Tareas AS
 	SET IDENTITY_INSERT [GD2C2021].[SQLI].Tareas OFF
 GO
 
-CREATE PROCEDURE Insercion_Tabla_Viaje AS-- todavia no funciona, chequear
-	INSERT INTO		[GD2C2021].[SQLI].Viaje (viaje_camion, viaje_chofer, viaje_recorrido, viaje_fechaini, viaje_fechafin, viaje_itsconsu)
-	SELECT DISTINCT	cam.cami_id, cho.chofer_legajo, rec.reco_id, VIAJE_FECHA_INICIO, VIAJE_FECHA_FIN, VIAJE_CONSUMO_COMBUSTIBLE
+CREATE PROCEDURE Insercion_Tabla_Viaje AS-- todavia no funciona, chequear -- (-tomi: creo que lo arregle)
+	INSERT INTO		[GD2C2021].[SQLI].Viaje (viaje_camion, viaje_chofer, viaje_recorrido, viaje_fecha_ini, viaje_fecha_fin, viaje_lts_cons)
+	SELECT DISTINCT	cam.cami_id, cho.chofer_nro_legajo, rec.reco_id, VIAJE_FECHA_INICIO, VIAJE_FECHA_FIN, VIAJE_CONSUMO_COMBUSTIBLE
 	FROM			[GD2C2021].[gd_esquema].Maestra AS MASTERTABLE
 	join			[GD2C2021].[SQLI].Camion cam  on MASTERTABLE.CAMION_NRO_CHASIS = cam.cami_nro_chasis
-	join			[GD2C2021].[SQLI].Chofer cho  on MASTERTABLE.CHOFER_NRO_LEGAJO = cho.chofer_legajo
+	join			[GD2C2021].[SQLI].Chofer cho  on MASTERTABLE.CHOFER_NRO_LEGAJO = cho.chofer_nro_legajo
 	join			[GD2C2021].[SQLI].Recorrido rec on MASTERTABLE.RECORRIDO_PRECIO = rec.reco_precio
-	where			(cam.cami_id is not null) or (cho.chofer_legajo is not null) or (rec.reco_id is not null) or (VIAJE_FECHA_INICIO is not null) or (VIAJE_FECHA_FIN is not null) or (VIAJE_CONSUMO_COMBUSTIBLE is not null)
-	group by		cam.cami_id, cho.chofer_legajo, rec.reco_id, VIAJE_FECHA_INICIO, VIAJE_FECHA_FIN, VIAJE_CONSUMO_COMBUSTIBLE
+	where			(cam.cami_id is not null) or (cho.chofer_nro_legajo is not null) or (rec.reco_id is not null) or (VIAJE_FECHA_INICIO is not null) or (VIAJE_FECHA_FIN is not null) or (VIAJE_CONSUMO_COMBUSTIBLE is not null)
+	group by		cam.cami_id, cho.chofer_nro_legajo, rec.reco_id, VIAJE_FECHA_INICIO, VIAJE_FECHA_FIN, VIAJE_CONSUMO_COMBUSTIBLE
 GO
 
-CREATE PROCEDURE Insercion_Tabla_Paquete AS
-	INSERT INTO [GD2C2021].[SQLI].Paquete (pack_tipo, pack_cantidad, pack_viaje)
-	SELECT	DISTINCT	t_pack_id,PAQUETE_CANTIDAD,viaje_id
-	FROM		[GD2C2021].[gd_esquema].Maestra maestra
-	JOIN		[GD2C2021].[SQLI].Tipo_Paquete on t_pack_descripcion = PAQUETE_DESCRIPCION
-	JOIN		[GD2C2021].[SQLI].Viaje v1 on maestra.VIAJE_FECHA_INICIO = v1.viaje_fecha_ini and maestra.VIAJE_FECHA_FIN = v1.viaje_fecha_fin
+CREATE PROCEDURE Insercion_Tabla_Paquete AS-- (858112 ROWS genera)
+	INSERT INTO			[GD2C2021].[SQLI].Paquete (pack_tipo, pack_cantidad, pack_viaje)
+	SELECT	DISTINCT	tip.t_pack_id, PAQUETE_CANTIDAD, v1.viaje_id
+	FROM				[GD2C2021].[gd_esquema].Maestra AS MASTERTABLE
+	JOIN				[GD2C2021].[SQLI].Tipo_Paquete tip on tip.t_pack_descripcion = MASTERTABLE.PAQUETE_DESCRIPCION
+	JOIN				[GD2C2021].[SQLI].Viaje v1 on MASTERTABLE.VIAJE_FECHA_INICIO = v1.viaje_fecha_ini and MASTERTABLE.VIAJE_FECHA_FIN = v1.viaje_fecha_fin
+	where				(MASTERTABLE.PAQUETE_DESCRIPCION is not null) or (MASTERTABLE.VIAJE_FECHA_INICIO is not null) or (MASTERTABLE.VIAJE_FECHA_FIN is not null)
+	group by			tip.t_pack_id, PAQUETE_CANTIDAD, v1.viaje_id
 GO
 
-CREATE PROCEDURE Insercion_Tabla_Orden_De_Trabajo AS -- TODO me devuelve campos con null
+CREATE PROCEDURE Insercion_Tabla_Orden_De_Trabajo AS -- TODO me devuelve campos con null (-tomi: a mi no)
 	INSERT INTO [GD2C2021].[SQLI].Orden_De_Trabajo (odt_camion, odt_estado, odt_fecha_generado)
 	SELECT		cam.cami_id, ORDEN_TRABAJO_ESTADO, ORDEN_TRABAJO_FECHA
 	FROM		[GD2C2021].[gd_esquema].Maestra AS MASTERTABLE
@@ -368,7 +355,7 @@ CREATE PROCEDURE Insercion_Tabla_Orden_De_Trabajo AS -- TODO me devuelve campos 
 	group by	cam.cami_id, ORDEN_TRABAJO_ESTADO, ORDEN_TRABAJO_FECHA
 GO
 
-CREATE PROCEDURE Insercion_Tabla_Tarea_Por_ODT AS
+CREATE PROCEDURE Insercion_Tabla_Tarea_Por_ODT AS -- (190869 rows)
 	INSERT INTO [GD2C2021].[SQLI].Tarea_Por_ODT (tarea_id, odt_id, tarea_mecanico, tarea_fecha_inicio, tarea_fecha_fin, tarea_fe_in_plani)
 	SELECT tar.tarea_codigo, ord.odt_id, mec.meca_nro_legajo, TAREA_FECHA_INICIO, TAREA_FECHA_FIN, TAREA_FECHA_INICIO_PLANIFICADO
 	FROM [GD2C2021].[gd_esquema].Maestra as MASTERTABLE
@@ -380,71 +367,43 @@ CREATE PROCEDURE Insercion_Tabla_Tarea_Por_ODT AS
 	 group by tar.tarea_codigo, ord.odt_id, mec.meca_nro_legajo, TAREA_FECHA_INICIO, TAREA_FECHA_FIN, TAREA_FECHA_INICIO_PLANIFICADO
 GO
 
-/*
-CREATE PROCEDURE Insercion_Tabla_Pack_Por_Viaje AS
-    INSERT INTO [GD2C2021].[SQLI].Paquete_Por_Viaje (ppv_viaje, ppv_paquete, ppv_cant_paquete)
-    SELECT      via.viaje_id, pac.pack_id, PAQUETE_CANTIDAD 
-    FROM        [GD2C2021].[gd_esquema].Maestra as MASTERTABLE
-    join        [GD2C2021].[SQLI].Paquete pac on MASTERTABLE.PAQUETE_ALTO_MAX = pac.pack_alto_max AND MASTERTABLE.PAQUETE_ANCHO_MAX = pac.pack_ancho_max
-        and        MASTERTABLE.PAQUETE_LARGO_MAX = pac.pack_largo_max and MASTERTABLE.PAQUETE_PESO_MAX = pac.pack_peso_maximo and
-        MASTERTABLE.PAQUETE_DESCRIPCION = pac.pack_descripcion and MASTERTABLE.PAQUETE_PRECIO = pac.pack_precio
-    join        [GD2C2021].[SQLI].Viaje via on MASTERTABLE.VIAJE_CONSUMO_COMBUSTIBLE = via.viaje_itsconsu and MASTERTABLE.VIAJE_FECHA_FIN = via.viaje_fechafin and 
-        MASTERTABLE.VIAJE_FECHA_INICIO = via.viaje_fechaini
-	where		(MASTERTABLE.PAQUETE_LARGO_MAX is not null)
-	group by	via.viaje_id, pac.pack_id, PAQUETE_CANTIDAD
-GO
-
-
-EXEC Insercion_Tabla_Tarea_Por_ODT
-DROP PROCEDURE Insercion_Tabla_Tarea_Por_ODT
-EXEC Insercion_Tabla_Herramienta_Por_Tarea
-
 CREATE PROCEDURE Insercion_Tabla_Herramienta_Por_Tarea AS
-	INSERT INTO [GD2C2021].[SQLI].Herramienta_Por_Tarea(tarea_codigo, herra_id)
-	SELECT DISTINCT		tar.tarea_codigo, her.herra_id
-	FROM		[GD2C2021].[gd_esquema].Maestra AS MASTERTABLE
-	join		[GD2C2021].[SQLI].Tareas tar on MASTERTABLE.TAREA_CODIGO = tar.tarea_codigo
-	join		[GD2C2021].[SQLI].Herramientas her on MASTERTABLE.MATERIAL_COD = her.herra_code
-	where		(tar.tarea_codigo is not null) or (her.herra_code is not null)
-	group by	tar.tarea_codigo, her.herra_id
+    INSERT INTO [GD2C2021].[SQLI].Herramienta_Por_Tarea (tarea_codigo, herra_id)--, mxt_cantidad) FE DE ERRATAS mxt_cantidad esta comentado porque no existe la columna en la tabla maestra.
+    SELECT        tar.tarea_codigo, her.herra_id --', MXT_CANTIDAD'
+    FROM        [GD2C2021].[gd_esquema].Maestra as MASTERTABLE
+    join        [GD2C2021].[SQLI].Herramientas her on MASTERTABLE.MATERIAL_COD = her.herra_code and MASTERTABLE.MATERIAL_DESCRIPCION = her.herra_detalle
+        and MASTERTABLE.MATERIAL_PRECIO = her.herra_precio
+    join [GD2C2021].[SQLI].Tareas tar on MASTERTABLE.TAREA_CODIGO = tar.tarea_codigo
+    where (MASTERTABLE.MATERIAL_COD is not null)
+    group by tar.tarea_codigo, her.herra_id-- ', MXT_CANTIDAD'
 GO
-
-
-
-CREATE PROCEDURE Insercion_Tabla_Tarea_Por_ODT AS
-	INSERT INTO [GD2C2021].[SQLI].Tarea_Por_ODT(tarea_mecanico, tarea_fecha_inicio, tarea_fecha_fin, tarea_fe_in_plani)
-	SELECT		fk, TAREA_FECHA_INICIO, TAREA_FECHA_FIN, TAREA_FECHA_INICIO_PLANIFICADO
-	--TODO			
-*/
 
 -------------------------------- procedure migracion ----------------------------------------------------------------
 
 CREATE PROCEDURE Migracion AS
-
+	
+	EXEC Insercion_Tabla_Herramientas
+	EXEC Insercion_Tabla_Mecanico
+	EXEC Insercion_Tabla_Ciudad
 	EXEC Insercion_Tabla_Tipo_Paquete
 	EXEC Insercion_Tabla_Modelo
 	EXEC Insercion_Tabla_Marca
 	EXEC Insercion_Tabla_Camion
 	EXEC Insercion_Tabla_Chofer
-	EXEC Insercion_Tabla_Ciudad
 	EXEC Insercion_Tabla_Recorrido
 	EXEC Insercion_Tabla_Taller
-	EXEC Insercion_Tabla_Mecanico
 	EXEC Insercion_Tabla_Tipo_Tarea
-	EXEC Insercion_Tabla_Herramientas
-	EXEC Insercion_Tabla_Paquete
 	EXEC Insercion_Tabla_Viaje
+	EXEC Insercion_Tabla_Paquete
 	EXEC Insercion_Tabla_Tareas
+	EXEC Insercion_Tabla_Herramienta_Por_Tarea
 	EXEC Insercion_Tabla_Orden_De_Trabajo
-	--EXEC Insercion_Tabla_Tarea_Por_ODT
-	
-	
+	EXEC Insercion_Tabla_Tarea_Por_ODT
 GO
 
 -------------------------------- procedures para reseteos de tablas -------------------------------------------------
 CREATE PROCEDURE Reseteo_Tablas AS
 
-	IF (OBJECT_ID('GD2C2021.SQLI.Paquete_Por_Viaje')IS NOT NULL)		DROP TABLE [GD2C2021].[SQLI].Paquete_Por_Viaje
 	IF (OBJECT_ID('GD2C2021.SQLI.Paquete')IS NOT NULL)					DROP TABLE [GD2C2021].[SQLI].Paquete
 	IF (OBJECT_ID('GD2C2021.SQLI.Orden_De_Trabajo')IS NOT NULL)			DROP TABLE [GD2C2021].[SQLI].Orden_De_Trabajo
 	IF (OBJECT_ID('GD2C2021.SQLI.Tareas')IS NOT NULL)					DROP TABLE [GD2C2021].[SQLI].Tareas
@@ -467,29 +426,30 @@ GO
 
 CREATE PROCEDURE Reseteo_Procedures AS
 
-	IF EXISTS (SELECT * FROM  sys.procedures WHERE  NAME = 'Creacion_de_Tablas' AND type = 'p')					DROP PROCEDURE dbo.Creacion_de_Tablas
-	IF EXISTS (SELECT * FROM  sys.procedures WHERE  NAME = 'PK_Y_FK' AND type = 'p')							DROP PROCEDURE dbo.PK_Y_FK
-	IF EXISTS (SELECT * FROM  sys.procedures WHERE  NAME = 'Insercion_Tabla_Ciudad' AND type = 'p')				DROP PROCEDURE dbo.Insercion_Tabla_Ciudad
-	IF EXISTS (SELECT * FROM  sys.procedures WHERE  NAME = 'Insercion_Tabla_Herramientas' AND type = 'p')		DROP PROCEDURE dbo.Insercion_Tabla_Herramientas
-	IF EXISTS (SELECT * FROM  sys.procedures WHERE  NAME = 'Insercion_Tabla_Recorrido' AND type = 'p')			DROP PROCEDURE dbo.Insercion_Tabla_Recorrido
-	IF EXISTS (SELECT * FROM  sys.procedures WHERE  NAME = 'Insercion_Tabla_Taller' AND type = 'p')				DROP PROCEDURE dbo.Insercion_Tabla_Taller
-	IF EXISTS (SELECT * FROM  sys.procedures WHERE  NAME = 'Insercion_Tabla_Chofer' AND type = 'p')				DROP PROCEDURE dbo.Insercion_Tabla_Chofer
-	IF EXISTS (SELECT * FROM  sys.procedures WHERE  NAME = 'Insercion_Tabla_Modelo' AND type = 'p')				DROP PROCEDURE dbo.Insercion_Tabla_Modelo
-	IF EXISTS (SELECT * FROM  sys.procedures WHERE  NAME = 'Insercion_Tabla_Tipo_Paquete' AND type = 'p')		DROP PROCEDURE dbo.Insercion_Tabla_Tipo_Paquete
-	IF EXISTS (SELECT * FROM  sys.procedures WHERE  NAME = 'Insercion_Tabla_Marca' AND type = 'p')				DROP PROCEDURE dbo.Insercion_Tabla_Marca
-	IF EXISTS (SELECT * FROM  sys.procedures WHERE  NAME = 'Insercion_Tabla_Camion' AND type = 'p')				DROP PROCEDURE dbo.Insercion_Tabla_Camion
-	IF EXISTS (SELECT * FROM  sys.procedures WHERE  NAME = 'Insercion_Tabla_Mecanico' AND type = 'p')			DROP PROCEDURE dbo.Insercion_Tabla_Mecanico
-	IF EXISTS (SELECT * FROM  sys.procedures WHERE  NAME = 'Insercion_Tabla_Paquete' AND type = 'p')			DROP PROCEDURE dbo.Insercion_Tabla_Paquete
-	IF EXISTS (SELECT * FROM  sys.procedures WHERE  NAME = 'Insercion_Tabla_Viaje' AND type = 'p')				DROP PROCEDURE dbo.Insercion_Tabla_Viaje
-	IF EXISTS (SELECT * FROM  sys.procedures WHERE  NAME = 'Insercion_Tabla_Tipo_Tarea' AND type = 'p')			DROP PROCEDURE dbo.Insercion_Tabla_Tipo_Tarea
-	IF EXISTS (SELECT * FROM  sys.procedures WHERE  NAME = 'Insercion_Tabla_Tareas' AND type = 'p')				DROP PROCEDURE dbo.Insercion_Tabla_Tareas
-	IF EXISTS (SELECT * FROM  sys.procedures WHERE  NAME = 'Insercion_Tabla_Orden_De_Trabajo' AND type = 'p')	DROP PROCEDURE dbo.Insercion_Tabla_Orden_De_Trabajo
-	IF EXISTS (SELECT * FROM  sys.procedures WHERE  NAME = 'Insercion_Tabla_Tarea_Por_ODT' AND type = 'p')		DROP PROCEDURE dbo.Insercion_Tabla_Tarea_Por_ODT
-	IF EXISTS (SELECT * FROM  sys.procedures WHERE  NAME = 'Migracion' AND type = 'p')							DROP PROCEDURE dbo.Migracion
-	IF EXISTS (SELECT * FROM  sys.procedures WHERE  NAME = 'Reseteo_Tablas' AND type = 'p')						DROP PROCEDURE dbo.Reseteo_Tablas
-	IF EXISTS (SELECT * FROM  sys.procedures WHERE  NAME = 'Reseteo_Procedures' AND type = 'p')					DROP PROCEDURE dbo.Reseteo_Procedures
-	IF EXISTS (SELECT * FROM  sys.procedures WHERE  NAME = 'Reseteo' AND type = 'p')							DROP PROCEDURE dbo.Reseteo
-	IF EXISTS (SELECT * FROM  sys.procedures WHERE  NAME = 'Play' AND type = 'p')								DROP PROCEDURE dbo.Play
+	IF EXISTS (SELECT * FROM  sys.procedures WHERE  NAME = 'Creacion_de_Tablas' AND type = 'p')						DROP PROCEDURE dbo.Creacion_de_Tablas
+	IF EXISTS (SELECT * FROM  sys.procedures WHERE  NAME = 'PK_Y_FK' AND type = 'p')								DROP PROCEDURE dbo.PK_Y_FK
+	IF EXISTS (SELECT * FROM  sys.procedures WHERE  NAME = 'Insercion_Tabla_Ciudad' AND type = 'p')					DROP PROCEDURE dbo.Insercion_Tabla_Ciudad
+	IF EXISTS (SELECT * FROM  sys.procedures WHERE  NAME = 'Insercion_Tabla_Herramientas' AND type = 'p')			DROP PROCEDURE dbo.Insercion_Tabla_Herramientas
+	IF EXISTS (SELECT * FROM  sys.procedures WHERE  NAME = 'Insercion_Tabla_Recorrido' AND type = 'p')				DROP PROCEDURE dbo.Insercion_Tabla_Recorrido
+	IF EXISTS (SELECT * FROM  sys.procedures WHERE  NAME = 'Insercion_Tabla_Taller' AND type = 'p')					DROP PROCEDURE dbo.Insercion_Tabla_Taller
+	IF EXISTS (SELECT * FROM  sys.procedures WHERE  NAME = 'Insercion_Tabla_Chofer' AND type = 'p')					DROP PROCEDURE dbo.Insercion_Tabla_Chofer
+	IF EXISTS (SELECT * FROM  sys.procedures WHERE  NAME = 'Insercion_Tabla_Modelo' AND type = 'p')					DROP PROCEDURE dbo.Insercion_Tabla_Modelo
+	IF EXISTS (SELECT * FROM  sys.procedures WHERE  NAME = 'Insercion_Tabla_Tipo_Paquete' AND type = 'p')			DROP PROCEDURE dbo.Insercion_Tabla_Tipo_Paquete
+	IF EXISTS (SELECT * FROM  sys.procedures WHERE  NAME = 'Insercion_Tabla_Marca' AND type = 'p')					DROP PROCEDURE dbo.Insercion_Tabla_Marca
+	IF EXISTS (SELECT * FROM  sys.procedures WHERE  NAME = 'Insercion_Tabla_Camion' AND type = 'p')					DROP PROCEDURE dbo.Insercion_Tabla_Camion
+	IF EXISTS (SELECT * FROM  sys.procedures WHERE  NAME = 'Insercion_Tabla_Mecanico' AND type = 'p')				DROP PROCEDURE dbo.Insercion_Tabla_Mecanico
+	IF EXISTS (SELECT * FROM  sys.procedures WHERE  NAME = 'Insercion_Tabla_Paquete' AND type = 'p')				DROP PROCEDURE dbo.Insercion_Tabla_Paquete
+	IF EXISTS (SELECT * FROM  sys.procedures WHERE  NAME = 'Insercion_Tabla_Viaje' AND type = 'p')					DROP PROCEDURE dbo.Insercion_Tabla_Viaje
+	IF EXISTS (SELECT * FROM  sys.procedures WHERE  NAME = 'Insercion_Tabla_Tipo_Tarea' AND type = 'p')				DROP PROCEDURE dbo.Insercion_Tabla_Tipo_Tarea
+	IF EXISTS (SELECT * FROM  sys.procedures WHERE  NAME = 'Insercion_Tabla_Tareas' AND type = 'p')					DROP PROCEDURE dbo.Insercion_Tabla_Tareas
+	IF EXISTS (SELECT * FROM  sys.procedures WHERE  NAME = 'Insercion_Tabla_Herramienta_Por_Tarea' AND type = 'p')  DROP PROCEDURE dbo.Insercion_Tabla_Herramienta_Por_Tarea
+	IF EXISTS (SELECT * FROM  sys.procedures WHERE  NAME = 'Insercion_Tabla_Orden_De_Trabajo' AND type = 'p')		DROP PROCEDURE dbo.Insercion_Tabla_Orden_De_Trabajo
+	IF EXISTS (SELECT * FROM  sys.procedures WHERE  NAME = 'Insercion_Tabla_Tarea_Por_ODT' AND type = 'p')			DROP PROCEDURE dbo.Insercion_Tabla_Tarea_Por_ODT
+	IF EXISTS (SELECT * FROM  sys.procedures WHERE  NAME = 'Migracion' AND type = 'p')								DROP PROCEDURE dbo.Migracion
+	IF EXISTS (SELECT * FROM  sys.procedures WHERE  NAME = 'Reseteo_Tablas' AND type = 'p')							DROP PROCEDURE dbo.Reseteo_Tablas
+	IF EXISTS (SELECT * FROM  sys.procedures WHERE  NAME = 'Reseteo_Procedures' AND type = 'p')						DROP PROCEDURE dbo.Reseteo_Procedures
+	IF EXISTS (SELECT * FROM  sys.procedures WHERE  NAME = 'Reseteo' AND type = 'p')								DROP PROCEDURE dbo.Reseteo
+	IF EXISTS (SELECT * FROM  sys.procedures WHERE  NAME = 'Play' AND type = 'p')									DROP PROCEDURE dbo.Play
 
 GO
 
