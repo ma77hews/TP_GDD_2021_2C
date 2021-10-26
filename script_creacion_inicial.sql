@@ -111,7 +111,7 @@ CREATE PROCEDURE Creacion_de_Tablas	AS
 		t_pack_alto_max		DECIMAL(18,2),
 		t_pack_ancho_max	DECIMAL(18,2),
 		t_pack_largo_max	DECIMAL(18,2),
-		t_pack_descripcion	INT,
+		t_pack_descripcion	nvarchar(255),
 		t_pack_precio		DECIMAL(18,2),
 		t_pack_peso_maximo	DECIMAL(18,2)
 	)
@@ -315,13 +315,6 @@ CREATE PROCEDURE Insercion_Tabla_Tipo_Paquete AS
 	WHERE		PAQUETE_DESCRIPCION is not null
 GO
 
-CREATE PROCEDURE Insercion_Tabla_Paquete AS
-	INSERT INTO [GD2C2021].[SQLI].Paquete (pack_tipo, pack_cantidad, pack_viaje)
-	SELECT		t_pack_id,PAQUETE_CANTIDAD,viaje_id
-	FROM		[GD2C2021].[gd_esquema].Maestra maestra
-	JOIN		[GD2C2021].[SQLI].Tipo_Paquete on t_pack_descripcion = PAQUETE_DESCRIPCION
-	JOIN		[GD2C2021].[SQLI].Viaje v1 on maestra.VIAJE_FECHA_INICIO = v1.viaje_fecha_ini and maestra.VIAJE_FECHA_FIN = v1.viaje_fecha_fin
-GO
 
 
 ---
@@ -334,8 +327,6 @@ CREATE PROCEDURE Insercion_Tabla_Herramientas AS
 	where		(MATERIAL_COD is not null) or (MATERIAL_DESCRIPCION is not null) and (MATERIAL_PRECIO is not null)
 	GROUP BY	MATERIAL_COD, MATERIAL_DESCRIPCION, MATERIAL_PRECIO
 GO
-
-
 
 
 CREATE PROCEDURE Insercion_Tabla_Tareas AS
@@ -360,7 +351,13 @@ CREATE PROCEDURE Insercion_Tabla_Viaje AS-- todavia no funciona, chequear
 	group by		cam.cami_id, cho.chofer_legajo, rec.reco_id, VIAJE_FECHA_INICIO, VIAJE_FECHA_FIN, VIAJE_CONSUMO_COMBUSTIBLE
 GO
 
-
+CREATE PROCEDURE Insercion_Tabla_Paquete AS
+	INSERT INTO [GD2C2021].[SQLI].Paquete (pack_tipo, pack_cantidad, pack_viaje)
+	SELECT	DISTINCT	t_pack_id,PAQUETE_CANTIDAD,viaje_id
+	FROM		[GD2C2021].[gd_esquema].Maestra maestra
+	JOIN		[GD2C2021].[SQLI].Tipo_Paquete on t_pack_descripcion = PAQUETE_DESCRIPCION
+	JOIN		[GD2C2021].[SQLI].Viaje v1 on maestra.VIAJE_FECHA_INICIO = v1.viaje_fecha_ini and maestra.VIAJE_FECHA_FIN = v1.viaje_fecha_fin
+GO
 
 CREATE PROCEDURE Insercion_Tabla_Orden_De_Trabajo AS -- TODO me devuelve campos con null
 	INSERT INTO [GD2C2021].[SQLI].Orden_De_Trabajo (odt_camion, odt_estado, odt_fecha_generado)
@@ -383,6 +380,7 @@ CREATE PROCEDURE Insercion_Tabla_Tarea_Por_ODT AS
 	 group by tar.tarea_codigo, ord.odt_id, mec.meca_nro_legajo, TAREA_FECHA_INICIO, TAREA_FECHA_FIN, TAREA_FECHA_INICIO_PLANIFICADO
 GO
 
+/*
 CREATE PROCEDURE Insercion_Tabla_Pack_Por_Viaje AS
     INSERT INTO [GD2C2021].[SQLI].Paquete_Por_Viaje (ppv_viaje, ppv_paquete, ppv_cant_paquete)
     SELECT      via.viaje_id, pac.pack_id, PAQUETE_CANTIDAD 
@@ -396,7 +394,7 @@ CREATE PROCEDURE Insercion_Tabla_Pack_Por_Viaje AS
 	group by	via.viaje_id, pac.pack_id, PAQUETE_CANTIDAD
 GO
 
-/*
+
 EXEC Insercion_Tabla_Tarea_Por_ODT
 DROP PROCEDURE Insercion_Tabla_Tarea_Por_ODT
 EXEC Insercion_Tabla_Herramienta_Por_Tarea
@@ -423,6 +421,7 @@ CREATE PROCEDURE Insercion_Tabla_Tarea_Por_ODT AS
 
 CREATE PROCEDURE Migracion AS
 
+	EXEC Insercion_Tabla_Tipo_Paquete
 	EXEC Insercion_Tabla_Modelo
 	EXEC Insercion_Tabla_Marca
 	EXEC Insercion_Tabla_Camion
@@ -433,13 +432,8 @@ CREATE PROCEDURE Migracion AS
 	EXEC Insercion_Tabla_Mecanico
 	EXEC Insercion_Tabla_Tipo_Tarea
 	EXEC Insercion_Tabla_Herramientas
-	EXEC Insercion_Tabla_Tipo_Paquete
-	EXEC Insercion_Tabla_Viaje
 	EXEC Insercion_Tabla_Paquete
-
-
-
-
+	EXEC Insercion_Tabla_Viaje
 	EXEC Insercion_Tabla_Tareas
 	EXEC Insercion_Tabla_Orden_De_Trabajo
 	--EXEC Insercion_Tabla_Tarea_Por_ODT
@@ -450,28 +444,25 @@ GO
 -------------------------------- procedures para reseteos de tablas -------------------------------------------------
 CREATE PROCEDURE Reseteo_Tablas AS
 
-	IF (OBJECT_ID('GD2C2021.SQLI.Modelo')IS NOT NULL)					DROP TABLE [GD2C2021].[SQLI].Modelo
-	IF (OBJECT_ID('GD2C2021.SQLI.Marca')IS NOT NULL)					DROP TABLE [GD2C2021].[SQLI].Marca
-	IF (OBJECT_ID('GD2C2021.SQLI.Camion')IS NOT NULL)					DROP TABLE [GD2C2021].[SQLI].Camion
-	IF (OBJECT_ID('GD2C2021.SQLI.Chofer')IS NOT NULL)					DROP TABLE [GD2C2021].[SQLI].Chofer
-	IF (OBJECT_ID('GD2C2021.SQLI.Ciudad')IS NOT NULL)					DROP TABLE [GD2C2021].[SQLI].Ciudad
-	IF (OBJECT_ID('GD2C2021.SQLI.Recorrido')IS NOT NULL)				DROP TABLE [GD2C2021].[SQLI].Recorrido
-	IF (OBJECT_ID('GD2C2021.SQLI.Viaje')IS NOT NULL)					DROP TABLE [GD2C2021].[SQLI].Viaje
-	IF (OBJECT_ID('GD2C2021.SQLI.Taller')IS NOT NULL)					DROP TABLE [GD2C2021].[SQLI].Taller
-	IF (OBJECT_ID('GD2C2021.SQLI.Mecanico')IS NOT NULL)					DROP TABLE [GD2C2021].[SQLI].Mecanico
-	IF (OBJECT_ID('GD2C2021.SQLI.Tipo_Tarea')IS NOT NULL)				DROP TABLE [GD2C2021].[SQLI].Tipo_Tarea
-	IF (OBJECT_ID('GD2C2021.SQLI.Herramientas')IS NOT NULL)				DROP TABLE [GD2C2021].[SQLI].Herramientas
-	IF (OBJECT_ID('GD2C2021.SQLI.Tipo_Paquete')IS NOT NULL)				DROP TABLE [GD2C2021].[SQLI].Tipo_Paquete
-
-
-	
-	IF (OBJECT_ID('GD2C2021.SQLI.Tarea_Por_ODT')IS NOT NULL)			DROP TABLE [GD2C2021].[SQLI].Tarea_Por_ODT
-	IF (OBJECT_ID('GD2C2021.SQLI.Herramienta_Por_Tarea')IS NOT NULL)	DROP TABLE [GD2C2021].[SQLI].Herramienta_Por_Tarea
 	IF (OBJECT_ID('GD2C2021.SQLI.Paquete_Por_Viaje')IS NOT NULL)		DROP TABLE [GD2C2021].[SQLI].Paquete_Por_Viaje
 	IF (OBJECT_ID('GD2C2021.SQLI.Paquete')IS NOT NULL)					DROP TABLE [GD2C2021].[SQLI].Paquete
 	IF (OBJECT_ID('GD2C2021.SQLI.Orden_De_Trabajo')IS NOT NULL)			DROP TABLE [GD2C2021].[SQLI].Orden_De_Trabajo
 	IF (OBJECT_ID('GD2C2021.SQLI.Tareas')IS NOT NULL)					DROP TABLE [GD2C2021].[SQLI].Tareas
-	
+	IF (OBJECT_ID('GD2C2021.SQLI.Herramienta_Por_Tarea')IS NOT NULL)	DROP TABLE [GD2C2021].[SQLI].Herramienta_Por_Tarea
+	IF (OBJECT_ID('GD2C2021.SQLI.Tarea_Por_ODT')IS NOT NULL)			DROP TABLE [GD2C2021].[SQLI].Tarea_Por_ODT
+	IF (OBJECT_ID('GD2C2021.SQLI.Tipo_Paquete')IS NOT NULL)				DROP TABLE [GD2C2021].[SQLI].Tipo_Paquete
+	IF (OBJECT_ID('GD2C2021.SQLI.Herramientas')IS NOT NULL)				DROP TABLE [GD2C2021].[SQLI].Herramientas
+	IF (OBJECT_ID('GD2C2021.SQLI.Tipo_Tarea')IS NOT NULL)				DROP TABLE [GD2C2021].[SQLI].Tipo_Tarea
+	IF (OBJECT_ID('GD2C2021.SQLI.Mecanico')IS NOT NULL)					DROP TABLE [GD2C2021].[SQLI].Mecanico
+	IF (OBJECT_ID('GD2C2021.SQLI.Taller')IS NOT NULL)					DROP TABLE [GD2C2021].[SQLI].Taller
+	IF (OBJECT_ID('GD2C2021.SQLI.Viaje')IS NOT NULL)					DROP TABLE [GD2C2021].[SQLI].Viaje
+	IF (OBJECT_ID('GD2C2021.SQLI.Recorrido')IS NOT NULL)				DROP TABLE [GD2C2021].[SQLI].Recorrido
+	IF (OBJECT_ID('GD2C2021.SQLI.Ciudad')IS NOT NULL)					DROP TABLE [GD2C2021].[SQLI].Ciudad
+	IF (OBJECT_ID('GD2C2021.SQLI.Chofer')IS NOT NULL)					DROP TABLE [GD2C2021].[SQLI].Chofer
+	IF (OBJECT_ID('GD2C2021.SQLI.Camion')IS NOT NULL)					DROP TABLE [GD2C2021].[SQLI].Camion
+	IF (OBJECT_ID('GD2C2021.SQLI.Marca')IS NOT NULL)					DROP TABLE [GD2C2021].[SQLI].Marca
+	IF (OBJECT_ID('GD2C2021.SQLI.Modelo')IS NOT NULL)					DROP TABLE [GD2C2021].[SQLI].Modelo
+
 GO
 
 CREATE PROCEDURE Reseteo_Procedures AS
