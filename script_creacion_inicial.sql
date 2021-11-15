@@ -79,7 +79,7 @@ CREATE PROCEDURE Creacion_de_Tablas	AS
 	
 		CREATE TABLE [GD2C2021].[SQLI].Mecanico 
 	(
-		meca_nro_legajo		INT ,
+		meca_nro_legajo		INT NOT NULL,
 		meca_nombre			NVARCHAR(255),
 		meca_apellido		NVARCHAR(255),
 		meca_dni			DECIMAL(18,0),
@@ -123,14 +123,6 @@ CREATE PROCEDURE Creacion_de_Tablas	AS
 		pack_viaje			INT,
 	)
 
-
-
-	
-
-
-
----
-
 	CREATE TABLE [GD2C2021].[SQLI].Orden_De_Trabajo 
 	(
 		odt_id				INT IDENTITY,
@@ -146,7 +138,7 @@ CREATE PROCEDURE Creacion_de_Tablas	AS
 		tarea_mecanico		INT,
 		tarea_fecha_inicio	DATETIME2(3),
 		tarea_fecha_fin		DATETIME2(3),
-		tarea_fe_in_plani	DATETIME2(3)-- hay que cambiar el nombre en el der son largos y tengo que poner un tab mas en todas las lineas una paja ==> Modiicado por eze 
+		tarea_fe_in_plani	DATETIME2(3) 
 	);	
 
 	CREATE TABLE [GD2C2021].[SQLI].Tareas 
@@ -164,9 +156,6 @@ CREATE PROCEDURE Creacion_de_Tablas	AS
 		herra_id			INT,
 		mxt_cantidad		INT
 	);
-
-
-
 GO
 
 -------------------------------Procedure para las PKs y FKs---------------------------------------------------------
@@ -243,8 +232,8 @@ CREATE PROCEDURE Insercion_Tabla_Camion AS
 	INSERT INTO		[GD2C2021].[SQLI].Camion(cami_modelo,cami_marca, cami_patente, cami_nro_chasis, cami_nro_motor, cami_fecha_alta)
 	SELECT DISTINCT modelo_id,marca_id,CAMION_PATENTE,CAMION_NRO_CHASIS,CAMION_NRO_MOTOR,CAMION_FECHA_ALTA
 	FROM gd_esquema.Maestra 
-	JOIN GD2C2021.SQLI.Modelo on MODELO_CAMION = modelo_detalle
-	JOIN GD2C2021.SQLI.Marca on MARCA_CAMION_MARCA = marca_nombre
+	JOIN GD2C2021.[SQLI].Modelo on MODELO_CAMION = modelo_detalle and MODELO_CAPACIDAD_TANQUE = modelo_cap_tanque
+	JOIN GD2C2021.[SQLI].Marca on MARCA_CAMION_MARCA = marca_nombre
 	GROUP BY modelo_id,	marca_id,CAMION_PATENTE,CAMION_NRO_CHASIS,CAMION_NRO_MOTOR,CAMION_FECHA_ALTA
 GO
 
@@ -301,11 +290,6 @@ CREATE PROCEDURE Insercion_Tabla_Tipo_Paquete AS
 	WHERE		PAQUETE_DESCRIPCION is not null
 GO
 
-
-
----
-
-
 CREATE PROCEDURE Insercion_Tabla_Herramientas AS
 	INSERT INTO [GD2C2021].[SQLI].Herramientas(herra_code, herra_detalle, herra_precio)
 	SELECT		MATERIAL_COD, MATERIAL_DESCRIPCION, MATERIAL_PRECIO
@@ -325,7 +309,7 @@ CREATE PROCEDURE Insercion_Tabla_Tareas AS
 	SET IDENTITY_INSERT [GD2C2021].[SQLI].Tareas OFF
 GO
 
-CREATE PROCEDURE Insercion_Tabla_Viaje AS-- todavia no funciona, chequear -- (-tomi: creo que lo arregle)
+CREATE PROCEDURE Insercion_Tabla_Viaje AS
 	INSERT INTO		[GD2C2021].[SQLI].Viaje (viaje_camion, viaje_chofer, viaje_recorrido, viaje_fecha_ini, viaje_fecha_fin, viaje_lts_cons)
 	SELECT DISTINCT	cam.cami_id, cho.chofer_nro_legajo, rec.reco_id, VIAJE_FECHA_INICIO, VIAJE_FECHA_FIN, VIAJE_CONSUMO_COMBUSTIBLE
 	FROM			[GD2C2021].[gd_esquema].Maestra AS MASTERTABLE
@@ -336,7 +320,7 @@ CREATE PROCEDURE Insercion_Tabla_Viaje AS-- todavia no funciona, chequear -- (-t
 	group by		cam.cami_id, cho.chofer_nro_legajo, rec.reco_id, VIAJE_FECHA_INICIO, VIAJE_FECHA_FIN, VIAJE_CONSUMO_COMBUSTIBLE
 GO
 
-CREATE PROCEDURE Insercion_Tabla_Paquete AS-- (858112 ROWS genera)
+CREATE PROCEDURE Insercion_Tabla_Paquete AS
 	INSERT INTO			[GD2C2021].[SQLI].Paquete (pack_tipo, pack_cantidad, pack_viaje)
 	SELECT	DISTINCT	tip.t_pack_id, PAQUETE_CANTIDAD, v1.viaje_id
 	FROM				[GD2C2021].[gd_esquema].Maestra AS MASTERTABLE
@@ -346,16 +330,16 @@ CREATE PROCEDURE Insercion_Tabla_Paquete AS-- (858112 ROWS genera)
 	group by			tip.t_pack_id, PAQUETE_CANTIDAD, v1.viaje_id
 GO
 
-CREATE PROCEDURE Insercion_Tabla_Orden_De_Trabajo AS -- TODO me devuelve campos con null (-tomi: a mi no)
+CREATE PROCEDURE Insercion_Tabla_Orden_De_Trabajo AS
 	INSERT INTO [GD2C2021].[SQLI].Orden_De_Trabajo (odt_camion, odt_estado, odt_fecha_generado)
 	SELECT		cam.cami_id, ORDEN_TRABAJO_ESTADO, ORDEN_TRABAJO_FECHA
 	FROM		[GD2C2021].[gd_esquema].Maestra AS MASTERTABLE
-	join		[GD2C2021].[SQLI].Camion cam on MASTERTABLE.CAMION_NRO_CHASIS = cam.cami_nro_chasis
+	join		[GD2C2021].[SQLI].Camion cam on MASTERTABLE.CAMION_NRO_CHASIS = cam.cami_nro_chasis AND MASTERTABLE.CAMION_PATENTE = cam.cami_patente
 	where		(CAMION_NRO_CHASIS is not null) and (cam.cami_id is not null) and (ORDEN_TRABAJO_ESTADO is not null) and (ORDEN_TRABAJO_FECHA is not null)
 	group by	cam.cami_id, ORDEN_TRABAJO_ESTADO, ORDEN_TRABAJO_FECHA
 GO
 
-CREATE PROCEDURE Insercion_Tabla_Tarea_Por_ODT AS -- (190869 rows)
+CREATE PROCEDURE Insercion_Tabla_Tarea_Por_ODT AS
 	INSERT INTO [GD2C2021].[SQLI].Tarea_Por_ODT (tarea_id, odt_id, tarea_mecanico, tarea_fecha_inicio, tarea_fecha_fin, tarea_fe_in_plani)
 	SELECT tar.tarea_codigo, ord.odt_id, mec.meca_nro_legajo, TAREA_FECHA_INICIO, TAREA_FECHA_FIN, TAREA_FECHA_INICIO_PLANIFICADO
 	FROM [GD2C2021].[gd_esquema].Maestra as MASTERTABLE
@@ -366,6 +350,11 @@ CREATE PROCEDURE Insercion_Tabla_Tarea_Por_ODT AS -- (190869 rows)
 			or (MASTERTABLE.MECANICO_NRO_LEGAJO is not null) or (TAREA_FECHA_INICIO is not null) or (TAREA_FECHA_FIN is not null) or (TAREA_FECHA_INICIO_PLANIFICADO is not null)
 	 group by tar.tarea_codigo, ord.odt_id, mec.meca_nro_legajo, TAREA_FECHA_INICIO, TAREA_FECHA_FIN, TAREA_FECHA_INICIO_PLANIFICADO
 GO
+
+/*
+En la correcion del tp, nos pusieron que no se esta teniendo en cuenta el camion para identificar el viaje ==> Esto se hace en el procedure 
+Insercion_Tabla_Orden_De_Trabajo ==> Usamos el id del camion en la tabla Orden_De_Trabajo, no en Tarea_Por_ODT
+*/
 
 CREATE PROCEDURE Insercion_Tabla_Herramienta_Por_Tarea AS
     INSERT INTO [GD2C2021].[SQLI].Herramienta_Por_Tarea (tarea_codigo, herra_id)--, mxt_cantidad) FE DE ERRATAS mxt_cantidad esta comentado porque no existe la columna en la tabla maestra.
