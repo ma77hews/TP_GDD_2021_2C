@@ -335,7 +335,6 @@ BEGIN
 END
 GO
 
-
 CREATE PROCEDURE Insercion_Hechos_Viajes AS
 BEGIN
 	/*INSERT INTO [GD2C2021].[SQLI].BI_Hechos(/*idTiempo*/idCamion, idMarca, idModelo, idTaller, idTipoTarea, idRecorrido, idChofer, idMecanico)
@@ -353,6 +352,56 @@ END
 GO
 
 CREATE PROCEDURE Insercion_Hechos_Reparaciones AS
+BEGIN
+
+END
+GO
+
+-----------------------------------Vistas------------------------------------------------------------------------------
+CREATE VIEW [GD2C2021].[SQLI].MAX_TIEMPO_FDS_DE_CADA_CAMION_X_CUATRI AS
+BEGIN
+		
+END
+GO
+
+CREATE VIEW [GD2C2021].[SQLI].COSTO_MANTENIMIENTO_X_CAMION_X_TALLER_X_CUATRI AS
+BEGIN
+
+END
+GO
+
+
+CREATE VIEW [GD2C2021].[SQLI].DESVIO_PROM_DE_CADA_TAREA_X_TALLER AS
+BEGIN
+
+END
+GO
+
+CREATE VIEW [GD2C2021].[SQLI].TOP_5_TAREAS_REALIZADAS_X_MODELO AS
+BEGIN
+
+END
+GO
+
+CREATE VIEW [GD2C2021].[SQLI].TOP_10_HERRAM_MAS_USADAS_X_TALLER AS
+BEGIN
+
+END
+GO
+
+CREATE VIEW [GD2C2021].[SQLI].FACTURACION_TOTAL_POR_RECORRIDO_POR_CUATRI AS
+BEGIN
+
+END
+GO
+
+CREATE VIEW [GD2C2021].[SQLI].COSTO_PROM_X_RANGO_ETARIO_CHOFERES AS
+BEGIN
+
+END
+GO
+
+CREATE VIEW [GD2C2021].[SQLI].GANANCIA_X_CAMION AS
 BEGIN
 
 END
@@ -418,16 +467,51 @@ CREATE PROCEDURE BI_Reseteo_Procedures AS
 	IF EXISTS (SELECT * FROM  sys.procedures WHERE  NAME = 'Insercion_Hechos_Reparaciones' AND type = 'p')			DROP PROCEDURE dbo.Insercion_Hechos_Reparaciones
 	IF EXISTS (SELECT * FROM  sys.procedures WHERE  NAME = 'Insercion_Hechos_Viajes' AND type = 'p')				DROP PROCEDURE dbo.Insercion_Hechos_Viajes
 	IF EXISTS (SELECT * FROM  sys.procedures WHERE  NAME = 'BI_Migracion' AND type = 'p')							DROP PROCEDURE dbo.BI_Migracion
+	IF EXISTS (SELECT * FROM  sys.procedures WHERE  NAME = 'BI_Vistas' AND type = 'p')								DROP PROCEDURE dbo.BI_Vistas
 	IF EXISTS (SELECT * FROM  sys.procedures WHERE  NAME = 'BI_Reseteo_Tablas' AND type = 'p')						DROP PROCEDURE dbo.BI_Reseteo_Tablas
 	IF EXISTS (SELECT * FROM  sys.procedures WHERE  NAME = 'BI_Reseteo_Procedures' AND type = 'p')					DROP PROCEDURE dbo.BI_Reseteo_Procedures
 	IF EXISTS (SELECT * FROM  sys.procedures WHERE  NAME = 'BI_Reseteo' AND type = 'p')								DROP PROCEDURE dbo.BI_Reseteo
-	--IF EXISTS (SELECT * FROM  sys.procedures WHERE  NAME = 'Play' AND type = 'p')									DROP PROCEDURE dbo.Play
+	IF EXISTS (SELECT * FROM  sys.procedures WHERE  NAME = 'BI_Play' AND type = 'p')								DROP PROCEDURE dbo.BI_Play
+GO
 
+CREATE PROCEDURE BI_Reseteo_Vistas AS
+BEGIN
+	IF EXISTS(select * FROM sys.views where name = 'MAX_TIEMPO_FDS_DE_CADA_CAMION_X_CUATRI')			DROP VIEW [GD2C2021].[SQLI].MAX_TIEMPO_FDS_DE_CADA_CAMION_X_CUATRI
+	IF EXISTS(select * FROM sys.views where name = 'COSTO_MANTENIMIENTO_X_CAMION_X_TALLER_X_CUATRI')	DROP VIEW [GD2C2021].[SQLI].COSTO_MANTENIMIENTO_X_CAMION_X_TALLER_X_CUATRI
+	IF EXISTS(select * FROM sys.views where name = 'DESVIO_PROM_DE_CADA_TAREA_X_TALLER')				DROP VIEW [GD2C2021].[SQLI].DESVIO_PROM_DE_CADA_TAREA_X_TALLER
+	IF EXISTS(select * FROM sys.views where name = 'TOP_5_TAREAS_REALIZADAS_X_MODELO')					DROP VIEW [GD2C2021].[SQLI].TOP_5_TAREAS_REALIZADAS_X_MODELO
+	IF EXISTS(select * FROM sys.views where name = 'TOP_10_HERRAM_MAS_USADAS_X_TALLER')					DROP VIEW [GD2C2021].[SQLI].TOP_10_HERRAM_MAS_USADAS_X_TALLER
+	IF EXISTS(select * FROM sys.views where name = 'FACTURACION_TOTAL_POR_RECORRIDO_POR_CUATRI')		DROP VIEW [GD2C2021].[SQLI].FACTURACION_TOTAL_POR_RECORRIDO_POR_CUATRI
+	IF EXISTS(select * FROM sys.views where name = 'COSTO_PROM_X_RANGO_ETARIO_CHOFERES')				DROP VIEW [GD2C2021].[SQLI].COSTO_PROM_X_RANGO_ETARIO_CHOFERES
+	IF EXISTS(select * FROM sys.views where name = 'GANANCIA_X_CAMION')									DROP VIEW [GD2C2021].[SQLI].GANANCIA_X_CAMION
+END
 GO
 
 CREATE PROCEDURE BI_Reseteo AS
-
+BEGIN
 	EXEC BI_Reseteo_Tablas
 	EXEC BI_Reseteo_Procedures
-
+	EXEC BI_Reseteo_Vistas
+END
 GO
+
+----------------------------------------------Procedure principal------------------------------------------
+CREATE PROCEDURE BI_Play AS
+BEGIN
+	IF EXISTS (SELECT * FROM   sys.schemas WHERE  NAME = 'SQLI')
+		BEGIN
+			EXEC BI_Reseteo
+			DROP SCHEMA SQLI
+		END
+	ELSE
+		BEGIN
+			EXEC ('use [GD2C2021]')
+			EXEC ('create schema SQLI')
+			EXEC Creacion_Tablas_BI
+			EXEC BI_Migracion
+		END
+END
+GO
+
+---------------------------------Ejecuta esto----------------------------------------------------------------
+EXEC BI_Play
