@@ -337,7 +337,7 @@ GO
 
 CREATE PROCEDURE Insercion_Hechos_Viajes AS
 BEGIN
-	/*INSERT INTO [GD2C2021].[SQLI].BI_Hechos(/*idTiempo*/idCamion, idMarca, idModelo, idTaller, idTipoTarea, idRecorrido, idChofer, idMecanico)
+	/*INSERT INTO [GD2C2021].[SQLI].BI_Hechos_Viajes(idTiempo, idViaje, idCamion, idMarca, idModelo, idRecorrido, idPaquete)
 	SELECT	tiem.idTiempo, cami.idCamion, mar.idMarca, mode.idModelo, tall.idTaller, tipo.idTipo, reco.idReco, cho.legajoChofer, meca.legajoMecanico
 	FROM [GD2C2021].[SQLI].BI_Dimension_Tiempo tiem
 	JOIN [GD2C2021].[SQLI].BI_Dimension_Mecanico meca on meca.legajoMecanico = legajoMecanico
@@ -353,7 +353,9 @@ GO
 
 CREATE PROCEDURE Insercion_Hechos_Reparaciones AS
 BEGIN
-
+	/*INSERT INTO [GD2C2021].[SQLI].BI_Hechos_Reparaciones(idTiempo, idCamion, idODT, idMarca, idModelo, idTaller, idTipoTarea, idMecanico, idHerramienta)
+	SELECT
+	FROM*/
 END
 GO
 
@@ -408,7 +410,6 @@ END
 GO
 
 -------------------------------- procedure migracion ----------------------------------------------------------------
-
 CREATE PROCEDURE BI_Migracion AS
 	
 	EXEC Insercion_Dimension_Camion
