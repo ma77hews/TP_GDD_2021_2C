@@ -142,22 +142,38 @@ CREATE PROCEDURE Creacion_Tablas_BI AS
 	ALTER TABLE [GD2C2021].[SQLI].BI_Dimension_ODT	ADD PRIMARY KEY(idODT)
 	ALTER TABLE [GD2C2021].[SQLI].BI_Dimension_ODT	ADD FOREIGN KEY(camion)		REFERENCES [GD2C2021].[SQLI].BI_Dimension_Camion(idCamion)	ON DELETE NO ACTION ON UPDATE NO ACTION ;
 
-	CREATE TABLE [GD2C2021].[SQLI].BI_Hechos
+	CREATE TABLE [GD2C2021].[SQLI].BI_Hechos_Viajes
 	(
 		idTiempo	INT NOT NULL,
+		idViaje		INT NOT NULL,
 		idCamion	INT NOT NULL,
 		idMarca		INT NOT NULL,
 		idModelo	INT NOT NULL,
-		idTaller	INT NOT NULL,
-		idTipoTarea	INT NOT NULL,
 		idRecorrido	INT NOT NULL,
-		idChofer	INT NOT NULL,
-		idMecanico	INT NOT NULL,
+		idPaquete	INT NOT NULL,
+		idChofer	INT NOT NULL
 	)
 
-	ALTER TABLE [GD2C2021].[SQLI].BI_Hechos ADD PRIMARY KEY CLUSTERED(idTiempo, 
-	idCamion, idMarca, idModelo, idTaller, idTipoTarea, idRecorrido, 
-	idChofer, idMecanico)
+	CREATE TABLE [GD2C2021].[SQLI].BI_Hechos_Reparaciones
+	(
+		idTiempo		INT NOT NULL,
+		idCamion		INT NOT NULL,
+		idODT			INT NOT NULL,
+		idMarca			INT NOT NULL,
+		idModelo		INT NOT NULL,
+		idTaller		INT NOT NULL,
+		idTipoTarea		INT NOT NULL,
+		idMecanico		INT NOT NULL,
+		idHerramienta	INT NOT NULL
+	)
+
+	ALTER TABLE [GD2C2021].[SQLI].BI_Hechos_Viajes ADD PRIMARY KEY CLUSTERED(idTiempo, 
+	idViaje, idCamion, idMarca, idModelo, idPaquete, idRecorrido, 
+	idChofer)
+
+	ALTER TABLE [GD2C2021].[SQLI].BI_Hechos_Reparaciones ADD PRIMARY KEY CLUSTERED
+	(idTiempo, idCamion, idMarca, idModelo, idODT, idTaller, idTipoTarea, idMecanico,
+	idHerramienta)
 GO
 
 -------------------------------- procedures para realizar las migraciones de las tablas --------------------------------
@@ -320,7 +336,7 @@ END
 GO
 
 
-CREATE PROCEDURE Insercion_Hechos AS
+CREATE PROCEDURE Insercion_Hechos_Viajes AS
 BEGIN
 	/*INSERT INTO [GD2C2021].[SQLI].BI_Hechos(/*idTiempo*/idCamion, idMarca, idModelo, idTaller, idTipoTarea, idRecorrido, idChofer, idMecanico)
 	SELECT	tiem.idTiempo, cami.idCamion, mar.idMarca, mode.idModelo, tall.idTaller, tipo.idTipo, reco.idReco, cho.legajoChofer, meca.legajoMecanico
@@ -333,6 +349,12 @@ BEGIN
 	JOIN [GD2C2021].[SQLI].BI_Dimension_Modelo mode on mode.idModelo = idModelo
 	JOIN [GD2C2021].[SQLI].BI_Dimension_Marca mar on mar.idMarca = idMarca
 	JOIN [GD2C2021].[SQLI].BI_Dimension_Camion cami on cami.idCamion = idCamion*/
+END
+GO
+
+CREATE PROCEDURE Insercion_Hechos_Reparaciones AS
+BEGIN
+
 END
 GO
 
@@ -353,7 +375,8 @@ CREATE PROCEDURE BI_Migracion AS
 	EXEC Insercion_Dimension_Paquete
 	EXEC Insercion_Dimension_Viaje
 	EXEC Insercion_Dimension_ODT
-	EXEC Insercion_Hechos
+	EXEC Insercion_Hechos_Reparaciones
+	EXEC Insercion_Hechos_Viajes
 GO
 
 -------------------------------- procedures para reseteos de tablas -------------------------------------------------
@@ -372,7 +395,8 @@ CREATE PROCEDURE BI_Reseteo_Tablas AS
 	IF (OBJECT_ID('GD2C2021.SQLI.BI_Dimension_Viaje')IS NOT NULL)					DROP TABLE [GD2C2021].[SQLI].BI_Dimension_Viaje
 	IF (OBJECT_ID('GD2C2021.SQLI.BI_Dimension_Tiempo')IS NOT NULL)					DROP TABLE [GD2C2021].[SQLI].BI_Dimension_Tiempo
 	IF (OBJECT_ID('GD2C2021.SQLI.BI_Dimension_ODT')IS NOT NULL)						DROP TABLE [GD2C2021].[SQLI].BI_Dimension_ODT
-	IF (OBJECT_ID('GD2C2021.SQLI.BI_Hechos')IS NOT NULL)							DROP TABLE [GD2C2021].[SQLI].BI_Hechos
+	IF (OBJECT_ID('GD2C2021.SQLI.BI_Hechos_Viajes')IS NOT NULL)						DROP TABLE [GD2C2021].[SQLI].BI_Hechos_Viajes
+	IF (OBJECT_ID('GD2C2021.SQLI.BI_Hechos_Reparaciones')IS NOT NULL)				DROP TABLE [GD2C2021].[SQLI].BI_Hechos_Reparaciones
 GO
 
 CREATE PROCEDURE BI_Reseteo_Procedures AS
@@ -391,6 +415,8 @@ CREATE PROCEDURE BI_Reseteo_Procedures AS
 	IF EXISTS (SELECT * FROM  sys.procedures WHERE  NAME = 'Insercion_Dimension_Herramienta' AND type = 'p')		DROP PROCEDURE dbo.Insercion_Dimension_Herramienta
 	IF EXISTS (SELECT * FROM  sys.procedures WHERE  NAME = 'Insercion_Dimension_Paquete' AND type = 'p')			DROP PROCEDURE dbo.Insercion_Dimension_Paquete
 	IF EXISTS (SELECT * FROM  sys.procedures WHERE  NAME = 'Insercion_Dimension_ODT' AND type = 'p')				DROP PROCEDURE dbo.Insercion_Dimension_ODT
+	IF EXISTS (SELECT * FROM  sys.procedures WHERE  NAME = 'Insercion_Hechos_Reparaciones' AND type = 'p')			DROP PROCEDURE dbo.Insercion_Hechos_Reparaciones
+	IF EXISTS (SELECT * FROM  sys.procedures WHERE  NAME = 'Insercion_Hechos_Viajes' AND type = 'p')				DROP PROCEDURE dbo.Insercion_Hechos_Viajes
 	IF EXISTS (SELECT * FROM  sys.procedures WHERE  NAME = 'BI_Migracion' AND type = 'p')							DROP PROCEDURE dbo.BI_Migracion
 	IF EXISTS (SELECT * FROM  sys.procedures WHERE  NAME = 'BI_Reseteo_Tablas' AND type = 'p')						DROP PROCEDURE dbo.BI_Reseteo_Tablas
 	IF EXISTS (SELECT * FROM  sys.procedures WHERE  NAME = 'BI_Reseteo_Procedures' AND type = 'p')					DROP PROCEDURE dbo.BI_Reseteo_Procedures
