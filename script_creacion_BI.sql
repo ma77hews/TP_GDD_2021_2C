@@ -73,7 +73,8 @@ CREATE PROCEDURE Creacion_Tablas_BI AS
 		direccion			NVARCHAR(255),
 		telefono			INT,
 		mail				NVARCHAR(255),
-		fecha_nacimiento	SMALLDATETIME
+		fecha_nacimiento	SMALLDATETIME,
+		edad				NVARCHAR(20)
 	)
 
 	ALTER TABLE [GD2C2021].[SQLI].BI_Dimension_Chofer ADD PRIMARY KEY(legajoChofer)
@@ -88,7 +89,8 @@ CREATE PROCEDURE Creacion_Tablas_BI AS
 		direccion			NVARCHAR(255),
 		telefono			INT,
 		mail				NVARCHAR(255),
-		fecha_nacimiento	SMALLDATETIME
+		fecha_nacimiento	SMALLDATETIME,
+		edad				NVARCHAR(255)
 	)
 
 	ALTER TABLE [GD2C2021].[SQLI].BI_Dimension_Mecanico ADD PRIMARY KEY(legajoMecanico)
@@ -122,60 +124,105 @@ GO
 
 -------------------------------- procedures para realizar las migraciones de las tablas --------------------------------
 CREATE PROCEDURE Insercion_Dimension_Camion AS
+BEGIN
 	INSERT INTO	[GD2C2021].[SQLI].BI_Dimension_Camion (idCamion,/*modelo, marca,*/ patente, nro_chasis, nro_motor, fecha_alta)
 	SELECT		cami_id,/*cami_modelo,cami_marca,*/ cami_patente, cami_nro_chasis, cami_nro_motor, cami_fecha_alta
 	FROM		[GD2C2021].[SQLI].Camion
+END
 GO
 
 CREATE PROCEDURE Insercion_Dimension_Marca AS
+BEGIN
 	INSERT INTO [GD2C2021].[SQLI].BI_Dimension_Marca(IdMarca,nombre)
 	SELECT		marca_id, marca_nombre
 	FROM		[GD2C2021].[SQLI].Marca
+END
 GO
 
 CREATE PROCEDURE Insercion_Dimension_Modelo AS
+BEGIN
 	INSERT INTO [GD2C2021].[SQLI].BI_Dimension_Modelo(idModelo, velocidad_max, capacidad_tanque, capacidad_carga)
 	SELECT		modelo_id, modelo_vel_max,modelo_cap_tanque, modelo_cap_carga
 	FROM		[GD2C2021].[SQLI].Modelo
+	END
 GO
 
 CREATE PROCEDURE Insercion_Dimension_Taller AS
+BEGIN
 	INSERT INTO [GD2C2021].[SQLI].BI_Dimension_Taller(idTaller, direccion, telefono, mail, nombre, ciudad)
-	SELECT		taller_id, taller_direccion,taller_telefono,taller_mail,taller_nombre,taller_ciudad
+	SELECT		taller_id, taller_direccion,taller_telefono,taller_mail,taller_nombre,ciu.ciudad_nombre
 	FROM		[GD2C2021].[SQLI].Taller
+	JOIN		[GD2C2021].[SQLI].Ciudad ciu on ciu.ciudad_id = taller_ciudad
+END
 GO
 
 CREATE PROCEDURE Insercion_Dimension_Tipo_Tarea AS
+BEGIN
 	INSERT INTO [GD2C2021].[SQLI].BI_Dimension_Tipo_Tarea(idTipo, tipo_tarea)
 	SELECT		tipo_id, tipo_tarea
 	FROM		[GD2C2021].[SQLI].Tipo_Tarea
+END
 GO
 
 CREATE PROCEDURE Insercion_Dimension_Recorrido AS
+BEGIN
 	INSERT INTO [GD2C2021].[SQLI].BI_Dimension_Recorrido(idRecorrido, ciudad_origen, ciudad_destino, km, precio)
-	SELECT		reco_id, reco_ciudad_origen,reco_ciudad_destino,reco_km, reco_precio
+	SELECT		reco_id, ori.ciudad_nombre,desti.ciudad_nombre,reco_km, reco_precio
 	FROM		[GD2C2021].[SQLI].Recorrido
+	JOIN		[GD2C2021].[SQLI].Ciudad ori on ori.ciudad_id = reco_ciudad_origen
+	JOIN		[GD2C2021].[SQLI].Ciudad desti on desti.ciudad_id = reco_ciudad_destino
+END
 GO
 
 CREATE PROCEDURE Insercion_Dimension_Chofer AS
-	INSERT INTO [GD2C2021].[SQLI].BI_Dimension_Chofer(legajoChofer, nombre, apellido, dni, costo_x_hora, direccion, telefono, mail, fecha_nacimiento)
-	SELECT		chofer_id, chofer_nombre,chofer_apellido,chofer_dni,chofer_direccion,chofer_telefono,chofer_mail,chofer_fecha_nac,chofer_costo_hora
+BEGIN
+	INSERT INTO [GD2C2021].[SQLI].BI_Dimension_Chofer(legajoChofer, nombre, apellido, dni, costo_x_hora, direccion, telefono, mail, fecha_nacimiento, edad)
+	SELECT		chofer_id, chofer_nombre,chofer_apellido,chofer_dni,chofer_direccion,chofer_telefono,chofer_mail,chofer_fecha_nac,chofer_costo_hora, case
+		when (2021 - year(chofer_fecha_nac)) between 18 and 30		then '18-30 anios'
+		when (2021 - year(chofer_fecha_nac)) between 31 and 50		then '31-50 anios'
+		else		'> 50 anios'
+		end
 	FROM		[GD2C2021].[SQLI].Chofer
+END
 GO
 
 CREATE PROCEDURE Insercion_Dimension_Mecanico AS
-	INSERT INTO [GD2C2021].[SQLI].BI_Dimension_Mecanico(legajoMecanico, nombre, apellido, dni, costo_x_hora, direccion,	telefono, mail, fecha_nacimiento)
-	SELECT		meca_nro_legajo, meca_nombre, meca_apellido,meca_dni,meca_direccion,meca_telefono,meca_cost_hora,meca_mail,meca_fecha_nac
+BEGIN
+	INSERT INTO [GD2C2021].[SQLI].BI_Dimension_Mecanico(legajoMecanico, nombre, apellido, dni, costo_x_hora, direccion,	telefono, mail, fecha_nacimiento, edad)
+	SELECT		meca_nro_legajo, meca_nombre, meca_apellido,meca_dni,meca_direccion,meca_telefono,meca_cost_hora,meca_mail,meca_fecha_nac, case
+		when (2021 - year(meca_fecha_nac)) between 18 and 30		then '18-30 anios'
+		when (2021 - year(meca_fecha_nac)) between 31 and 50		then '31-50 anios'
+		else		'> 50 anios'
+		end
 	FROM		[GD2C2021].[SQLI].Mecanico
+END
 GO
 
-/*
+
 CREATE PROCEDURE Insercion_Dimension_Tiempo AS
-	INSERT INTO [GD2C2021].[SQLI].BI_Dimension_Tiempo
+BEGIN
+	/*INSERT INTO [GD2C2021].[SQLI].BI_Dimension_Tiempo(anio, cuatrimestre)
 	SELECT 
-	FROM
+	FROM*/
+END
 GO
-*/
+
+
+CREATE PROCEDURE Insercion_Hechos AS
+BEGIN
+	/*INSERT INTO [GD2C2021].[SQLI].BI_Hechos(/*idTiempo*/idCamion, idMarca, idModelo, idTaller, idTipoTarea, idRecorrido, idChofer, idMecanico)
+	SELECT	tiem.idTiempo, cami.idCamion, mar.idMarca, mode.idModelo, tall.idTaller, tipo.idTipo, reco.idReco, cho.legajoChofer, meca.legajoMecanico
+	FROM [GD2C2021].[SQLI].BI_Dimension_Tiempo tiem
+	JOIN [GD2C2021].[SQLI].BI_Dimension_Mecanico meca on meca.legajoMecanico = legajoMecanico
+	JOIN [GD2C2021].[SQLI].BI_Dimension_Chofer cho on cho.legajoChofer = legajoChofer
+	JOIN [GD2C2021].[SQLI].BI_Dimension_Recorrido reco on reco.idReco = idRecorrido
+	JOIN [GD2C2021].[SQLI].BI_Dimension_Tipo_Tarea tipo on tipo.idTipo = idTipo
+	JOIN [GD2C2021].[SQLI].BI_Dimension_Taller tall on tall.idTaller = idTaller
+	JOIN [GD2C2021].[SQLI].BI_Dimension_Modelo mode on mode.idModelo = idModelo
+	JOIN [GD2C2021].[SQLI].BI_Dimension_Marca mar on mar.idMarca = idMarca
+	JOIN [GD2C2021].[SQLI].BI_Dimension_Camion cami on cami.idCamion = idCamion*/
+END
+GO
 
 -------------------------------- procedure migracion ----------------------------------------------------------------
 
@@ -190,6 +237,7 @@ CREATE PROCEDURE BI_Migracion AS
 	EXEC Insercion_Dimension_Chofer
 	EXEC Insercion_Dimension_Mecanico
 	--EXEC Insercion_Dimension_Tiempo
+	EXEC Insercion_Hechos
 GO
 
 -------------------------------- procedures para reseteos de tablas -------------------------------------------------
