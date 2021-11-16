@@ -3,9 +3,6 @@ CREATE PROCEDURE Creacion_Tablas_BI AS
 	CREATE TABLE [GD2C2021].[SQLI].BI_Dimension_Camion
 	(
 		idCamion		INT IDENTITY,
---		modelo			INT,
---		marca			INT,
---		Revisar si en verdad va modelo y marca!
 		patente			char(7),
 		numero_chasis	NVARCHAR(255),
 		numero_motor	NVARCHAR(255),
@@ -14,6 +11,16 @@ CREATE PROCEDURE Creacion_Tablas_BI AS
 
 	ALTER TABLE [GD2C2021].[SQLI].BI_Dimension_Camion ADD PRIMARY KEY(idCamion)
 
+	CREATE TABLE [GD2C2021].[SQLI].BI_Dimension_Viaje
+	(
+		idViaje			INT IDENTITY,
+		fecha_inicio	DATETIME2(7),
+		fecha_fin		DATETIME2(7),
+		litros_consu	CHAR(8)
+	)
+
+	ALTER TABLE [GD2C2021].[SQLI].BI_Dimension_Viaje ADD PRIMARY KEY(idViaje)
+
 	CREATE TABLE [GD2C2021].[SQLI].BI_Dimension_Marca
 	(
 		idMarca		INT IDENTITY,
@@ -21,6 +28,16 @@ CREATE PROCEDURE Creacion_Tablas_BI AS
 	)
 
 	ALTER TABLE [GD2C2021].[SQLI].BI_Dimension_Marca ADD PRIMARY KEY(idMarca)
+
+	CREATE TABLE [GD2C2021].[SQLI].BI_Dimension_Paquete
+	(
+		idPaquete	INT IDENTITY,
+		tipo		INT,
+		cantidad	INT
+	)
+
+	ALTER TABLE [GD2C2021].[SQLI].BI_Dimension_Paquete	ADD PRIMARY KEY(idPaquete)
+	ALTER TABLE [GD2C2021].[SQLI].BI_Dimension_Paquete	ADD FOREIGN KEY(tipo)		REFERENCES [GD2C2021].[SQLI].Tipo_paquete(t_pack_id)	ON DELETE NO ACTION ON UPDATE NO ACTION ;
 
 	CREATE TABLE [GD2C2021].[SQLI].BI_Dimension_Modelo
 	(
@@ -104,6 +121,27 @@ CREATE PROCEDURE Creacion_Tablas_BI AS
 
 	ALTER TABLE [GD2C2021].[SQLI].BI_Dimension_Tiempo ADD PRIMARY KEY(idTiempo)
 
+	CREATE TABLE [GD2C2021].[SQLI].BI_Dimension_Herramienta
+	(
+		idHerramienta	INT IDENTITY,
+		detalle			CHAR(50),
+		codigo			NVARCHAR(100),
+		precio			DECIMAL(18,2)
+	)
+
+	ALTER TABLE [GD2C2021].[SQLI].BI_Dimension_Herramienta ADD PRIMARY KEY(idHerramienta)
+
+	CREATE TABLE [GD2C2021].[SQLI].BI_Dimension_ODT
+	(
+		idODT				INT IDENTITY,
+		camion				INT,
+		estado				NVARCHAR(255),
+		fecha_generacion	NVARCHAR(255)
+	)
+
+	ALTER TABLE [GD2C2021].[SQLI].BI_Dimension_ODT	ADD PRIMARY KEY(idODT)
+	ALTER TABLE [GD2C2021].[SQLI].BI_Dimension_ODT	ADD FOREIGN KEY(camion)		REFERENCES [GD2C2021].[SQLI].BI_Dimension_Camion(idCamion)	ON DELETE NO ACTION ON UPDATE NO ACTION ;
+
 	CREATE TABLE [GD2C2021].[SQLI].BI_Hechos
 	(
 		idTiempo	INT NOT NULL,
@@ -125,15 +163,49 @@ GO
 -------------------------------- procedures para realizar las migraciones de las tablas --------------------------------
 CREATE PROCEDURE Insercion_Dimension_Camion AS
 BEGIN
-	INSERT INTO	[GD2C2021].[SQLI].BI_Dimension_Camion (idCamion,/*modelo, marca,*/ patente, nro_chasis, nro_motor, fecha_alta)
-	SELECT		cami_id,/*cami_modelo,cami_marca,*/ cami_patente, cami_nro_chasis, cami_nro_motor, cami_fecha_alta
+	INSERT INTO	[GD2C2021].[SQLI].BI_Dimension_Camion (idCamion,patente, nro_chasis, nro_motor, fecha_alta)
+	SELECT		cami_id, cami_patente, cami_nro_chasis, cami_nro_motor, cami_fecha_alta
 	FROM		[GD2C2021].[SQLI].Camion
+END
+GO
+
+CREATE PROCEDURE Insercion_Dimension_Viaje AS
+BEGIN
+	INSERT INTO [GD2C2021].[SQLI].BI_Dimension_Viaje(idViaje,fecha_inicio, fecha_fin, litros_consu)
+	SELECT		viaje_id, viaje_fecha_ini,viaje_fecha_fin,viaje_lts_cons
+	FROM		[GD2C2021].[SQLI].Viaje
+END
+GO
+
+CREATE PROCEDURE Insercion_Dimension_Paquete AS
+BEGIN
+	INSERT INTO [GD2C2021].[SQLI].BI_Dimension_Paquete(idPaquete,tipo, cantidad)
+	SELECT		pack_id, tipo_pack_id,pack_cant
+	FROM		[GD2C2021].[SQLI].Paquete
+	JOIN		[GD2C2021].[SQLI].Tipo_Paquete on tipo_pack_id = pack_tipo
+END
+GO
+
+CREATE PROCEDURE Insercion_Dimension_Herramienta AS
+BEGIN
+	INSERT INTO [GD2C2021].[SQLI].BI_Dimension_Herramienta(idHerramienta,detalle, codigo, precio)
+	SELECT		herra_id, herra_detalle,herra_code, herra_precio
+	FROM		[GD2C2021].[SQLI].Herramientas
+END
+GO
+
+CREATE PROCEDURE Insercion_Dimension_ODT AS
+BEGIN
+	INSERT INTO [GD2C2021].[SQLI].BI_Dimension_ODT(idODT, camion, estado, fecha_generacion)
+	SELECT		odt_id, idCamion, odt_estado, odt_fecha_generado
+	FROM		[GD2C2021].[SQLI].Orden_De_Trabajo
+	JOIN		[GD2C2021].[SQLI].BI_Dimension_Camion on odt_camion = idCamion
 END
 GO
 
 CREATE PROCEDURE Insercion_Dimension_Marca AS
 BEGIN
-	INSERT INTO [GD2C2021].[SQLI].BI_Dimension_Marca(IdMarca,nombre)
+	INSERT INTO [GD2C2021].[SQLI].BI_Dimension_Marca(idMarca,nombre)
 	SELECT		marca_id, marca_nombre
 	FROM		[GD2C2021].[SQLI].Marca
 END
@@ -180,7 +252,7 @@ BEGIN
 	SELECT		chofer_id, chofer_nombre,chofer_apellido,chofer_dni,chofer_direccion,chofer_telefono,chofer_mail,chofer_fecha_nac,chofer_costo_hora, case
 		when (2021 - year(chofer_fecha_nac)) between 18 and 30		then '18-30 anios'
 		when (2021 - year(chofer_fecha_nac)) between 31 and 50		then '31-50 anios'
-		else		'> 50 anios'
+		else	'> 50 anios'
 		end
 	FROM		[GD2C2021].[SQLI].Chofer
 END
@@ -277,6 +349,10 @@ CREATE PROCEDURE BI_Migracion AS
 	EXEC Insercion_Dimension_Chofer
 	EXEC Insercion_Dimension_Mecanico
 	EXEC Insercion_Dimension_Tiempo
+	EXEC Insercion_Dimension_Herramienta
+	EXEC Insercion_Dimension_Paquete
+	EXEC Insercion_Dimension_Viaje
+	EXEC Insercion_Dimension_ODT
 	EXEC Insercion_Hechos
 GO
 
@@ -291,7 +367,11 @@ CREATE PROCEDURE BI_Reseteo_Tablas AS
 	IF (OBJECT_ID('GD2C2021.SQLI.BI_Dimension_Recorrido')IS NOT NULL)				DROP TABLE [GD2C2021].[SQLI].BI_Dimension_Recorrido
 	IF (OBJECT_ID('GD2C2021.SQLI.BI_Dimension_Chofer')IS NOT NULL)					DROP TABLE [GD2C2021].[SQLI].BI_Dimension_Chofer
 	IF (OBJECT_ID('GD2C2021.SQLI.BI_Dimension_Mecanico')IS NOT NULL)				DROP TABLE [GD2C2021].[SQLI].BI_Dimension_Mecanico
-	--IF (OBJECT_ID('GD2C2021.SQLI.BI_Dimension_Tiempo')IS NOT NULL)					DROP TABLE [GD2C2021].[SQLI].BI_Dimension_Tiempo
+	IF (OBJECT_ID('GD2C2021.SQLI.BI_Dimension_Paquete')IS NOT NULL)					DROP TABLE [GD2C2021].[SQLI].BI_Dimension_Paquete
+	IF (OBJECT_ID('GD2C2021.SQLI.BI_Dimension_Herramienta')IS NOT NULL)				DROP TABLE [GD2C2021].[SQLI].BI_Dimension_Herramienta
+	IF (OBJECT_ID('GD2C2021.SQLI.BI_Dimension_Viaje')IS NOT NULL)					DROP TABLE [GD2C2021].[SQLI].BI_Dimension_Viaje
+	IF (OBJECT_ID('GD2C2021.SQLI.BI_Dimension_Tiempo')IS NOT NULL)					DROP TABLE [GD2C2021].[SQLI].BI_Dimension_Tiempo
+	IF (OBJECT_ID('GD2C2021.SQLI.BI_Dimension_ODT')IS NOT NULL)						DROP TABLE [GD2C2021].[SQLI].BI_Dimension_ODT
 	IF (OBJECT_ID('GD2C2021.SQLI.BI_Hechos')IS NOT NULL)							DROP TABLE [GD2C2021].[SQLI].BI_Hechos
 GO
 
@@ -307,6 +387,10 @@ CREATE PROCEDURE BI_Reseteo_Procedures AS
 	IF EXISTS (SELECT * FROM  sys.procedures WHERE  NAME = 'Insercion_Dimension_Chofer' AND type = 'p')				DROP PROCEDURE dbo.Insercion_Dimension_Chofer
 	IF EXISTS (SELECT * FROM  sys.procedures WHERE  NAME = 'Insercion_Dimension_Mecanico' AND type = 'p')			DROP PROCEDURE dbo.Insercion_Dimension_Mecanico
 	IF EXISTS (SELECT * FROM  sys.procedures WHERE  NAME = 'Insercion_Dimension_Tiempo' AND type = 'p')				DROP PROCEDURE dbo.Insercion_Dimension_Tiempo
+	IF EXISTS (SELECT * FROM  sys.procedures WHERE  NAME = 'Insercion_Dimension_Viaje' AND type = 'p')				DROP PROCEDURE dbo.Insercion_Dimension_Viaje
+	IF EXISTS (SELECT * FROM  sys.procedures WHERE  NAME = 'Insercion_Dimension_Herramienta' AND type = 'p')		DROP PROCEDURE dbo.Insercion_Dimension_Herramienta
+	IF EXISTS (SELECT * FROM  sys.procedures WHERE  NAME = 'Insercion_Dimension_Paquete' AND type = 'p')			DROP PROCEDURE dbo.Insercion_Dimension_Paquete
+	IF EXISTS (SELECT * FROM  sys.procedures WHERE  NAME = 'Insercion_Dimension_ODT' AND type = 'p')				DROP PROCEDURE dbo.Insercion_Dimension_ODT
 	IF EXISTS (SELECT * FROM  sys.procedures WHERE  NAME = 'BI_Migracion' AND type = 'p')							DROP PROCEDURE dbo.BI_Migracion
 	IF EXISTS (SELECT * FROM  sys.procedures WHERE  NAME = 'BI_Reseteo_Tablas' AND type = 'p')						DROP PROCEDURE dbo.BI_Reseteo_Tablas
 	IF EXISTS (SELECT * FROM  sys.procedures WHERE  NAME = 'BI_Reseteo_Procedures' AND type = 'p')					DROP PROCEDURE dbo.BI_Reseteo_Procedures
