@@ -118,7 +118,7 @@ CREATE PROCEDURE Creacion_Tablas_BI AS
 	)
 
 	ALTER TABLE [GD2C2021].[SQLI].BI_Hechos ADD PRIMARY KEY CLUSTERED(idTiempo, 
-	idCamion,	idMarca, idModelo, idTaller, idTipoTarea, idRecorrido, 
+	idCamion, idMarca, idModelo, idTaller, idTipoTarea, idRecorrido, 
 	idChofer, idMecanico)
 GO
 
@@ -201,9 +201,49 @@ GO
 
 CREATE PROCEDURE Insercion_Dimension_Tiempo AS
 BEGIN
-	/*INSERT INTO [GD2C2021].[SQLI].BI_Dimension_Tiempo(anio, cuatrimestre)
-	SELECT 
-	FROM*/
+	INSERT INTO [GD2C2021].[SQLI].BI_Dimension_Tiempo(anio, cuatrimestre)
+	(	(SELECT year(viaje_fecha_ini), case
+				when month(viaje_fecha_ini) = 1 or month(viaje_fecha_ini) = 2 or month(viaje_fecha_ini) = 3 or month(viaje_fecha_ini) = 4
+					then 1
+				when month(viaje_fecha_ini) = 5 or month(viaje_fecha_ini) = 6 or month(viaje_fecha_ini) = 7 or month(viaje_fecha_ini) = 8
+					then 2
+				else 3 
+				end
+			FROM [GD2C2021].[SQLI].Viaje)
+		UNION
+		(
+			SELECT year(viaje_fecha_fin), case
+				when month(viaje_fecha_fin) = 1 or month(viaje_fecha_fin) = 2 or month(viaje_fecha_fin) = 3 or month(viaje_fecha_fin) = 4
+					then 1
+				when month(viaje_fecha_fin) = 5 or month(viaje_fecha_fin) = 6 or month(viaje_fecha_fin) = 7 or month(viaje_fecha_fin) = 8
+					then 2
+				else 3 
+				end
+			FROM [GD2C2021].[SQLI].Viaje
+		)
+		UNION
+		(
+			SELECT year(tarea_fecha_inicio), case
+				when month(tarea_fecha_inicio) = 1 or month(tarea_fecha_inicio) = 2 or month(tarea_fecha_inicio) = 3 or month(tarea_fecha_inicio) = 4
+					then 1
+				when month(tarea_fecha_inicio) = 5 or month(tarea_fecha_inicio) = 6 or month(tarea_fecha_inicio) = 7 or month(tarea_fecha_inicio) = 8
+					then 2
+				else 3 
+				end
+			FROM [GD2C2021].[SQLI].Tarea_Por_ODT
+		)
+		UNION
+		(
+			SELECT year(tarea_fecha_fin), case
+				when month(tarea_fecha_fin) = 1 or month(tarea_fecha_fin) = 2 or month(tarea_fecha_fin) = 3 or month(tarea_fecha_fin) = 4
+					then 1
+				when month(tarea_fecha_fin) = 5 or month(tarea_fecha_fin) = 6 or month(tarea_fecha_fin) = 7 or month(tarea_fecha_fin) = 8
+					then 2
+				else 3 
+				end
+			FROM [GD2C2021].[SQLI].Tarea_Por_ODT
+		)
+	)
 END
 GO
 
@@ -236,7 +276,7 @@ CREATE PROCEDURE BI_Migracion AS
 	EXEC Insercion_Dimension_Recorrido
 	EXEC Insercion_Dimension_Chofer
 	EXEC Insercion_Dimension_Mecanico
-	--EXEC Insercion_Dimension_Tiempo
+	EXEC Insercion_Dimension_Tiempo
 	EXEC Insercion_Hechos
 GO
 
@@ -266,7 +306,7 @@ CREATE PROCEDURE BI_Reseteo_Procedures AS
 	IF EXISTS (SELECT * FROM  sys.procedures WHERE  NAME = 'Insercion_Dimension_Recorrido' AND type = 'p')			DROP PROCEDURE dbo.Insercion_Dimension_Recorrido
 	IF EXISTS (SELECT * FROM  sys.procedures WHERE  NAME = 'Insercion_Dimension_Chofer' AND type = 'p')				DROP PROCEDURE dbo.Insercion_Dimension_Chofer
 	IF EXISTS (SELECT * FROM  sys.procedures WHERE  NAME = 'Insercion_Dimension_Mecanico' AND type = 'p')			DROP PROCEDURE dbo.Insercion_Dimension_Mecanico
-	--IF EXISTS (SELECT * FROM  sys.procedures WHERE  NAME = 'Insercion_Dimension_Tiempo' AND type = 'p')				DROP PROCEDURE dbo.Insercion_Dimension_Tiempo
+	IF EXISTS (SELECT * FROM  sys.procedures WHERE  NAME = 'Insercion_Dimension_Tiempo' AND type = 'p')				DROP PROCEDURE dbo.Insercion_Dimension_Tiempo
 	IF EXISTS (SELECT * FROM  sys.procedures WHERE  NAME = 'BI_Migracion' AND type = 'p')							DROP PROCEDURE dbo.BI_Migracion
 	IF EXISTS (SELECT * FROM  sys.procedures WHERE  NAME = 'BI_Reseteo_Tablas' AND type = 'p')						DROP PROCEDURE dbo.BI_Reseteo_Tablas
 	IF EXISTS (SELECT * FROM  sys.procedures WHERE  NAME = 'BI_Reseteo_Procedures' AND type = 'p')					DROP PROCEDURE dbo.BI_Reseteo_Procedures
