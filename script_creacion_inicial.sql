@@ -262,18 +262,18 @@ CREATE PROCEDURE Insercion_Tabla_Recorrido AS
 	JOIN [GD2C2021].[SQLI].[Ciudad] c2 ON c2.ciudad_nombre = RECORRIDO_CIUDAD_DESTINO
 GO
 
-CREATE PROCEDURE Insercion_Tabla_Taller AS
-	INSERT INTO [GD2C2021].[SQLI].Taller (taller_direccion,taller_telefono,taller_mail,taller_nombre,taller_ciudad)
-	SELECT DISTINCT TALLER_DIRECCION,TALLER_TELEFONO,TALLER_MAIL,TALLER_NOMBRE,ciudad_id 
-	FROM gd_esquema.Maestra
-	JOIN [GD2C2021].[SQLI].Ciudad on ciudad_nombre = TALLER_CIUDAD
-GO
-
 CREATE PROCEDURE Insercion_Tabla_Mecanico AS
 	INSERT INTO [GD2C2021].[SQLI].Mecanico(meca_nro_legajo, meca_nombre, meca_apellido,meca_dni,meca_direccion,meca_telefono,meca_cost_hora,meca_mail,meca_fecha_nac)
 	SELECT DISTINCT MECANICO_NRO_LEGAJO,MECANICO_NOMBRE,MECANICO_APELLIDO,MECANICO_DNI,MECANICO_DIRECCION,MECANICO_TELEFONO,MECANICO_COSTO_HORA,MECANICO_MAIL,MECANICO_FECHA_NAC
 	FROM			[GD2C2021].[gd_esquema].Maestra AS MASTERTABLE
 	WHERE			(MECANICO_NRO_LEGAJO is not null)
+GO
+
+CREATE PROCEDURE Insercion_Tabla_Taller AS
+	INSERT INTO [GD2C2021].[SQLI].Taller (taller_direccion,taller_telefono,taller_mail,taller_nombre,taller_ciudad)
+	SELECT DISTINCT TALLER_DIRECCION,TALLER_TELEFONO,TALLER_MAIL,TALLER_NOMBRE,ciudad_id 
+	FROM gd_esquema.Maestra
+	JOIN [GD2C2021].[SQLI].Ciudad on ciudad_nombre = TALLER_CIUDAD
 GO
 
 CREATE PROCEDURE Insercion_Tabla_Tipo_Tarea AS

@@ -2,7 +2,7 @@ CREATE PROCEDURE Creacion_Tablas_BI AS
 
 	CREATE TABLE [GD2C2021].[SQLI].BI_Dimension_Camion
 	(
-		idCamion		INT IDENTITY,
+		idCamion		INT,
 		patente			char(7),
 		numero_chasis	NVARCHAR(255),
 		numero_motor	NVARCHAR(255),
@@ -24,7 +24,7 @@ CREATE PROCEDURE Creacion_Tablas_BI AS
 	
 	CREATE TABLE [GD2C2021].[SQLI].BI_Dimension_Marca
 	(
-		idMarca		INT IDENTITY,
+		idMarca		INT,
 		nombre		CHAR(20)
 	)
 
@@ -32,7 +32,7 @@ CREATE PROCEDURE Creacion_Tablas_BI AS
 
 	CREATE TABLE [GD2C2021].[SQLI].BI_Dimension_Paquete
 	(
-		idPaquete		INT IDENTITY,
+		idPaquete		INT,
 		tipo			NVARCHAR(255),
 		alto_max		DECIMAL(18,2),
 		largo_max		DECIMAL(18,2),
@@ -48,7 +48,7 @@ CREATE PROCEDURE Creacion_Tablas_BI AS
 
 	CREATE TABLE [GD2C2021].[SQLI].BI_Dimension_Modelo
 	(
-		idModelo			INT IDENTITY,
+		idModelo			INT,
 		velocidad_max		INT,
 		capacidad_tanque	INT,
 		capacidad_carga		INT
@@ -58,7 +58,7 @@ CREATE PROCEDURE Creacion_Tablas_BI AS
 
 	CREATE TABLE [GD2C2021].[SQLI].BI_Dimension_Taller
 	(
-		idTaller		INT IDENTITY,
+		idTaller		INT,
 		direccion		NVARCHAR(255),
 		telefono		DECIMAL(18,0),
 		mail			NVARCHAR(255),
@@ -68,13 +68,24 @@ CREATE PROCEDURE Creacion_Tablas_BI AS
 
 	ALTER TABLE [GD2C2021].[SQLI].BI_Dimension_Taller ADD PRIMARY KEY(idTaller)
 
-	CREATE TABLE [GD2C2021].[SQLI].BI_Dimension_Tipo_Tarea
+/*	CREATE TABLE [GD2C2021].[SQLI].BI_Dimension_Tipo_Tarea
 	(
 		idTipo		INT,
 		tipo_tarea	NVARCHAR(255)
 	)
 
 	ALTER TABLE [GD2C2021].[SQLI].BI_Dimension_Tipo_Tarea ADD PRIMARY KEY(idTipo)
+*/
+
+	CREATE TABLE [GD2C2021].[SQLI].BI_Dimension_Tarea
+	(
+		idTarea			INT,
+		detalle			NVARCHAR(255),
+		tipo			NVARCHAR(255),
+		tiempo_estimado	INT
+	)
+
+	ALTER TABLE [GD2C2021].[SQLI].BI_Dimension_Tarea ADD PRIMARY KEY(idTarea)
 
 	CREATE TABLE [GD2C2021].[SQLI].BI_Dimension_Recorrido
 	(
@@ -140,7 +151,7 @@ CREATE PROCEDURE Creacion_Tablas_BI AS
 
 	CREATE TABLE [GD2C2021].[SQLI].BI_Dimension_ODT
 	(
-		idODT				INT IDENTITY,
+		idODT				INT,
 		camion				INT,
 		estado				NVARCHAR(255),
 		fecha_generacion	NVARCHAR(255)
@@ -171,20 +182,30 @@ CREATE PROCEDURE Creacion_Tablas_BI AS
 
 	CREATE TABLE [GD2C2021].[SQLI].BI_Hechos_Reparaciones
 	(
-		idTiempo		INT NOT NULL,
-		idCamion		INT NOT NULL,
-		idODT			INT NOT NULL,
-		idMarca			INT NOT NULL,
-		idModelo		INT NOT NULL,
-		idTaller		INT NOT NULL,
-		idTipoTarea		INT NOT NULL,
-		idMecanico		INT NOT NULL,
-		idHerramienta	INT NOT NULL
+		tiempo			INT NOT NULL,
+		camion			INT NOT NULL,
+		marca			INT NOT NULL,
+		modelo			INT NOT NULL,
+		odt				INT NOT NULL,
+		taller			INT NOT NULL,
+		tarea			INT NOT NULL,
+		legajo_mecanico	INT NOT NULL,
+		herramienta		INT NOT NULL
 	)
 
 	ALTER TABLE [GD2C2021].[SQLI].BI_Hechos_Reparaciones ADD PRIMARY KEY CLUSTERED
-	(idTiempo, idCamion, idMarca, idModelo, idODT, idTaller, idTipoTarea, idMecanico,
-	idHerramienta)
+	(tiempo, camion, marca, modelo, odt, taller, tarea, legajo_mecanico,
+	herramienta)
+
+	ALTER TABLE [GD2C2021].[SQLI].BI_Hechos_Reparaciones	ADD FOREIGN KEY(tiempo)				REFERENCES [GD2C2021].[SQLI].BI_Dimension_Tiempo(idTiempo)					ON DELETE NO ACTION ON UPDATE NO ACTION ;
+	ALTER TABLE [GD2C2021].[SQLI].BI_Hechos_Reparaciones	ADD FOREIGN KEY(camion)				REFERENCES [GD2C2021].[SQLI].BI_Dimension_Camion(idCamion)					ON DELETE NO ACTION ON UPDATE NO ACTION ;
+	ALTER TABLE [GD2C2021].[SQLI].BI_Hechos_Reparaciones	ADD FOREIGN KEY(marca)				REFERENCES [GD2C2021].[SQLI].BI_Dimension_Marca(idMarca)					ON DELETE NO ACTION ON UPDATE NO ACTION ;
+	ALTER TABLE [GD2C2021].[SQLI].BI_Hechos_Reparaciones	ADD FOREIGN KEY(modelo)				REFERENCES [GD2C2021].[SQLI].BI_Dimension_Modelo(idModelo)					ON DELETE NO ACTION ON UPDATE NO ACTION ;
+	ALTER TABLE [GD2C2021].[SQLI].BI_Hechos_Reparaciones	ADD FOREIGN KEY(odt)				REFERENCES [GD2C2021].[SQLI].BI_Dimension_ODT(idODT)						ON DELETE NO ACTION ON UPDATE NO ACTION ;
+	ALTER TABLE [GD2C2021].[SQLI].BI_Hechos_Reparaciones	ADD FOREIGN KEY(taller)				REFERENCES [GD2C2021].[SQLI].BI_Dimension_Taller(idTaller)					ON DELETE NO ACTION ON UPDATE NO ACTION ;
+	ALTER TABLE [GD2C2021].[SQLI].BI_Hechos_Reparaciones	ADD FOREIGN KEY(tarea)				REFERENCES [GD2C2021].[SQLI].BI_Dimension_Tarea(idTarea)					ON DELETE NO ACTION ON UPDATE NO ACTION ;
+	ALTER TABLE [GD2C2021].[SQLI].BI_Hechos_Reparaciones	ADD FOREIGN KEY(legajo_mecanico)	REFERENCES [GD2C2021].[SQLI].BI_Dimension_Mecanico(legajoMecanico)			ON DELETE NO ACTION ON UPDATE NO ACTION ;
+	ALTER TABLE [GD2C2021].[SQLI].BI_Hechos_Reparaciones	ADD FOREIGN KEY(herramienta)		REFERENCES [GD2C2021].[SQLI].BI_Dimension_Herramienta(idHerramienta)		ON DELETE NO ACTION ON UPDATE NO ACTION ;
 GO
 
 -------------------------------- procedures para realizar las migraciones de las tablas --------------------------------
@@ -256,11 +277,12 @@ BEGIN
 END
 GO
 
-CREATE PROCEDURE Insercion_Dimension_Tipo_Tarea AS
+CREATE PROCEDURE Insercion_Dimension_Tarea AS
 BEGIN
-	INSERT INTO [GD2C2021].[SQLI].BI_Dimension_Tipo_Tarea(idTipo, tipo_tarea)
-	SELECT		tipo_id, tipo_tarea
-	FROM		[GD2C2021].[SQLI].Tipo_Tarea
+	INSERT INTO [GD2C2021].[SQLI].BI_Dimension_Tarea(idTarea, detalle, tipo, tiempo_estimado)
+	SELECT	tarea_codigo, tarea_descripcion, tipo_tarea, tarea_tiempo_est
+	FROM [GD2C2021].[SQLI].Tareas
+	JOIN [GD2C2021].[SQLI].Tipo_Tarea on tipo_id = tarea_tipo
 END
 GO
 
@@ -386,16 +408,27 @@ BEGIN
 					SELECT idTiempo FROM [GD2C2021].[SQLI].BI_Dimension_Tiempo
 					WHERE anio = year(@fecha) AND cuatrimestre = @cuatri
 				)
+	RETURN @pk
 END
 GO
 
 CREATE PROCEDURE Insercion_Hechos_Reparaciones AS
 BEGIN
-	/*INSERT INTO [GD2C2021].[SQLI].BI_Hechos_Reparaciones(idTiempo, idCamion, idODT, idMarca, idModelo, idTaller, idTipoTarea, idMecanico, idHerramienta)
-	SELECT
-	FROM*/
+	INSERT INTO [GD2C2021].[SQLI].BI_Hechos_Reparaciones(tiempo, camion, marca, modelo, odt, taller, tarea, legajo_mecanico, herramienta)
+	SELECT DISTINCT [GD2C2021].[SQLI].buscarIdDelTiempoSegun(txo.tarea_fecha_inicio), odt_camion, mar.marca_id, mode.modelo_id, odt.odt_id, 1 /*ACA IRIA EL TALLER*/, tar.tarea_codigo, mec.meca_nro_legajo, her.herra_id
+	FROM [GD2C2021].[SQLI].Orden_De_Trabajo odt
+	JOIN [GD2C2021].[SQLI].Tarea_Por_ODT txo on txo.odt_id = odt.odt_id
+	JOIN [GD2C2021].[SQLI].Camion cam on cam.cami_id = odt.odt_camion
+	JOIN [GD2C2021].[SQLI].Marca mar on mar.marca_id = cam.cami_marca
+	JOIN [GD2C2021].[SQLI].Modelo mode on mode.modelo_id = cam.cami_modelo
+	JOIN [GD2C2021].[SQLI].Mecanico mec on mec.meca_nro_legajo = txo.tarea_mecanico
+--	JOIN [GD2C2021].[SQLI].Taller tal on tal.taller_id = mec.meca_taller 
+	JOIN [GD2C2021].[SQLI].Tareas tar on tar.tarea_codigo = txo.tarea_id
+	JOIN [GD2C2021].[SQLI].Herramienta_Por_Tarea hpt on hpt.tarea_codigo = tar.tarea_codigo
+	JOIN [GD2C2021].[SQLI].Herramientas her on her.herra_id = hpt.herra_id
 END
 GO
+--Nota: en este ultimo, metimos la fecha inicial de la tarea de una OdT porque la fecha de generacion de la OdT la tenemos en formato NVARCHAR(255) (figuraba asi en la tabla maestra)
 
 -----------------------------------Vistas------------------------------------------------------------------------------
 CREATE VIEW [GD2C2021].[SQLI].MAX_TIEMPO_FDS_DE_CADA_CAMION_X_CUATRI AS
@@ -431,30 +464,30 @@ GO
 
 CREATE VIEW [GD2C2021].[SQLI].FACTURACION_TOTAL_POR_RECORRIDO_POR_CUATRI AS
 BEGIN
-
+	
 END
 GO
 
 CREATE VIEW [GD2C2021].[SQLI].COSTO_PROM_X_RANGO_ETARIO_CHOFERES AS
 BEGIN
-
+	
 END
 GO
 
 CREATE VIEW [GD2C2021].[SQLI].GANANCIA_X_CAMION AS
 BEGIN
-
+	
 END
 GO
 
 -------------------------------- procedure migracion ----------------------------------------------------------------
 CREATE PROCEDURE BI_Migracion AS
-	
+BEGIN	
 	EXEC Insercion_Dimension_Camion
 	EXEC Insercion_Dimension_Marca
 	EXEC Insercion_Dimension_Modelo
 	EXEC Insercion_Dimension_Taller
-	EXEC Insercion_Dimension_Tipo_Tarea
+	EXEC Insercion_Dimension_Tarea
 	EXEC Insercion_Dimension_Recorrido
 	EXEC Insercion_Dimension_Chofer
 	EXEC Insercion_Dimension_Mecanico
@@ -465,52 +498,55 @@ CREATE PROCEDURE BI_Migracion AS
 	EXEC Insercion_Dimension_ODT
 	EXEC Insercion_Hechos_Reparaciones
 	EXEC Insercion_Hechos_Viajes
+END
 GO
 
 -------------------------------- procedures para reseteos de tablas -------------------------------------------------
 CREATE PROCEDURE BI_Reseteo_Tablas AS
-
+BEGIN
 	IF (OBJECT_ID('GD2C2021.SQLI.BI_Dimension_Camion')IS NOT NULL)					DROP TABLE [GD2C2021].[SQLI].BI_Dimension_Camion
 	IF (OBJECT_ID('GD2C2021.SQLI.BI_Dimension_Marca')IS NOT NULL)					DROP TABLE [GD2C2021].[SQLI].BI_Dimension_Marca
 	IF (OBJECT_ID('GD2C2021.SQLI.BI_Dimension_Modelo')IS NOT NULL)					DROP TABLE [GD2C2021].[SQLI].BI_Dimension_Modelo
 	IF (OBJECT_ID('GD2C2021.SQLI.BI_Dimension_Taller')IS NOT NULL)					DROP TABLE [GD2C2021].[SQLI].BI_Dimension_Taller
-	IF (OBJECT_ID('GD2C2021.SQLI.BI_Dimension_Tipo_Tarea')IS NOT NULL)				DROP TABLE [GD2C2021].[SQLI].BI_Dimension_Tipo_Tarea
+	IF (OBJECT_ID('GD2C2021.SQLI.BI_Dimension_Tarea')IS NOT NULL)					DROP TABLE [GD2C2021].[SQLI].BI_Dimension_Tarea
 	IF (OBJECT_ID('GD2C2021.SQLI.BI_Dimension_Recorrido')IS NOT NULL)				DROP TABLE [GD2C2021].[SQLI].BI_Dimension_Recorrido
 	IF (OBJECT_ID('GD2C2021.SQLI.BI_Dimension_Chofer')IS NOT NULL)					DROP TABLE [GD2C2021].[SQLI].BI_Dimension_Chofer
 	IF (OBJECT_ID('GD2C2021.SQLI.BI_Dimension_Mecanico')IS NOT NULL)				DROP TABLE [GD2C2021].[SQLI].BI_Dimension_Mecanico
 	IF (OBJECT_ID('GD2C2021.SQLI.BI_Dimension_Paquete')IS NOT NULL)					DROP TABLE [GD2C2021].[SQLI].BI_Dimension_Paquete
 	IF (OBJECT_ID('GD2C2021.SQLI.BI_Dimension_Herramienta')IS NOT NULL)				DROP TABLE [GD2C2021].[SQLI].BI_Dimension_Herramienta
-	IF (OBJECT_ID('GD2C2021.SQLI.BI_Dimension_Viaje')IS NOT NULL)					DROP TABLE [GD2C2021].[SQLI].BI_Dimension_Viaje
+--	IF (OBJECT_ID('GD2C2021.SQLI.BI_Dimension_Viaje')IS NOT NULL)					DROP TABLE [GD2C2021].[SQLI].BI_Dimension_Viaje
 	IF (OBJECT_ID('GD2C2021.SQLI.BI_Dimension_Tiempo')IS NOT NULL)					DROP TABLE [GD2C2021].[SQLI].BI_Dimension_Tiempo
 	IF (OBJECT_ID('GD2C2021.SQLI.BI_Dimension_ODT')IS NOT NULL)						DROP TABLE [GD2C2021].[SQLI].BI_Dimension_ODT
 	IF (OBJECT_ID('GD2C2021.SQLI.BI_Hechos_Viajes')IS NOT NULL)						DROP TABLE [GD2C2021].[SQLI].BI_Hechos_Viajes
 	IF (OBJECT_ID('GD2C2021.SQLI.BI_Hechos_Reparaciones')IS NOT NULL)				DROP TABLE [GD2C2021].[SQLI].BI_Hechos_Reparaciones
+END
 GO
 
 CREATE PROCEDURE BI_Reseteo_Procedures AS
-
+BEGIN
 	IF EXISTS (SELECT * FROM  sys.procedures WHERE  NAME = 'Creacion_Tablas_BI' AND type = 'p')						DROP PROCEDURE dbo.Creacion_Tablas_BI
 	IF EXISTS (SELECT * FROM  sys.procedures WHERE  NAME = 'Insercion_Dimension_Camion' AND type = 'p')				DROP PROCEDURE dbo.Insercion_Dimension_Camion
 	IF EXISTS (SELECT * FROM  sys.procedures WHERE  NAME = 'Insercion_Dimension_Marca' AND type = 'p')				DROP PROCEDURE dbo.Insercion_Dimension_Marca
 	IF EXISTS (SELECT * FROM  sys.procedures WHERE  NAME = 'Insercion_Dimension_Modelo' AND type = 'p')				DROP PROCEDURE dbo.Insercion_Dimension_Modelo
 	IF EXISTS (SELECT * FROM  sys.procedures WHERE  NAME = 'Insercion_Dimension_Taller' AND type = 'p')				DROP PROCEDURE dbo.Insercion_Dimension_Taller
-	IF EXISTS (SELECT * FROM  sys.procedures WHERE  NAME = 'Insercion_Dimension_Tipo_Tara' AND type = 'p')			DROP PROCEDURE dbo.Insercion_Dimension_Tipo_Tarea
+	IF EXISTS (SELECT * FROM  sys.procedures WHERE  NAME = 'Insercion_Dimension_Tarea' AND type = 'p')				DROP PROCEDURE dbo.Insercion_Dimension_Tarea
 	IF EXISTS (SELECT * FROM  sys.procedures WHERE  NAME = 'Insercion_Dimension_Recorrido' AND type = 'p')			DROP PROCEDURE dbo.Insercion_Dimension_Recorrido
 	IF EXISTS (SELECT * FROM  sys.procedures WHERE  NAME = 'Insercion_Dimension_Chofer' AND type = 'p')				DROP PROCEDURE dbo.Insercion_Dimension_Chofer
 	IF EXISTS (SELECT * FROM  sys.procedures WHERE  NAME = 'Insercion_Dimension_Mecanico' AND type = 'p')			DROP PROCEDURE dbo.Insercion_Dimension_Mecanico
 	IF EXISTS (SELECT * FROM  sys.procedures WHERE  NAME = 'Insercion_Dimension_Tiempo' AND type = 'p')				DROP PROCEDURE dbo.Insercion_Dimension_Tiempo
-	IF EXISTS (SELECT * FROM  sys.procedures WHERE  NAME = 'Insercion_Dimension_Viaje' AND type = 'p')				DROP PROCEDURE dbo.Insercion_Dimension_Viaje
+--	IF EXISTS (SELECT * FROM  sys.procedures WHERE  NAME = 'Insercion_Dimension_Viaje' AND type = 'p')				DROP PROCEDURE dbo.Insercion_Dimension_Viaje
 	IF EXISTS (SELECT * FROM  sys.procedures WHERE  NAME = 'Insercion_Dimension_Herramienta' AND type = 'p')		DROP PROCEDURE dbo.Insercion_Dimension_Herramienta
 	IF EXISTS (SELECT * FROM  sys.procedures WHERE  NAME = 'Insercion_Dimension_Paquete' AND type = 'p')			DROP PROCEDURE dbo.Insercion_Dimension_Paquete
 	IF EXISTS (SELECT * FROM  sys.procedures WHERE  NAME = 'Insercion_Dimension_ODT' AND type = 'p')				DROP PROCEDURE dbo.Insercion_Dimension_ODT
 	IF EXISTS (SELECT * FROM  sys.procedures WHERE  NAME = 'Insercion_Hechos_Reparaciones' AND type = 'p')			DROP PROCEDURE dbo.Insercion_Hechos_Reparaciones
 	IF EXISTS (SELECT * FROM  sys.procedures WHERE  NAME = 'Insercion_Hechos_Viajes' AND type = 'p')				DROP PROCEDURE dbo.Insercion_Hechos_Viajes
 	IF EXISTS (SELECT * FROM  sys.procedures WHERE  NAME = 'BI_Migracion' AND type = 'p')							DROP PROCEDURE dbo.BI_Migracion
-	IF EXISTS (SELECT * FROM  sys.procedures WHERE  NAME = 'BI_Vistas' AND type = 'p')								DROP PROCEDURE dbo.BI_Vistas
+--	IF EXISTS (SELECT * FROM  sys.procedures WHERE  NAME = 'BI_Vistas' AND type = 'p')								DROP PROCEDURE dbo.BI_Vistas
 	IF EXISTS (SELECT * FROM  sys.procedures WHERE  NAME = 'BI_Reseteo_Tablas' AND type = 'p')						DROP PROCEDURE dbo.BI_Reseteo_Tablas
 	IF EXISTS (SELECT * FROM  sys.procedures WHERE  NAME = 'BI_Reseteo_Procedures' AND type = 'p')					DROP PROCEDURE dbo.BI_Reseteo_Procedures
 	IF EXISTS (SELECT * FROM  sys.procedures WHERE  NAME = 'BI_Reseteo' AND type = 'p')								DROP PROCEDURE dbo.BI_Reseteo
 	IF EXISTS (SELECT * FROM  sys.procedures WHERE  NAME = 'BI_Play' AND type = 'p')								DROP PROCEDURE dbo.BI_Play
+END
 GO
 
 CREATE PROCEDURE BI_Reseteo_Vistas AS
