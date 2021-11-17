@@ -120,7 +120,7 @@ CREATE PROCEDURE Creacion_de_Tablas	AS
 		pack_id				INT IDENTITY,
 		pack_tipo			INT,
 		pack_cantidad		INT,
-		pack_viaje			INT,
+		pack_viaje			INT
 	)
 
 	CREATE TABLE [GD2C2021].[SQLI].Orden_De_Trabajo 

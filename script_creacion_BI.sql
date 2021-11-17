@@ -11,7 +11,7 @@ CREATE PROCEDURE Creacion_Tablas_BI AS
 
 	ALTER TABLE [GD2C2021].[SQLI].BI_Dimension_Camion ADD PRIMARY KEY(idCamion)
 
-	CREATE TABLE [GD2C2021].[SQLI].BI_Dimension_Viaje
+/*	CREATE TABLE [GD2C2021].[SQLI].BI_Dimension_Viaje
 	(
 		idViaje			INT IDENTITY,
 		fecha_inicio	DATETIME2(7),
@@ -20,7 +20,8 @@ CREATE PROCEDURE Creacion_Tablas_BI AS
 	)
 
 	ALTER TABLE [GD2C2021].[SQLI].BI_Dimension_Viaje ADD PRIMARY KEY(idViaje)
-
+*/
+	
 	CREATE TABLE [GD2C2021].[SQLI].BI_Dimension_Marca
 	(
 		idMarca		INT IDENTITY,
@@ -31,9 +32,15 @@ CREATE PROCEDURE Creacion_Tablas_BI AS
 
 	CREATE TABLE [GD2C2021].[SQLI].BI_Dimension_Paquete
 	(
-		idPaquete	INT IDENTITY,
-		tipo		INT,
-		cantidad	INT
+		idPaquete		INT IDENTITY,
+		tipo			NVARCHAR(255),
+		alto_max		DECIMAL(18,2),
+		largo_max		DECIMAL(18,2),
+		ancho_max		DECIMAL(18,2),
+		peso_max		DECIMAL(18,2),
+		cantidad		INT,
+		precio_base		DECIMAL(18,2),
+		precio_final	DECIMAL(18,2)
 	)
 
 	ALTER TABLE [GD2C2021].[SQLI].BI_Dimension_Paquete	ADD PRIMARY KEY(idPaquete)
@@ -63,7 +70,7 @@ CREATE PROCEDURE Creacion_Tablas_BI AS
 
 	CREATE TABLE [GD2C2021].[SQLI].BI_Dimension_Tipo_Tarea
 	(
-		idTipo		INT IDENTITY,
+		idTipo		INT,
 		tipo_tarea	NVARCHAR(255)
 	)
 
@@ -71,7 +78,7 @@ CREATE PROCEDURE Creacion_Tablas_BI AS
 
 	CREATE TABLE [GD2C2021].[SQLI].BI_Dimension_Recorrido
 	(
-		idRecorrido		INT IDENTITY,
+		idRecorrido		INT,
 		ciudad_origen	NVARCHAR(255),
 		ciudad_destino	NVARCHAR(255),
 		km				INT,
@@ -114,7 +121,7 @@ CREATE PROCEDURE Creacion_Tablas_BI AS
 
 	CREATE TABLE [GD2C2021].[SQLI].BI_Dimension_Tiempo
 	(
-		idTiempo		INT NOT NULL,
+		idTiempo		INT IDENTITY,
 		anio			INT,
 		cuatrimestre	INT
 	)
@@ -123,7 +130,7 @@ CREATE PROCEDURE Creacion_Tablas_BI AS
 
 	CREATE TABLE [GD2C2021].[SQLI].BI_Dimension_Herramienta
 	(
-		idHerramienta	INT IDENTITY,
+		idHerramienta	INT,
 		detalle			CHAR(50),
 		codigo			NVARCHAR(100),
 		precio			DECIMAL(18,2)
@@ -144,15 +151,23 @@ CREATE PROCEDURE Creacion_Tablas_BI AS
 
 	CREATE TABLE [GD2C2021].[SQLI].BI_Hechos_Viajes
 	(
-		idTiempo	INT NOT NULL,
-		idViaje		INT NOT NULL,
-		idCamion	INT NOT NULL,
-		idMarca		INT NOT NULL,
-		idModelo	INT NOT NULL,
-		idRecorrido	INT NOT NULL,
-		idPaquete	INT NOT NULL,
-		idChofer	INT NOT NULL
+		tiempo				INT NOT NULL,
+		legajo_chofer		INT NOT NULL,
+		camion				INT NOT NULL,
+		combo_paquete		INT NOT NULL, --Un int que distigue univocamente cada uno de las combinaciones de paquetes
+		recorrido_realizado	INT NOT NULL,
+		precio_recorrido	INT,
+		lts_consumidos		INT,
+		duracion_viaje		INT,
+		costo_viaje			INT
 	)
+
+	ALTER TABLE [GD2C2021].[SQLI].BI_Hechos_Viajes	ADD PRIMARY KEY CLUSTERED(tiempo, legajo_chofer, camion, recorrido_realizado, combo_paquete)
+	ALTER TABLE [GD2C2021].[SQLI].BI_Hechos_Viajes	ADD FOREIGN KEY(tiempo)						REFERENCES [GD2C2021].[SQLI].BI_Dimension_Tiempo(idTiempo)			ON DELETE NO ACTION ON UPDATE NO ACTION ;
+	ALTER TABLE [GD2C2021].[SQLI].BI_Hechos_Viajes	ADD FOREIGN KEY(camion)						REFERENCES [GD2C2021].[SQLI].BI_Dimension_Camion(idCamion)			ON DELETE NO ACTION ON UPDATE NO ACTION ;
+	ALTER TABLE [GD2C2021].[SQLI].BI_Hechos_Viajes	ADD FOREIGN KEY(recorrido_realizado)		REFERENCES [GD2C2021].[SQLI].BI_Dimension_Recorrido(idRecorrido)	ON DELETE NO ACTION ON UPDATE NO ACTION ;
+	ALTER TABLE [GD2C2021].[SQLI].BI_Hechos_Viajes	ADD FOREIGN KEY(legajo_chofer)				REFERENCES [GD2C2021].[SQLI].BI_Dimension_Chofer(legajoChofer)		ON DELETE NO ACTION ON UPDATE NO ACTION ;
+	ALTER TABLE [GD2C2021].[SQLI].BI_Hechos_Viajes	ADD FOREIGN KEY(combo_paquete)				REFERENCES [GD2C2021].[SQLI].BI_Dimension_Paquete(idPaquete)		ON DELETE NO ACTION ON UPDATE NO ACTION ;
 
 	CREATE TABLE [GD2C2021].[SQLI].BI_Hechos_Reparaciones
 	(
@@ -166,10 +181,6 @@ CREATE PROCEDURE Creacion_Tablas_BI AS
 		idMecanico		INT NOT NULL,
 		idHerramienta	INT NOT NULL
 	)
-
-	ALTER TABLE [GD2C2021].[SQLI].BI_Hechos_Viajes ADD PRIMARY KEY CLUSTERED(idTiempo, 
-	idViaje, idCamion, idMarca, idModelo, idPaquete, idRecorrido, 
-	idChofer)
 
 	ALTER TABLE [GD2C2021].[SQLI].BI_Hechos_Reparaciones ADD PRIMARY KEY CLUSTERED
 	(idTiempo, idCamion, idMarca, idModelo, idODT, idTaller, idTipoTarea, idMecanico,
@@ -185,18 +196,19 @@ BEGIN
 END
 GO
 
-CREATE PROCEDURE Insercion_Dimension_Viaje AS
+/*CREATE PROCEDURE Insercion_Dimension_Viaje AS
 BEGIN
 	INSERT INTO [GD2C2021].[SQLI].BI_Dimension_Viaje(idViaje,fecha_inicio, fecha_fin, litros_consu)
 	SELECT		viaje_id, viaje_fecha_ini,viaje_fecha_fin,viaje_lts_cons
 	FROM		[GD2C2021].[SQLI].Viaje
 END
-GO
+GO*/
 
 CREATE PROCEDURE Insercion_Dimension_Paquete AS
 BEGIN
-	INSERT INTO [GD2C2021].[SQLI].BI_Dimension_Paquete(idPaquete,tipo, cantidad)
-	SELECT		pack_id, tipo_pack_id,pack_cant
+	INSERT INTO [GD2C2021].[SQLI].BI_Dimension_Paquete(idPaquete,tipo, alto_max,largo_max,
+	ancho_max, peso_max, cantidad, precio_base, precio_final)
+	SELECT		pack_id, t_pack_descripcion, t_pack_alto_max, t_pack_largo_max, t_pack_ancho_max, t_pack_peso_maximo, pack_cantidad, t_pack_precio, sum(pack_cantidad * t_pack_precio)
 	FROM		[GD2C2021].[SQLI].Paquete
 	JOIN		[GD2C2021].[SQLI].Tipo_Paquete on tipo_pack_id = pack_tipo
 END
@@ -337,17 +349,43 @@ GO
 
 CREATE PROCEDURE Insercion_Hechos_Viajes AS
 BEGIN
-	/*INSERT INTO [GD2C2021].[SQLI].BI_Hechos_Viajes(idTiempo, idViaje, idCamion, idMarca, idModelo, idRecorrido, idPaquete)
-	SELECT	tiem.idTiempo, cami.idCamion, mar.idMarca, mode.idModelo, tall.idTaller, tipo.idTipo, reco.idReco, cho.legajoChofer, meca.legajoMecanico
-	FROM [GD2C2021].[SQLI].BI_Dimension_Tiempo tiem
-	JOIN [GD2C2021].[SQLI].BI_Dimension_Mecanico meca on meca.legajoMecanico = legajoMecanico
-	JOIN [GD2C2021].[SQLI].BI_Dimension_Chofer cho on cho.legajoChofer = legajoChofer
-	JOIN [GD2C2021].[SQLI].BI_Dimension_Recorrido reco on reco.idReco = idRecorrido
-	JOIN [GD2C2021].[SQLI].BI_Dimension_Tipo_Tarea tipo on tipo.idTipo = idTipo
-	JOIN [GD2C2021].[SQLI].BI_Dimension_Taller tall on tall.idTaller = idTaller
-	JOIN [GD2C2021].[SQLI].BI_Dimension_Modelo mode on mode.idModelo = idModelo
-	JOIN [GD2C2021].[SQLI].BI_Dimension_Marca mar on mar.idMarca = idMarca
-	JOIN [GD2C2021].[SQLI].BI_Dimension_Camion cami on cami.idCamion = idCamion*/
+	INSERT INTO [GD2C2021].[SQLI].BI_Hechos_Viajes(tiempo, legajo_chofer, camion, combo_paquete, recorrido_realizado, precio_recorrido, lts_consumidos, duracion_viaje, costo_viaje)
+	SELECT DISTINCT [GD2C2021].[SQLI].buscarIdDelTiempoSegun(viaje_fecha_ini), viaje_chofer, viaje_camion, pack_id, viaje_recorrido, rec.precio, 
+	viaje_lts_cons, DATEDIFF(DAY, viaje_fecha_ini, viaje_fecha_fin), 
+	DATEDIFF(DAY, viaje_fecha_ini, viaje_fecha_fin) * ch.costo_x_hora * 8
+
+	FROM [GD2C2021].[SQLI].Viaje
+	JOIN [GD2C2021].[SQLI].Paquete on pack_viaje = viaje_id
+	JOIN [GD2C2021].[SQLI].BI_Dimension_Chofer ch on ch.legajoChofer = viaje_chofer
+	JOIN [GD2C2021].[SQLI].BI_Dimension_Recorrido rec on rec.idRecorrido = viaje_recorrido
+END
+GO
+
+CREATE FUNCTION buscarIdDelTiempoSegun(@fecha DATETIME(2)) 
+RETURNS INT
+AS
+BEGIN
+	DECLARE @pk INT, @cuatri INT, @mes INT
+
+	SET @mes = month(@fecha)
+	
+	IF(@mes >= 1 AND @mes <= 4)
+		BEGIN
+			SET @cuatri = 1
+		END
+	ELSE IF(@mes > 4 AND @mes <= 8)
+		BEGIN
+			SET @cuatri = 2
+		END
+	ELSE
+		BEGIN
+			SET @cuatri = 3
+		END	
+
+	SET @pk =	(
+					SELECT idTiempo FROM [GD2C2021].[SQLI].BI_Dimension_Tiempo
+					WHERE anio = year(@fecha) AND cuatrimestre = @cuatri
+				)
 END
 GO
 
