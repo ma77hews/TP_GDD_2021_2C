@@ -154,7 +154,6 @@ CREATE PROCEDURE Creacion_Tablas_BI AS
 	CREATE TABLE [GD2C2021].[SQLI].BI_Dimension_ODT
 	(
 		idODT				INT NOT NULL,
-		camion				INT,
 		estado				NVARCHAR(255),
 		fecha_generacion	NVARCHAR(255)
 	)
@@ -248,10 +247,9 @@ GO
 
 CREATE PROCEDURE Insercion_Dimension_ODT AS
 BEGIN
-	INSERT INTO [GD2C2021].[SQLI].BI_Dimension_ODT(idODT, camion, estado, fecha_generacion)
-	SELECT		odt_id, idCamion, odt_estado, odt_fecha_generado
+	INSERT INTO [GD2C2021].[SQLI].BI_Dimension_ODT(idODT, estado, fecha_generacion)
+	SELECT		odt_id, odt_estado, odt_fecha_generado
 	FROM		[GD2C2021].[SQLI].Orden_De_Trabajo
-	JOIN		[GD2C2021].[SQLI].BI_Dimension_Camion on odt_camion = idCamion
 END
 GO
 
@@ -435,13 +433,23 @@ GO
 -----------------------------------Vistas------------------------------------------------------------------------------
 CREATE VIEW [GD2C2021].[SQLI].MAX_TIEMPO_FDS_DE_CADA_CAMION_X_CUATRI AS
 BEGIN
-		
+	SELECT	r.camion, r.cuatrimestre,
+	(
+		SELECT	MAX(DATEDIFF(DAY, MIN(txo.tarea_fecha_inicio), MAX(txo.tarea_fecha_fin)))
+		FROM	[GD2C2021].[SQLI].Tarea_Por_ODT txo
+		JOIN	[GD2C2021].[SQLI].Orden_De_Trabajo orden on orden.odt_id = txo.odt_id
+		WHERE odt_id = r.odt AND orden.odt_camion = r.camion
+	)
+
+	FROM	[GD2C2021].[SQLI].BI_Hechos_Reparaciones r
+	JOIN	[GD2C2021].[SQLI].BI_Dimension_Tiempo on tiempo = r.idTiempo
+	GROUP BY r.camion, r.cuatrimestre
 END
 GO
 
 CREATE VIEW [GD2C2021].[SQLI].COSTO_MANTENIMIENTO_X_CAMION_X_TALLER_X_CUATRI AS
 BEGIN
-
+	
 END
 GO
 
@@ -454,13 +462,32 @@ GO
 
 CREATE VIEW [GD2C2021].[SQLI].TOP_5_TAREAS_REALIZADAS_X_MODELO AS
 BEGIN
-
+	SELECT r1.modelo, r1.tarea
+	FROM [GD2C2021].[SQLI].BI_Hechos_Reparaciones r1
+	WHERE r1.tarea in	(
+							SELECT TOP 5 r2.tarea
+							FROM [GD2C2021].[SQLI].BI_Hechos_Reparaciones r2
+							WHERE r2.modelo = r1.modelo
+							GROUP BY r2.tarea
+							ORDER BY COUNT(DISTINCT r2.tarea) DESC
+						)
+	GROUP BY r1.modelo, r1.tarea
 END
 GO
 
 CREATE VIEW [GD2C2021].[SQLI].TOP_10_HERRAM_MAS_USADAS_X_TALLER AS
 BEGIN
-
+	SELECT repa.herramienta, repa.taller
+	FROM [GD2C2021].[SQLI].BI_Hechos_Reparaciones repa
+	WHERE herramienta in	(
+								SELECT TOP 10 r2.herramienta
+								FROM [GD2C2021].[SQLI].BI_Hechos_Reparaciones r2
+								JOIN [GD2C2021].[SQLI].BI_Hechos_Herramienta h2 on h2.idHerramienta = r2.herramienta
+								WHERE r2.taller = repa.taller
+								GROUP BY r2.herramienta
+								ORDER BY COUNT(DISTINCT herramienta) DESC
+							)
+	GROUP BY repa.herramienta, repa.taller
 END
 GO
 
@@ -468,7 +495,7 @@ CREATE VIEW [GD2C2021].[SQLI].FACTURACION_TOTAL_POR_RECORRIDO_POR_CUATRI AS
 BEGIN
 	SELECT tiem.cuatrimestre, viaje.recorrido_realizado, 
 	(
-		SELECT SUM(pack.precio_final)
+		SELECT SUM(pack.precio_final + reco.precio)
 		FROM [GD2C2021].[SQLI].BI_Dimension_Paquete pack
 		WHERE pack.idPaquete in	(
 									SELECT viaje1.combo_paquete
@@ -478,6 +505,7 @@ BEGIN
 	)
 	FROM [GD2C2021].[SQLI].BI_Hechos_Viajes viaje
 	JOIN [GD2C2021].[SQLI].BI_Dimension_Tiempo tiem on tiem.idTiempo = viaje.tiempo
+	JOIN [GD2C2021].[SQLI].BI_Dimension_Recorrido reco on reco.idReco = viaje.recorrido_realizado
 	GROUP BY tiem.cuatrimestre, viaje.recorrido_realizado
 END
 GO
