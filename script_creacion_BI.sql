@@ -2,11 +2,11 @@ CREATE PROCEDURE Creacion_Tablas_BI AS
 
 	CREATE TABLE [GD2C2021].[SQLI].BI_Dimension_Camion
 	(
-		idCamion		INT,
-		patente			char(7),
+		idCamion		INT NOT NULL,
+		patente			NVARCHAR(255),
 		numero_chasis	NVARCHAR(255),
 		numero_motor	NVARCHAR(255),
-		fecha_alta		SMALLDATETIME
+		fecha_alta		DATETIME2(3)
 	)
 
 	ALTER TABLE [GD2C2021].[SQLI].BI_Dimension_Camion ADD PRIMARY KEY(idCamion)
@@ -24,15 +24,15 @@ CREATE PROCEDURE Creacion_Tablas_BI AS
 	
 	CREATE TABLE [GD2C2021].[SQLI].BI_Dimension_Marca
 	(
-		idMarca		INT,
+		idMarca		INT NOT NULL,
 		nombre		CHAR(20)
 	)
 
 	ALTER TABLE [GD2C2021].[SQLI].BI_Dimension_Marca ADD PRIMARY KEY(idMarca)
-
+	
 	CREATE TABLE [GD2C2021].[SQLI].BI_Dimension_Paquete
 	(
-		idPaquete		INT,
+		idPaquete		INT NOT NULL,
 		tipo			NVARCHAR(255),
 		alto_max		DECIMAL(18,2),
 		largo_max		DECIMAL(18,2),
@@ -44,11 +44,12 @@ CREATE PROCEDURE Creacion_Tablas_BI AS
 	)
 
 	ALTER TABLE [GD2C2021].[SQLI].BI_Dimension_Paquete	ADD PRIMARY KEY(idPaquete)
-	ALTER TABLE [GD2C2021].[SQLI].BI_Dimension_Paquete	ADD FOREIGN KEY(tipo)		REFERENCES [GD2C2021].[SQLI].Tipo_paquete(t_pack_id)	ON DELETE NO ACTION ON UPDATE NO ACTION ;
+	--ALTER TABLE [GD2C2021].[SQLI].BI_Dimension_Paquete	ADD FOREIGN KEY(tipo)		REFERENCES [GD2C2021].[SQLI].Tipo_paquete(t_pack_id)	ON DELETE NO ACTION ON UPDATE NO ACTION ; error de tipos INT con NVARCHAR, HACER JOIN!!!
 
 	CREATE TABLE [GD2C2021].[SQLI].BI_Dimension_Modelo
 	(
-		idModelo			INT,
+		idModelo			INT NOT NULL,
+		nombre				NVARCHAR(255),
 		velocidad_max		INT,
 		capacidad_tanque	INT,
 		capacidad_carga		INT
@@ -58,7 +59,7 @@ CREATE PROCEDURE Creacion_Tablas_BI AS
 
 	CREATE TABLE [GD2C2021].[SQLI].BI_Dimension_Taller
 	(
-		idTaller		INT,
+		idTaller		INT NOT NULL,
 		direccion		NVARCHAR(255),
 		telefono		DECIMAL(18,0),
 		mail			NVARCHAR(255),
@@ -79,7 +80,7 @@ CREATE PROCEDURE Creacion_Tablas_BI AS
 
 	CREATE TABLE [GD2C2021].[SQLI].BI_Dimension_Tarea
 	(
-		idTarea			INT,
+		idTarea			INT NOT NULL,
 		detalle			NVARCHAR(255),
 		tipo			NVARCHAR(255),
 		tiempo_estimado	INT
@@ -89,7 +90,7 @@ CREATE PROCEDURE Creacion_Tablas_BI AS
 
 	CREATE TABLE [GD2C2021].[SQLI].BI_Dimension_Recorrido
 	(
-		idRecorrido		INT,
+		idRecorrido		INT NOT NULL,
 		ciudad_origen	NVARCHAR(255),
 		ciudad_destino	NVARCHAR(255),
 		km				INT,
@@ -141,7 +142,7 @@ CREATE PROCEDURE Creacion_Tablas_BI AS
 
 	CREATE TABLE [GD2C2021].[SQLI].BI_Dimension_Herramienta
 	(
-		idHerramienta	INT,
+		idHerramienta	INT NOT NULL,
 		detalle			CHAR(50),
 		codigo			NVARCHAR(100),
 		precio			DECIMAL(18,2)
@@ -151,7 +152,7 @@ CREATE PROCEDURE Creacion_Tablas_BI AS
 
 	CREATE TABLE [GD2C2021].[SQLI].BI_Dimension_ODT
 	(
-		idODT				INT,
+		idODT				INT NOT NULL,
 		camion				INT,
 		estado				NVARCHAR(255),
 		fecha_generacion	NVARCHAR(255)
@@ -211,7 +212,7 @@ GO
 -------------------------------- procedures para realizar las migraciones de las tablas --------------------------------
 CREATE PROCEDURE Insercion_Dimension_Camion AS
 BEGIN
-	INSERT INTO	[GD2C2021].[SQLI].BI_Dimension_Camion (idCamion,patente, nro_chasis, nro_motor, fecha_alta)
+	INSERT INTO	[GD2C2021].[SQLI].BI_Dimension_Camion(idCamion, patente, numero_chasis, numero_motor, fecha_alta)
 	SELECT		cami_id, cami_patente, cami_nro_chasis, cami_nro_motor, cami_fecha_alta
 	FROM		[GD2C2021].[SQLI].Camion
 END
@@ -227,11 +228,11 @@ GO*/
 
 CREATE PROCEDURE Insercion_Dimension_Paquete AS
 BEGIN
-	INSERT INTO [GD2C2021].[SQLI].BI_Dimension_Paquete(idPaquete,tipo, alto_max,largo_max,
-	ancho_max, peso_max, cantidad, precio_base, precio_final)
+	INSERT INTO [GD2C2021].[SQLI].BI_Dimension_Paquete(idPaquete, tipo, alto_max, largo_max, ancho_max, peso_max, cantidad, precio_base, precio_final)
 	SELECT		pack_id, t_pack_descripcion, t_pack_alto_max, t_pack_largo_max, t_pack_ancho_max, t_pack_peso_maximo, pack_cantidad, t_pack_precio, sum(pack_cantidad * t_pack_precio)
 	FROM		[GD2C2021].[SQLI].Paquete
-	JOIN		[GD2C2021].[SQLI].Tipo_Paquete on tipo_pack_id = pack_tipo
+	JOIN		[GD2C2021].[SQLI].Tipo_Paquete on t_pack_id = pack_tipo
+	GROUP BY	pack_id, t_pack_descripcion, t_pack_alto_max, t_pack_largo_max, t_pack_ancho_max, t_pack_peso_maximo, pack_cantidad, t_pack_precio
 END
 GO
 
@@ -262,8 +263,8 @@ GO
 
 CREATE PROCEDURE Insercion_Dimension_Modelo AS
 BEGIN
-	INSERT INTO [GD2C2021].[SQLI].BI_Dimension_Modelo(idModelo, velocidad_max, capacidad_tanque, capacidad_carga)
-	SELECT		modelo_id, modelo_vel_max,modelo_cap_tanque, modelo_cap_carga
+	INSERT INTO [GD2C2021].[SQLI].BI_Dimension_Modelo(idModelo,nombre, velocidad_max, capacidad_tanque, capacidad_carga)
+	SELECT		modelo_id, modelo_detalle, modelo_vel_max,modelo_cap_tanque, modelo_cap_carga
 	FROM		[GD2C2021].[SQLI].Modelo
 	END
 GO
