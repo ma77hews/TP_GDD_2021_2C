@@ -442,7 +442,7 @@ BEGIN
 	)
 
 	FROM	[GD2C2021].[SQLI].BI_Hechos_Reparaciones r
-	JOIN	[GD2C2021].[SQLI].BI_Dimension_Tiempo on tiempo = r.idTiempo
+	JOIN	[GD2C2021].[SQLI].BI_Dimension_Tiempo on r.tiempo = idTiempo
 	GROUP BY r.camion, r.cuatrimestre
 END
 GO
