@@ -238,7 +238,7 @@ GO
 
 CREATE PROCEDURE Insercion_Dimension_Herramienta AS
 BEGIN
-	INSERT INTO [GD2C2021].[SQLI].BI_Dimension_Herramienta(idHerramienta,detalle, codigo, precio)
+	INSERT INTO [GD2C2021].[SQLI].BI_Dimension_Herramienta(idHerramienta, detalle, codigo, precio)
 	SELECT		herra_id, herra_detalle,herra_code, herra_precio
 	FROM		[GD2C2021].[SQLI].Herramientas
 END
@@ -255,7 +255,7 @@ GO
 
 CREATE PROCEDURE Insercion_Dimension_Marca AS
 BEGIN
-	INSERT INTO [GD2C2021].[SQLI].BI_Dimension_Marca(idMarca,nombre)
+	INSERT INTO [GD2C2021].[SQLI].BI_Dimension_Marca(idMarca, nombre)
 	SELECT		marca_id, marca_nombre
 	FROM		[GD2C2021].[SQLI].Marca
 END
@@ -263,16 +263,16 @@ GO
 
 CREATE PROCEDURE Insercion_Dimension_Modelo AS
 BEGIN
-	INSERT INTO [GD2C2021].[SQLI].BI_Dimension_Modelo(idModelo,nombre, velocidad_max, capacidad_tanque, capacidad_carga)
-	SELECT		modelo_id, modelo_detalle, modelo_vel_max,modelo_cap_tanque, modelo_cap_carga
+	INSERT INTO [GD2C2021].[SQLI].BI_Dimension_Modelo(idModelo, nombre, velocidad_max, capacidad_tanque, capacidad_carga)
+	SELECT		modelo_id, modelo_detalle, modelo_vel_max, modelo_cap_tanque, modelo_cap_carga
 	FROM		[GD2C2021].[SQLI].Modelo
-	END
+END
 GO
 
 CREATE PROCEDURE Insercion_Dimension_Taller AS
 BEGIN
 	INSERT INTO [GD2C2021].[SQLI].BI_Dimension_Taller(idTaller, direccion, telefono, mail, nombre, ciudad)
-	SELECT		taller_id, taller_direccion,taller_telefono,taller_mail,taller_nombre,ciu.ciudad_nombre
+	SELECT		taller_id, taller_direccion, taller_telefono, taller_mail, taller_nombre, ciu.ciudad_nombre
 	FROM		[GD2C2021].[SQLI].Taller
 	JOIN		[GD2C2021].[SQLI].Ciudad ciu on ciu.ciudad_id = taller_ciudad
 END
@@ -300,7 +300,7 @@ GO
 CREATE PROCEDURE Insercion_Dimension_Chofer AS
 BEGIN
 	INSERT INTO [GD2C2021].[SQLI].BI_Dimension_Chofer(legajoChofer, nombre, apellido, dni, costo_x_hora, direccion, telefono, mail, fecha_nacimiento, edad)
-	SELECT		chofer_id, chofer_nombre,chofer_apellido,chofer_dni,chofer_direccion,chofer_telefono,chofer_mail,chofer_fecha_nac,chofer_costo_hora, case
+	SELECT		chofer_nro_legajo, chofer_nombre, chofer_apellido, chofer_dni, chofer_costo_hora, chofer_direccion, chofer_telefono, chofer_mail, chofer_fecha_nac, case
 		when (2021 - year(chofer_fecha_nac)) between 18 and 30		then '18-30 anios'
 		when (2021 - year(chofer_fecha_nac)) between 31 and 50		then '31-50 anios'
 		else	'> 50 anios'
@@ -320,7 +320,6 @@ BEGIN
 	FROM		[GD2C2021].[SQLI].Mecanico
 END
 GO
-
 
 CREATE PROCEDURE Insercion_Dimension_Tiempo AS
 BEGIN
@@ -370,21 +369,7 @@ BEGIN
 END
 GO
 
-CREATE PROCEDURE Insercion_Hechos_Viajes AS
-BEGIN
-	INSERT INTO [GD2C2021].[SQLI].BI_Hechos_Viajes(tiempo, legajo_chofer, camion, combo_paquete, recorrido_realizado, precio_recorrido, lts_consumidos, duracion_viaje, costo_viaje)
-	SELECT DISTINCT [GD2C2021].[SQLI].buscarIdDelTiempoSegun(viaje_fecha_ini), viaje_chofer, viaje_camion, pack_id, viaje_recorrido, rec.precio, 
-	viaje_lts_cons, DATEDIFF(DAY, viaje_fecha_ini, viaje_fecha_fin), 
-	DATEDIFF(DAY, viaje_fecha_ini, viaje_fecha_fin) * ch.costo_x_hora * 8
-
-	FROM [GD2C2021].[SQLI].Viaje
-	JOIN [GD2C2021].[SQLI].Paquete on pack_viaje = viaje_id
-	JOIN [GD2C2021].[SQLI].BI_Dimension_Chofer ch on ch.legajoChofer = viaje_chofer
-	JOIN [GD2C2021].[SQLI].BI_Dimension_Recorrido rec on rec.idRecorrido = viaje_recorrido
-END
-GO
-
-CREATE FUNCTION buscarIdDelTiempoSegun(@fecha DATETIME(2)) 
+CREATE FUNCTION [SQLI].buscarIdDelTiempoSegun(@fecha DATETIME2(3)) 
 RETURNS INT
 AS
 BEGIN
@@ -410,6 +395,20 @@ BEGIN
 					WHERE anio = year(@fecha) AND cuatrimestre = @cuatri
 				)
 	RETURN @pk
+END
+GO
+
+CREATE PROCEDURE Insercion_Hechos_Viajes AS
+BEGIN
+	INSERT INTO [GD2C2021].[SQLI].BI_Hechos_Viajes(tiempo, legajo_chofer, camion, combo_paquete, recorrido_realizado, precio_recorrido, lts_consumidos, duracion_viaje, costo_viaje)
+	SELECT DISTINCT [GD2C2021].[SQLI].buscarIdDelTiempoSegun(viaje_fecha_ini), viaje_chofer, viaje_camion, pack_id, viaje_recorrido, rec.precio, 
+	viaje_lts_cons, DATEDIFF(DAY, viaje_fecha_ini, viaje_fecha_fin), 
+	DATEDIFF(DAY, viaje_fecha_ini, viaje_fecha_fin) * ch.costo_x_hora * 8
+
+	FROM [GD2C2021].[SQLI].Viaje
+	JOIN [GD2C2021].[SQLI].Paquete on pack_viaje = viaje_id
+	JOIN [GD2C2021].[SQLI].BI_Dimension_Chofer ch on ch.legajoChofer = viaje_chofer
+	JOIN [GD2C2021].[SQLI].BI_Dimension_Recorrido rec on rec.idRecorrido = viaje_recorrido
 END
 GO
 
