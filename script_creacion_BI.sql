@@ -126,7 +126,7 @@ CREATE PROCEDURE Creacion_Tablas_BI AS
 		telefono			INT,
 		mail				NVARCHAR(255),
 		fecha_nacimiento	SMALLDATETIME,
-		edad				NVARCHAR(255)
+		edad				NVARCHAR(20)
 	)
 
 	ALTER TABLE [GD2C2021].[SQLI].BI_Dimension_Mecanico ADD PRIMARY KEY(legajoMecanico)
@@ -145,7 +145,8 @@ CREATE PROCEDURE Creacion_Tablas_BI AS
 		idHerramienta	INT NOT NULL,
 		detalle			CHAR(50),
 		codigo			NVARCHAR(100),
-		precio			DECIMAL(18,2)
+		precio			DECIMAL(18,2),
+		cantidad		INT
 	)
 
 	ALTER TABLE [GD2C2021].[SQLI].BI_Dimension_Herramienta ADD PRIMARY KEY(idHerramienta)
@@ -236,11 +237,13 @@ BEGIN
 END
 GO
 
+
 CREATE PROCEDURE Insercion_Dimension_Herramienta AS
 BEGIN
-	INSERT INTO [GD2C2021].[SQLI].BI_Dimension_Herramienta(idHerramienta,detalle, codigo, precio)
-	SELECT		herra_id, herra_detalle,herra_code, herra_precio
+	INSERT INTO [GD2C2021].[SQLI].BI_Dimension_Herramienta(idHerramienta,detalle, codigo, precio, cantidad)
+	SELECT		herra_id, herra_detalle,herra_code, herra_precio, hxt.mxt_cantidad
 	FROM		[GD2C2021].[SQLI].Herramientas
+	JOIN		[GD2C2021].[SQLI].Herramienta_Por_Tarea hxt on hxt.herra_id = herra_id
 END
 GO
 
@@ -465,19 +468,68 @@ GO
 
 CREATE VIEW [GD2C2021].[SQLI].FACTURACION_TOTAL_POR_RECORRIDO_POR_CUATRI AS
 BEGIN
-	
+	SELECT tiem.cuatrimestre, viaje.recorrido_realizado, 
+	(
+		SELECT SUM(pack.precio_final)
+		FROM [GD2C2021].[SQLI].BI_Dimension_Paquete pack
+		WHERE pack.idPaquete in	(
+									SELECT viaje1.combo_paquete
+									FROM [GD2C2021].[SQLI].BI_Hechos_Viajes viaje1
+									WHERE viaje1.recorrido_realizado = viaje.recorrido_realizado
+								)	
+	)
+	FROM [GD2C2021].[SQLI].BI_Hechos_Viajes viaje
+	JOIN [GD2C2021].[SQLI].BI_Dimension_Tiempo tiem on tiem.idTiempo = viaje.tiempo
+	GROUP BY tiem.cuatrimestre, viaje.recorrido_realizado
 END
 GO
 
 CREATE VIEW [GD2C2021].[SQLI].COSTO_PROM_X_RANGO_ETARIO_CHOFERES AS
 BEGIN
-	
+	SELECT c.edad, (SUM(c.costo_x_hora) / COUNT(DISTINCT c.legajoChofer))
+	FROM [GD2C2021].[SQLI].BI_Hechos_Viajes
+	JOIN [GD2C2021].[SQLI].BI_Hechos_Chofer c on c.legajoChofer = legajo_chofer
+	GROUP BY c.edad
 END
 GO
 
 CREATE VIEW [GD2C2021].[SQLI].GANANCIA_X_CAMION AS
 BEGIN
-	
+	SELECT viaje.camion, 
+	(
+		SELECT SUM(viaje1.precio_recorrido + pack.precio_final)
+		FROM [GD2C2021].[SQLI].BI_Hechos_Viajes viaje1
+		JOIN [GD2C2021].[SQLI].BI_Dimension_Paquete pack on pack.idPaquete = viaje1.combo_paquete
+		WHERE viaje1.camion = viaje.camion AND pack.idPaquete in	(
+																		SELECT combo_paquete
+																		FROM [GD2C2021].[SQLI].BI_Hechos_Viajes
+																		WHERE camion = viaje.camion
+																	)
+	) --Ingresos
+	-
+	(
+		SELECT (viaje2.duracion_viaje * ch.costo_x_hora * 8) + (viaje2.lts_consumidos * 100)
+		FROM [GD2C2021].[SQLI].BI_Hechos_Viajes viaje2
+		JOIN [GD2C2021].[SQLI].BI_Hechos_Chofer ch on ch.legajoChofer = viaje2.legajo_chofer
+		WHERE ch.legajoChofer in	(
+										SELECT legajo_chofer
+										FROM [GD2C2021].[SQLI].BI_Hechos_Viajes 
+										WHERE camion = viaje.camion
+									)
+	) --Costo de viaje
+	-
+	(
+		SELECT SUM(meca.costo_x_hora * ta.tiempo_estimado * 8) + SUM(herra.precio * herra.cantidad)
+		FROM [GD2C2021].[SQLI].BI_Hechos_Viajes v
+		JOIN [GD2C2021].[SQLI].BI_Hechos_Reparaciones r on r.camion = v.camion
+		JOIN [GD2C2021].[SQLI].BI_Hechos_Herramienta herra on r.herramienta = herra.idHerramienta
+		JOIN [GD2C2021].[SQLI].BI_Hechos_Mecanico meca on meca.legajoMecanico = r.legajo_mecanico
+		JOIN [GD2C2021].[SQLI].BI_Hechos_Tarea ta on ta.idTarea = r.tarea
+		WHERE r.camion = viaje.camion
+	) --Costo de mantenimiento
+
+	FROM [GD2C2021].[SQLI].BI_Hechos_Viajes viaje
+	GROUP BY cami.patente
 END
 GO
 
