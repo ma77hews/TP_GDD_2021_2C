@@ -449,7 +449,27 @@ GO
 
 CREATE VIEW [GD2C2021].[SQLI].COSTO_MANTENIMIENTO_X_CAMION_X_TALLER_X_CUATRI AS
 BEGIN
-	
+	SELECT r.camion, t.cuatrimestre, r.taller,
+	(
+		SELECT SUM(meca.costo_x_hora * task.tiempo_estimado * 8)
+		FROM [GD2C2021].[SQLI].BI_Hechos_Reparaciones r2
+		JOIN [GD2C2021].[SQLI].BI_Dimension_Mecanico meca on meca.legajoMecanico = r2.legajo_mecanico
+		WHERE r2.tarea = task.idTarea
+	)
+	+
+	(
+		SELECT SUM(herra.precio * herra.cantidad)
+		FROM [GD2C2021].[SQLI].BI_Dimension_Herramienta herra
+		WHERE herra.idHerramienta in	(
+											SELECT herramienta
+											FROM [GD2C2021].[SQLI].BI_Hechos_Reparaciones
+											WHERE tarea = task.idTarea
+										)
+	)
+	FROM [GD2C2021].[SQLI].BI_Hechos_Reparaciones r
+	JOIN [GD2C2021].[SQLI].BI_Dimension_Tiempo t on t.idTiempo = r.tiempo
+	JOIN [GD2C2021].[SQLI].BI_Dimension_Tarea task on task.idTarea = r.tarea
+	GROUP BY r.camion, t.cuatrimestre, r.taller
 END
 GO
 
@@ -573,7 +593,6 @@ BEGIN
 	EXEC Insercion_Dimension_Tiempo
 	EXEC Insercion_Dimension_Herramienta
 	EXEC Insercion_Dimension_Paquete
-	--EXEC Insercion_Dimension_Viaje
 	EXEC Insercion_Dimension_ODT
 	EXEC Insercion_Hechos_Reparaciones
 	EXEC Insercion_Hechos_Viajes
