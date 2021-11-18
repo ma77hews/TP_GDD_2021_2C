@@ -145,7 +145,7 @@ CREATE PROCEDURE Creacion_de_Tablas	AS
 		tarea_codigo		INT IDENTITY,
 		tarea_tipo			INT,
 		tarea_descripcion	NVARCHAR(255),
-		tarea_tiempo_est	INT, -- cambiar el nombre + revisar nombre variable
+		tarea_tiempo_est	INT,
 	);
 	
 

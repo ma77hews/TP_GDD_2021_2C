@@ -10,17 +10,6 @@ CREATE PROCEDURE Creacion_Tablas_BI AS
 	)
 
 	ALTER TABLE [GD2C2021].[SQLI].BI_Dimension_Camion ADD PRIMARY KEY(idCamion)
-
-/*	CREATE TABLE [GD2C2021].[SQLI].BI_Dimension_Viaje
-	(
-		idViaje			INT IDENTITY,
-		fecha_inicio	DATETIME2(7),
-		fecha_fin		DATETIME2(7),
-		litros_consu	CHAR(8)
-	)
-
-	ALTER TABLE [GD2C2021].[SQLI].BI_Dimension_Viaje ADD PRIMARY KEY(idViaje)
-*/
 	
 	CREATE TABLE [GD2C2021].[SQLI].BI_Dimension_Marca
 	(
@@ -44,8 +33,7 @@ CREATE PROCEDURE Creacion_Tablas_BI AS
 	)
 
 	ALTER TABLE [GD2C2021].[SQLI].BI_Dimension_Paquete	ADD PRIMARY KEY(idPaquete)
-	--ALTER TABLE [GD2C2021].[SQLI].BI_Dimension_Paquete	ADD FOREIGN KEY(tipo)		REFERENCES [GD2C2021].[SQLI].Tipo_paquete(t_pack_id)	ON DELETE NO ACTION ON UPDATE NO ACTION ; error de tipos INT con NVARCHAR, HACER JOIN!!!
-
+	
 	CREATE TABLE [GD2C2021].[SQLI].BI_Dimension_Modelo
 	(
 		idModelo			INT NOT NULL,
@@ -68,15 +56,6 @@ CREATE PROCEDURE Creacion_Tablas_BI AS
 	)
 
 	ALTER TABLE [GD2C2021].[SQLI].BI_Dimension_Taller ADD PRIMARY KEY(idTaller)
-
-/*	CREATE TABLE [GD2C2021].[SQLI].BI_Dimension_Tipo_Tarea
-	(
-		idTipo		INT,
-		tipo_tarea	NVARCHAR(255)
-	)
-
-	ALTER TABLE [GD2C2021].[SQLI].BI_Dimension_Tipo_Tarea ADD PRIMARY KEY(idTipo)
-*/
 
 	CREATE TABLE [GD2C2021].[SQLI].BI_Dimension_Tarea
 	(
@@ -159,8 +138,7 @@ CREATE PROCEDURE Creacion_Tablas_BI AS
 	)
 
 	ALTER TABLE [GD2C2021].[SQLI].BI_Dimension_ODT	ADD PRIMARY KEY(idODT)
-	ALTER TABLE [GD2C2021].[SQLI].BI_Dimension_ODT	ADD FOREIGN KEY(camion)		REFERENCES [GD2C2021].[SQLI].BI_Dimension_Camion(idCamion)	ON DELETE NO ACTION ON UPDATE NO ACTION ;
-
+	
 	CREATE TABLE [GD2C2021].[SQLI].BI_Hechos_Viajes
 	(
 		tiempo				INT NOT NULL,
@@ -217,14 +195,6 @@ BEGIN
 	FROM		[GD2C2021].[SQLI].Camion
 END
 GO
-
-/*CREATE PROCEDURE Insercion_Dimension_Viaje AS
-BEGIN
-	INSERT INTO [GD2C2021].[SQLI].BI_Dimension_Viaje(idViaje,fecha_inicio, fecha_fin, litros_consu)
-	SELECT		viaje_id, viaje_fecha_ini,viaje_fecha_fin,viaje_lts_cons
-	FROM		[GD2C2021].[SQLI].Viaje
-END
-GO*/
 
 CREATE PROCEDURE Insercion_Dimension_Paquete AS
 BEGIN
@@ -300,11 +270,11 @@ GO
 CREATE PROCEDURE Insercion_Dimension_Chofer AS
 BEGIN
 	INSERT INTO [GD2C2021].[SQLI].BI_Dimension_Chofer(legajoChofer, nombre, apellido, dni, costo_x_hora, direccion, telefono, mail, fecha_nacimiento, edad)
-	SELECT		chofer_nro_legajo, chofer_nombre, chofer_apellido, chofer_dni, chofer_costo_hora, chofer_direccion, chofer_telefono, chofer_mail, chofer_fecha_nac, case
-		when (2021 - year(chofer_fecha_nac)) between 18 and 30		then '18-30 anios'
-		when (2021 - year(chofer_fecha_nac)) between 31 and 50		then '31-50 anios'
-		else	'> 50 anios'
-		end
+	SELECT		chofer_nro_legajo, chofer_nombre, chofer_apellido, chofer_dni, chofer_costo_hora, chofer_direccion, chofer_telefono, chofer_mail, chofer_fecha_nac, CASE
+		WHEN (2021 - year(chofer_fecha_nac)) between 18 and 30		THEN '18-30 anios'
+		WHEN (2021 - year(chofer_fecha_nac)) between 31 and 50		THEN '31-50 anios'
+		ELSE	'> 50 anios'
+		END
 	FROM		[GD2C2021].[SQLI].Chofer
 END
 GO
@@ -312,11 +282,11 @@ GO
 CREATE PROCEDURE Insercion_Dimension_Mecanico AS
 BEGIN
 	INSERT INTO [GD2C2021].[SQLI].BI_Dimension_Mecanico(legajoMecanico, nombre, apellido, dni, costo_x_hora, direccion,	telefono, mail, fecha_nacimiento, edad)
-	SELECT		meca_nro_legajo, meca_nombre, meca_apellido,meca_dni,meca_direccion,meca_telefono,meca_cost_hora,meca_mail,meca_fecha_nac, case
-		when (2021 - year(meca_fecha_nac)) between 18 and 30		then '18-30 anios'
-		when (2021 - year(meca_fecha_nac)) between 31 and 50		then '31-50 anios'
-		else		'> 50 anios'
-		end
+	SELECT		meca_nro_legajo, meca_nombre, meca_apellido,meca_dni,meca_direccion,meca_telefono,meca_cost_hora,meca_mail,meca_fecha_nac, CASE
+		WHEN (2021 - year(meca_fecha_nac)) between 18 and 30		THEN '18-30 anios'
+		WHEN (2021 - year(meca_fecha_nac)) between 31 and 50		THEN '31-50 anios'
+		ELSE		'> 50 anios'
+		END
 	FROM		[GD2C2021].[SQLI].Mecanico
 END
 GO
@@ -324,45 +294,45 @@ GO
 CREATE PROCEDURE Insercion_Dimension_Tiempo AS
 BEGIN
 	INSERT INTO [GD2C2021].[SQLI].BI_Dimension_Tiempo(anio, cuatrimestre)
-	(	(SELECT year(viaje_fecha_ini), case
-				when month(viaje_fecha_ini) = 1 or month(viaje_fecha_ini) = 2 or month(viaje_fecha_ini) = 3 or month(viaje_fecha_ini) = 4
-					then 1
-				when month(viaje_fecha_ini) = 5 or month(viaje_fecha_ini) = 6 or month(viaje_fecha_ini) = 7 or month(viaje_fecha_ini) = 8
-					then 2
-				else 3 
-				end
+	(	(SELECT year(viaje_fecha_ini), CASE
+				WHEN month(viaje_fecha_ini) = 1 or month(viaje_fecha_ini) = 2 or month(viaje_fecha_ini) = 3 or month(viaje_fecha_ini) = 4
+					THEN 1
+				WHEN month(viaje_fecha_ini) = 5 or month(viaje_fecha_ini) = 6 or month(viaje_fecha_ini) = 7 or month(viaje_fecha_ini) = 8
+					THEN 2
+				ELSE 3 
+				END
 			FROM [GD2C2021].[SQLI].Viaje)
 		UNION
 		(
-			SELECT year(viaje_fecha_fin), case
-				when month(viaje_fecha_fin) = 1 or month(viaje_fecha_fin) = 2 or month(viaje_fecha_fin) = 3 or month(viaje_fecha_fin) = 4
-					then 1
-				when month(viaje_fecha_fin) = 5 or month(viaje_fecha_fin) = 6 or month(viaje_fecha_fin) = 7 or month(viaje_fecha_fin) = 8
-					then 2
-				else 3 
-				end
+			SELECT year(viaje_fecha_fin), CASE
+				WHEN month(viaje_fecha_fin) = 1 or month(viaje_fecha_fin) = 2 or month(viaje_fecha_fin) = 3 or month(viaje_fecha_fin) = 4
+					THEN 1
+				WHEN month(viaje_fecha_fin) = 5 or month(viaje_fecha_fin) = 6 or month(viaje_fecha_fin) = 7 or month(viaje_fecha_fin) = 8
+					THEN 2
+				ELSE 3 
+				END
 			FROM [GD2C2021].[SQLI].Viaje
 		)
 		UNION
 		(
-			SELECT year(tarea_fecha_inicio), case
-				when month(tarea_fecha_inicio) = 1 or month(tarea_fecha_inicio) = 2 or month(tarea_fecha_inicio) = 3 or month(tarea_fecha_inicio) = 4
-					then 1
-				when month(tarea_fecha_inicio) = 5 or month(tarea_fecha_inicio) = 6 or month(tarea_fecha_inicio) = 7 or month(tarea_fecha_inicio) = 8
-					then 2
-				else 3 
-				end
+			SELECT year(tarea_fecha_inicio), CASE
+				WHEN month(tarea_fecha_inicio) = 1 or month(tarea_fecha_inicio) = 2 or month(tarea_fecha_inicio) = 3 or month(tarea_fecha_inicio) = 4
+					THEN 1
+				WHEN month(tarea_fecha_inicio) = 5 or month(tarea_fecha_inicio) = 6 or month(tarea_fecha_inicio) = 7 or month(tarea_fecha_inicio) = 8
+					THEN 2
+				ELSE 3 
+				END
 			FROM [GD2C2021].[SQLI].Tarea_Por_ODT
 		)
 		UNION
 		(
-			SELECT year(tarea_fecha_fin), case
-				when month(tarea_fecha_fin) = 1 or month(tarea_fecha_fin) = 2 or month(tarea_fecha_fin) = 3 or month(tarea_fecha_fin) = 4
-					then 1
-				when month(tarea_fecha_fin) = 5 or month(tarea_fecha_fin) = 6 or month(tarea_fecha_fin) = 7 or month(tarea_fecha_fin) = 8
-					then 2
-				else 3 
-				end
+			SELECT year(tarea_fecha_fin), CASE
+				WHEN month(tarea_fecha_fin) = 1 or month(tarea_fecha_fin) = 2 or month(tarea_fecha_fin) = 3 or month(tarea_fecha_fin) = 4
+					THEN 1
+				WHEN month(tarea_fecha_fin) = 5 or month(tarea_fecha_fin) = 6 or month(tarea_fecha_fin) = 7 or month(tarea_fecha_fin) = 8
+					THEN 2
+				ELSE 3 
+				END
 			FROM [GD2C2021].[SQLI].Tarea_Por_ODT
 		)
 	)
@@ -415,7 +385,8 @@ GO
 CREATE PROCEDURE Insercion_Hechos_Reparaciones AS
 BEGIN
 	INSERT INTO [GD2C2021].[SQLI].BI_Hechos_Reparaciones(tiempo, camion, marca, modelo, odt, taller, tarea, legajo_mecanico, herramienta)
-	SELECT DISTINCT [GD2C2021].[SQLI].buscarIdDelTiempoSegun(txo.tarea_fecha_inicio), odt_camion, mar.marca_id, mode.modelo_id, odt.odt_id, 1 /*ACA IRIA EL TALLER*/, tar.tarea_codigo, mec.meca_nro_legajo, her.herra_id
+	SELECT DISTINCT [GD2C2021].[SQLI].buscarIdDelTiempoSegun(txo.tarea_fecha_inicio), odt_camion, mar.marca_id, mode.modelo_id, 
+	odt.odt_id, 1 /*ACA IRIA EL TALLER*/, tar.tarea_codigo, mec.meca_nro_legajo, her.herra_id
 	FROM [GD2C2021].[SQLI].Orden_De_Trabajo odt
 	JOIN [GD2C2021].[SQLI].Tarea_Por_ODT txo on txo.odt_id = odt.odt_id
 	JOIN [GD2C2021].[SQLI].Camion cam on cam.cami_id = odt.odt_camion
@@ -499,14 +470,14 @@ CREATE VIEW [GD2C2021].[SQLI].TOP_10_HERRAM_MAS_USADAS_X_TALLER AS
 BEGIN
 	SELECT repa.herramienta, repa.taller
 	FROM [GD2C2021].[SQLI].BI_Hechos_Reparaciones repa
-	WHERE herramienta in	(
-								SELECT TOP 10 r2.herramienta
-								FROM [GD2C2021].[SQLI].BI_Hechos_Reparaciones r2
-								JOIN [GD2C2021].[SQLI].BI_Hechos_Herramienta h2 on h2.idHerramienta = r2.herramienta
-								WHERE r2.taller = repa.taller
-								GROUP BY r2.herramienta
-								ORDER BY COUNT(DISTINCT herramienta) DESC
-							)
+	WHERE repa.herramienta in	(
+									SELECT TOP 10 r2.herramienta
+									FROM [GD2C2021].[SQLI].BI_Hechos_Reparaciones r2
+									JOIN [GD2C2021].[SQLI].BI_Hechos_Herramienta h2 on h2.idHerramienta = r2.herramienta
+									WHERE r2.taller = repa.taller
+									GROUP BY r2.herramienta
+									ORDER BY COUNT(DISTINCT herramienta) DESC
+								)
 	GROUP BY repa.herramienta, repa.taller
 END
 GO
@@ -641,9 +612,9 @@ BEGIN
 	IF EXISTS (SELECT * FROM  sys.procedures WHERE  NAME = 'BI_Migracion' AND type = 'p')							DROP PROCEDURE dbo.BI_Migracion
 --	IF EXISTS (SELECT * FROM  sys.procedures WHERE  NAME = 'BI_Vistas' AND type = 'p')								DROP PROCEDURE dbo.BI_Vistas
 	IF EXISTS (SELECT * FROM  sys.procedures WHERE  NAME = 'BI_Reseteo_Tablas' AND type = 'p')						DROP PROCEDURE dbo.BI_Reseteo_Tablas
-	IF EXISTS (SELECT * FROM  sys.procedures WHERE  NAME = 'BI_Reseteo_Procedures' AND type = 'p')					DROP PROCEDURE dbo.BI_Reseteo_Procedures
 	IF EXISTS (SELECT * FROM  sys.procedures WHERE  NAME = 'BI_Reseteo' AND type = 'p')								DROP PROCEDURE dbo.BI_Reseteo
 	IF EXISTS (SELECT * FROM  sys.procedures WHERE  NAME = 'BI_Play' AND type = 'p')								DROP PROCEDURE dbo.BI_Play
+	IF EXISTS (SELECT * FROM  sys.procedures WHERE  NAME = 'BI_Reseteo_Procedures' AND type = 'p')					DROP PROCEDURE dbo.BI_Reseteo_Procedures
 END
 GO
 
