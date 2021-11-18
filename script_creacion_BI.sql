@@ -435,6 +435,7 @@ BEGIN
 											SELECT herramienta
 											FROM [GD2C2021].[SQLI].BI_Hechos_Reparaciones
 											WHERE tarea = task.idTarea
+											GROUP BY herramienta
 										)
 	))
 	FROM [GD2C2021].[SQLI].BI_Hechos_Reparaciones r
@@ -476,7 +477,7 @@ BEGIN
 									JOIN [GD2C2021].[SQLI].BI_Hechos_Herramienta h2 on h2.idHerramienta = r2.herramienta
 									WHERE r2.taller = repa.taller
 									GROUP BY r2.herramienta
-									ORDER BY COUNT(DISTINCT herramienta) DESC
+									ORDER BY COUNT(DISTINCT r2.herramienta) DESC
 								)
 	GROUP BY repa.herramienta, repa.taller
 END
@@ -492,6 +493,7 @@ BEGIN
 									SELECT viaje1.combo_paquete
 									FROM [GD2C2021].[SQLI].BI_Hechos_Viajes viaje1
 									WHERE viaje1.recorrido_realizado = viaje.recorrido_realizado
+									GROUP BY viaje1.combo_paquete
 								)	
 	)
 	FROM [GD2C2021].[SQLI].BI_Hechos_Viajes viaje
