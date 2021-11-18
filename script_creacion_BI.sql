@@ -450,7 +450,7 @@ GO
 CREATE VIEW [GD2C2021].[SQLI].COSTO_MANTENIMIENTO_X_CAMION_X_TALLER_X_CUATRI AS
 BEGIN
 	SELECT r.camion, t.cuatrimestre, r.taller,
-	(
+	((
 		SELECT SUM(meca.costo_x_hora * task.tiempo_estimado * 8)
 		FROM [GD2C2021].[SQLI].BI_Hechos_Reparaciones r2
 		JOIN [GD2C2021].[SQLI].BI_Dimension_Mecanico meca on meca.legajoMecanico = r2.legajo_mecanico
@@ -465,7 +465,7 @@ BEGIN
 											FROM [GD2C2021].[SQLI].BI_Hechos_Reparaciones
 											WHERE tarea = task.idTarea
 										)
-	)
+	))
 	FROM [GD2C2021].[SQLI].BI_Hechos_Reparaciones r
 	JOIN [GD2C2021].[SQLI].BI_Dimension_Tiempo t on t.idTiempo = r.tiempo
 	JOIN [GD2C2021].[SQLI].BI_Dimension_Tarea task on task.idTarea = r.tarea
