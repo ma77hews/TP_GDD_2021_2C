@@ -1,215 +1,264 @@
+IF NOT EXISTS (SELECT * FROM sys.schemas WHERE NAME = 'SQLI')
+BEGIN
+	EXEC ('CREATE SCHEMA SQLI')
+END
+GO
+
+USE GD2C2021
+
+IF (OBJECT_ID('GD2C2021.SQLI.Paquete')IS NOT NULL)					DROP TABLE [GD2C2021].[SQLI].Paquete
+IF (OBJECT_ID('GD2C2021.SQLI.Orden_De_Trabajo')IS NOT NULL)			DROP TABLE [GD2C2021].[SQLI].Orden_De_Trabajo
+IF (OBJECT_ID('GD2C2021.SQLI.Tareas')IS NOT NULL)					DROP TABLE [GD2C2021].[SQLI].Tareas
+IF (OBJECT_ID('GD2C2021.SQLI.Herramienta_Por_Tarea')IS NOT NULL)	DROP TABLE [GD2C2021].[SQLI].Herramienta_Por_Tarea
+IF (OBJECT_ID('GD2C2021.SQLI.Tarea_Por_ODT')IS NOT NULL)			DROP TABLE [GD2C2021].[SQLI].Tarea_Por_ODT
+IF (OBJECT_ID('GD2C2021.SQLI.Tipo_Paquete')IS NOT NULL)				DROP TABLE [GD2C2021].[SQLI].Tipo_Paquete
+IF (OBJECT_ID('GD2C2021.SQLI.Herramientas')IS NOT NULL)				DROP TABLE [GD2C2021].[SQLI].Herramientas
+IF (OBJECT_ID('GD2C2021.SQLI.Tipo_Tarea')IS NOT NULL)				DROP TABLE [GD2C2021].[SQLI].Tipo_Tarea
+IF (OBJECT_ID('GD2C2021.SQLI.Mecanico')IS NOT NULL)					DROP TABLE [GD2C2021].[SQLI].Mecanico
+IF (OBJECT_ID('GD2C2021.SQLI.Taller')IS NOT NULL)					DROP TABLE [GD2C2021].[SQLI].Taller
+IF (OBJECT_ID('GD2C2021.SQLI.Viaje')IS NOT NULL)					DROP TABLE [GD2C2021].[SQLI].Viaje
+IF (OBJECT_ID('GD2C2021.SQLI.Recorrido')IS NOT NULL)				DROP TABLE [GD2C2021].[SQLI].Recorrido
+IF (OBJECT_ID('GD2C2021.SQLI.Ciudad')IS NOT NULL)					DROP TABLE [GD2C2021].[SQLI].Ciudad
+IF (OBJECT_ID('GD2C2021.SQLI.Chofer')IS NOT NULL)					DROP TABLE [GD2C2021].[SQLI].Chofer
+IF (OBJECT_ID('GD2C2021.SQLI.Camion')IS NOT NULL)					DROP TABLE [GD2C2021].[SQLI].Camion
+IF (OBJECT_ID('GD2C2021.SQLI.Marca')IS NOT NULL)					DROP TABLE [GD2C2021].[SQLI].Marca
+IF (OBJECT_ID('GD2C2021.SQLI.Modelo')IS NOT NULL)					DROP TABLE [GD2C2021].[SQLI].Modelo
+GO
+
+
+IF EXISTS (SELECT * FROM  sys.procedures WHERE  NAME = 'Creacion_de_Tablas' AND type = 'p')						DROP PROCEDURE dbo.Creacion_de_Tablas
+IF EXISTS (SELECT * FROM  sys.procedures WHERE  NAME = 'PK_Y_FK' AND type = 'p')								DROP PROCEDURE dbo.PK_Y_FK
+IF EXISTS (SELECT * FROM  sys.procedures WHERE  NAME = 'Insercion_Tabla_Ciudad' AND type = 'p')					DROP PROCEDURE dbo.Insercion_Tabla_Ciudad
+IF EXISTS (SELECT * FROM  sys.procedures WHERE  NAME = 'Insercion_Tabla_Herramientas' AND type = 'p')			DROP PROCEDURE dbo.Insercion_Tabla_Herramientas
+IF EXISTS (SELECT * FROM  sys.procedures WHERE  NAME = 'Insercion_Tabla_Recorrido' AND type = 'p')				DROP PROCEDURE dbo.Insercion_Tabla_Recorrido
+IF EXISTS (SELECT * FROM  sys.procedures WHERE  NAME = 'Insercion_Tabla_Taller' AND type = 'p')					DROP PROCEDURE dbo.Insercion_Tabla_Taller
+IF EXISTS (SELECT * FROM  sys.procedures WHERE  NAME = 'Insercion_Tabla_Chofer' AND type = 'p')					DROP PROCEDURE dbo.Insercion_Tabla_Chofer
+IF EXISTS (SELECT * FROM  sys.procedures WHERE  NAME = 'Insercion_Tabla_Modelo' AND type = 'p')					DROP PROCEDURE dbo.Insercion_Tabla_Modelo
+IF EXISTS (SELECT * FROM  sys.procedures WHERE  NAME = 'Insercion_Tabla_Tipo_Paquete' AND type = 'p')			DROP PROCEDURE dbo.Insercion_Tabla_Tipo_Paquete
+IF EXISTS (SELECT * FROM  sys.procedures WHERE  NAME = 'Insercion_Tabla_Marca' AND type = 'p')					DROP PROCEDURE dbo.Insercion_Tabla_Marca
+IF EXISTS (SELECT * FROM  sys.procedures WHERE  NAME = 'Insercion_Tabla_Camion' AND type = 'p')					DROP PROCEDURE dbo.Insercion_Tabla_Camion
+IF EXISTS (SELECT * FROM  sys.procedures WHERE  NAME = 'Insercion_Tabla_Mecanico' AND type = 'p')				DROP PROCEDURE dbo.Insercion_Tabla_Mecanico
+IF EXISTS (SELECT * FROM  sys.procedures WHERE  NAME = 'Insercion_Tabla_Paquete' AND type = 'p')				DROP PROCEDURE dbo.Insercion_Tabla_Paquete
+IF EXISTS (SELECT * FROM  sys.procedures WHERE  NAME = 'Insercion_Tabla_Viaje' AND type = 'p')					DROP PROCEDURE dbo.Insercion_Tabla_Viaje
+IF EXISTS (SELECT * FROM  sys.procedures WHERE  NAME = 'Insercion_Tabla_Tipo_Tarea' AND type = 'p')				DROP PROCEDURE dbo.Insercion_Tabla_Tipo_Tarea
+IF EXISTS (SELECT * FROM  sys.procedures WHERE  NAME = 'Insercion_Tabla_Tareas' AND type = 'p')					DROP PROCEDURE dbo.Insercion_Tabla_Tareas
+IF EXISTS (SELECT * FROM  sys.procedures WHERE  NAME = 'Insercion_Tabla_Herramienta_Por_Tarea' AND type = 'p')  DROP PROCEDURE dbo.Insercion_Tabla_Herramienta_Por_Tarea
+IF EXISTS (SELECT * FROM  sys.procedures WHERE  NAME = 'Insercion_Tabla_Orden_De_Trabajo' AND type = 'p')		DROP PROCEDURE dbo.Insercion_Tabla_Orden_De_Trabajo
+IF EXISTS (SELECT * FROM  sys.procedures WHERE  NAME = 'Insercion_Tabla_Tarea_Por_ODT' AND type = 'p')			DROP PROCEDURE dbo.Insercion_Tabla_Tarea_Por_ODT
+GO
+
 -------------------------------- procedure para la creacion de tablas -------------------------------------------------
-CREATE PROCEDURE Creacion_de_Tablas	AS
 
-	CREATE TABLE [GD2C2021].[SQLI].Modelo 
-	(
-		modelo_id			INT IDENTITY,
-		modelo_detalle		NVARCHAR(255),
-		modelo_vel_max		INT,
-		modelo_cap_tanque	INT, 
-		modelo_cap_carga	INT
-	)
 
-	CREATE TABLE [GD2C2021].[SQLI].Marca
-	(	
-		marca_id			INT IDENTITY,
-		marca_nombre		NVARCHAR(255)
-	)
+CREATE TABLE [GD2C2021].[SQLI].Modelo 
+(
+	modelo_id			INT IDENTITY,
+	modelo_detalle		NVARCHAR(255),
+	modelo_vel_max		INT,
+	modelo_cap_tanque	INT, 
+	modelo_cap_carga	INT
+)
 
-	CREATE TABLE [GD2C2021].[SQLI].Camion 
-	(
-		cami_id				INT IDENTITY,
-		cami_modelo			INT,
-		cami_marca			INT,
-		cami_patente		NVARCHAR(255),
-		cami_nro_chasis		NVARCHAR(255),
-		cami_nro_motor		NVARCHAR(255),
-		cami_fecha_alta		DATETIME2(3)
-	)
+CREATE TABLE [GD2C2021].[SQLI].Marca
+(	
+	marca_id			INT IDENTITY,
+	marca_nombre		NVARCHAR(255)
+)
 
-	CREATE TABLE [GD2C2021].[SQLI].Chofer 
-	(
-		chofer_nro_legajo	INT NOT NULL,
-		chofer_nombre		NVARCHAR(255),
-		chofer_apellido		NVARCHAR(255),
-		chofer_dni			DECIMAL(18,0),
-		chofer_direccion	NVARCHAR(255),
-		chofer_telefono		INT,
-		chofer_mail			NVARCHAR(255),
-		chofer_fecha_nac	DATETIME2(3),
-		chofer_costo_hora	INT
-	)
+CREATE TABLE [GD2C2021].[SQLI].Camion 
+(
+	cami_id				INT IDENTITY,
+	cami_modelo			INT,
+	cami_marca			INT,
+	cami_patente		NVARCHAR(255),
+	cami_nro_chasis		NVARCHAR(255),
+	cami_nro_motor		NVARCHAR(255),
+	cami_fecha_alta		DATETIME2(3)
+)
 
-	CREATE TABLE [GD2C2021].[SQLI].Ciudad 
-	(
-		ciudad_id			INT IDENTITY,
-		ciudad_nombre		NVARCHAR(255)
-	)
+CREATE TABLE [GD2C2021].[SQLI].Chofer 
+(
+	chofer_nro_legajo	INT NOT NULL,
+	chofer_nombre		NVARCHAR(255),
+	chofer_apellido		NVARCHAR(255),
+	chofer_dni			DECIMAL(18,0),
+	chofer_direccion	NVARCHAR(255),
+	chofer_telefono		INT,
+	chofer_mail			NVARCHAR(255),
+	chofer_fecha_nac	DATETIME2(3),
+	chofer_costo_hora	INT
+)
 
-	CREATE TABLE [GD2C2021].[SQLI].Recorrido 
-	(
-		reco_id				INT IDENTITY,
-		reco_ciudad_origen	INT,
-		reco_ciudad_destino	INT,
-		reco_km				INT,
-		reco_precio			DECIMAL(18,2)
-	)
+CREATE TABLE [GD2C2021].[SQLI].Ciudad 
+(
+	ciudad_id			INT IDENTITY,
+	ciudad_nombre		NVARCHAR(255)
+)
 
-	CREATE TABLE [GD2C2021].[SQLI].Viaje 
-	(
-		viaje_id			INT IDENTITY,
-		viaje_camion		INT,
-		viaje_chofer		INT,
-		viaje_recorrido		INT,
-		viaje_fecha_ini		DATETIME2(7),
-		viaje_fecha_fin		DATETIME2(3),
-		viaje_lts_cons		DECIMAL(18,2)
-	)
+CREATE TABLE [GD2C2021].[SQLI].Recorrido 
+(
+	reco_id				INT IDENTITY,
+	reco_ciudad_origen	INT,
+	reco_ciudad_destino	INT,
+	reco_km				INT,
+	reco_precio			DECIMAL(18,2)
+)
 
-	CREATE TABLE [GD2C2021].[SQLI].Taller 
-	(
-		taller_id			INT IDENTITY,
-		taller_direccion	NVARCHAR(255),
-		taller_telefono		DECIMAL(18,0),
-		taller_mail			NVARCHAR(255),
-		taller_nombre		NVARCHAR(255),
-		taller_ciudad		INT
-	)
+CREATE TABLE [GD2C2021].[SQLI].Viaje 
+(
+	viaje_id			INT IDENTITY,
+	viaje_camion		INT,
+	viaje_chofer		INT,
+	viaje_recorrido		INT,
+	viaje_fecha_ini		DATETIME2(7),
+	viaje_fecha_fin		DATETIME2(3),
+	viaje_lts_cons		DECIMAL(18,2)
+)
+
+CREATE TABLE [GD2C2021].[SQLI].Taller 
+(
+	taller_id			INT IDENTITY,
+	taller_direccion	NVARCHAR(255),
+	taller_telefono		DECIMAL(18,0),
+	taller_mail			NVARCHAR(255),
+	taller_nombre		NVARCHAR(255),
+	taller_ciudad		INT
+)
 	
-		CREATE TABLE [GD2C2021].[SQLI].Mecanico 
-	(
-		meca_nro_legajo		INT NOT NULL,
-		meca_nombre			NVARCHAR(255),
-		meca_apellido		NVARCHAR(255),
-		meca_dni			DECIMAL(18,0),
-		meca_direccion		NVARCHAR(255),
-		meca_telefono		INT,
-		meca_cost_hora		INT,
-		meca_mail			NVARCHAR(255),
-		meca_fecha_nac		DATETIME2(3),
-		meca_taller			INT
-	)
+	CREATE TABLE [GD2C2021].[SQLI].Mecanico 
+(
+	meca_nro_legajo		INT NOT NULL,
+	meca_nombre			NVARCHAR(255),
+	meca_apellido		NVARCHAR(255),
+	meca_dni			DECIMAL(18,0),
+	meca_direccion		NVARCHAR(255),
+	meca_telefono		INT,
+	meca_cost_hora		INT,
+	meca_mail			NVARCHAR(255),
+	meca_fecha_nac		DATETIME2(3),
+	meca_taller			INT
+)
 	
-	CREATE TABLE [GD2C2021].[SQLI].Tipo_Tarea 
-	(
-		tipo_id				INT IDENTITY,
-		tipo_tarea			NVARCHAR(255)
-	)
+CREATE TABLE [GD2C2021].[SQLI].Tipo_Tarea 
+(
+	tipo_id				INT IDENTITY,
+	tipo_tarea			NVARCHAR(255)
+)
 
-	CREATE TABLE [GD2C2021].[SQLI].Herramientas 
-	(
-		herra_id			INT IDENTITY,
-		herra_code			NVARCHAR(100),
-		herra_detalle		NVARCHAR(255),
-		herra_precio		DECIMAL(18,2)
-	)
+CREATE TABLE [GD2C2021].[SQLI].Herramientas 
+(
+	herra_id			INT IDENTITY,
+	herra_code			NVARCHAR(100),
+	herra_detalle		NVARCHAR(255),
+	herra_precio		DECIMAL(18,2)
+)
 
-	CREATE TABLE [GD2C2021].[SQLI].Tipo_Paquete 
-	(
-		t_pack_id			INT IDENTITY,
-		t_pack_alto_max		DECIMAL(18,2),
-		t_pack_ancho_max	DECIMAL(18,2),
-		t_pack_largo_max	DECIMAL(18,2),
-		t_pack_descripcion	nvarchar(255),
-		t_pack_precio		DECIMAL(18,2),
-		t_pack_peso_maximo	DECIMAL(18,2)
-	)
+CREATE TABLE [GD2C2021].[SQLI].Tipo_Paquete 
+(
+	t_pack_id			INT IDENTITY,
+	t_pack_alto_max		DECIMAL(18,2),
+	t_pack_ancho_max	DECIMAL(18,2),
+	t_pack_largo_max	DECIMAL(18,2),
+	t_pack_descripcion	nvarchar(255),
+	t_pack_precio		DECIMAL(18,2),
+	t_pack_peso_maximo	DECIMAL(18,2)
+)
 
-	CREATE TABLE [GD2C2021].[SQLI].Paquete 
-	(
-		pack_id				INT IDENTITY,
-		pack_tipo			INT,
-		pack_cantidad		INT,
-		pack_viaje			INT
-	)
+CREATE TABLE [GD2C2021].[SQLI].Paquete 
+(
+	pack_id				INT IDENTITY,
+	pack_tipo			INT,
+	pack_cantidad		INT,
+	pack_viaje			INT
+)
 
-	CREATE TABLE [GD2C2021].[SQLI].Orden_De_Trabajo 
-	(
-		odt_id				INT IDENTITY,
-		odt_camion			INT,
-		odt_estado			NVARCHAR(255),
-		odt_fecha_generado	NVARCHAR(255)
-	)
+CREATE TABLE [GD2C2021].[SQLI].Orden_De_Trabajo 
+(
+	odt_id				INT IDENTITY,
+	odt_camion			INT,
+	odt_estado			NVARCHAR(255),
+	odt_fecha_generado	NVARCHAR(255)
+)
 
-	CREATE TABLE [GD2C2021].[SQLI].Tarea_Por_ODT 
-	(
-		tarea_id			INT,
-		odt_id				INT,
-		tarea_mecanico		INT,
-		tarea_fecha_inicio	DATETIME2(3),
-		tarea_fecha_fin		DATETIME2(3),
-		tarea_fe_in_plani	DATETIME2(3) 
-	);	
+CREATE TABLE [GD2C2021].[SQLI].Tarea_Por_ODT 
+(
+	tarea_id			INT,
+	odt_id				INT,
+	tarea_mecanico		INT,
+	tarea_fecha_inicio	DATETIME2(3),
+	tarea_fecha_fin		DATETIME2(3),
+	tarea_fe_in_plani	DATETIME2(3) 
+);	
 
-	CREATE TABLE [GD2C2021].[SQLI].Tareas 
-	(
-		tarea_codigo		INT IDENTITY,
-		tarea_tipo			INT,
-		tarea_descripcion	NVARCHAR(255),
-		tarea_tiempo_est	INT,
-	);
+CREATE TABLE [GD2C2021].[SQLI].Tareas 
+(
+	tarea_codigo		INT IDENTITY,
+	tarea_tipo			INT,
+	tarea_descripcion	NVARCHAR(255),
+	tarea_tiempo_est	INT,
+);
 	
 
-	CREATE TABLE [GD2C2021].[SQLI].Herramienta_Por_Tarea
-	(
-		tarea_codigo		INT,
-		herra_id			INT,
-		mxt_cantidad		INT
-	);
+CREATE TABLE [GD2C2021].[SQLI].Herramienta_Por_Tarea
+(
+	tarea_codigo		INT,
+	herra_id			INT,
+	mxt_cantidad		INT
+);
 GO
 
 -------------------------------Procedure para las PKs y FKs---------------------------------------------------------
-CREATE PROCEDURE PK_Y_FK AS
 
-	ALTER TABLE [GD2C2021].[SQLI].Modelo				ADD PRIMARY KEY (modelo_id)
 
-	ALTER TABLE [GD2C2021].[SQLI].Marca					ADD PRIMARY KEY (marca_id)
+ALTER TABLE [GD2C2021].[SQLI].Modelo				ADD PRIMARY KEY (modelo_id)
 
-	ALTER TABLE [GD2C2021].[SQLI].Camion				ADD PRIMARY KEY (cami_id)
-	ALTER TABLE [GD2C2021].[SQLI].Camion				ADD FOREIGN KEY (cami_modelo)				REFERENCES [GD2C2021].[SQLI].Modelo(modelo_id)			ON DELETE NO ACTION ON UPDATE NO ACTION ;
-	ALTER TABLE [GD2C2021].[SQLI].Camion				ADD FOREIGN KEY (cami_marca)				REFERENCES [GD2C2021].[SQLI].Marca(marca_id)			ON DELETE NO ACTION ON UPDATE NO ACTION ;
+ALTER TABLE [GD2C2021].[SQLI].Marca					ADD PRIMARY KEY (marca_id)
+
+ALTER TABLE [GD2C2021].[SQLI].Camion				ADD PRIMARY KEY (cami_id)
+ALTER TABLE [GD2C2021].[SQLI].Camion				ADD FOREIGN KEY (cami_modelo)				REFERENCES [GD2C2021].[SQLI].Modelo(modelo_id)			ON DELETE NO ACTION ON UPDATE NO ACTION ;
+ALTER TABLE [GD2C2021].[SQLI].Camion				ADD FOREIGN KEY (cami_marca)				REFERENCES [GD2C2021].[SQLI].Marca(marca_id)			ON DELETE NO ACTION ON UPDATE NO ACTION ;
 	
-	ALTER TABLE [GD2C2021].[SQLI].Chofer				ADD PRIMARY KEY (chofer_nro_legajo)
+ALTER TABLE [GD2C2021].[SQLI].Chofer				ADD PRIMARY KEY (chofer_nro_legajo)
 	
-	ALTER TABLE [GD2C2021].[SQLI].Ciudad				ADD PRIMARY KEY (ciudad_id)
+ALTER TABLE [GD2C2021].[SQLI].Ciudad				ADD PRIMARY KEY (ciudad_id)
 
-	ALTER TABLE [GD2C2021].[SQLI].Recorrido				ADD PRIMARY KEY (reco_id)
-	ALTER TABLE [GD2C2021].[SQLI].Recorrido				ADD FOREIGN KEY (reco_ciudad_destino)		REFERENCES [GD2C2021].[SQLI].Ciudad(ciudad_id)			ON DELETE NO ACTION ON UPDATE NO ACTION ;
-	ALTER TABLE [GD2C2021].[SQLI].Recorrido				ADD FOREIGN KEY (reco_ciudad_origen)		REFERENCES [GD2C2021].[SQLI].Ciudad(ciudad_id)			ON DELETE NO ACTION ON UPDATE NO ACTION ;
+ALTER TABLE [GD2C2021].[SQLI].Recorrido				ADD PRIMARY KEY (reco_id)
+ALTER TABLE [GD2C2021].[SQLI].Recorrido				ADD FOREIGN KEY (reco_ciudad_destino)		REFERENCES [GD2C2021].[SQLI].Ciudad(ciudad_id)			ON DELETE NO ACTION ON UPDATE NO ACTION ;
+ALTER TABLE [GD2C2021].[SQLI].Recorrido				ADD FOREIGN KEY (reco_ciudad_origen)		REFERENCES [GD2C2021].[SQLI].Ciudad(ciudad_id)			ON DELETE NO ACTION ON UPDATE NO ACTION ;
 
-	ALTER TABLE [GD2C2021].[SQLI].Viaje					ADD PRIMARY KEY (viaje_id)
-	ALTER TABLE [GD2C2021].[SQLI].Viaje					ADD FOREIGN KEY (viaje_camion)				REFERENCES [GD2C2021].[SQLI].Camion(cami_id)			ON DELETE NO ACTION ON UPDATE NO ACTION ;
-	ALTER TABLE [GD2C2021].[SQLI].Viaje					ADD FOREIGN KEY (viaje_chofer)				REFERENCES [GD2C2021].[SQLI].Chofer(chofer_nro_legajo)			ON DELETE NO ACTION ON UPDATE NO ACTION ;
-	ALTER TABLE [GD2C2021].[SQLI].Viaje					ADD FOREIGN KEY (viaje_recorrido)			REFERENCES [GD2C2021].[SQLI].Recorrido(reco_id)			ON DELETE NO ACTION ON UPDATE NO ACTION ;
+ALTER TABLE [GD2C2021].[SQLI].Viaje					ADD PRIMARY KEY (viaje_id)
+ALTER TABLE [GD2C2021].[SQLI].Viaje					ADD FOREIGN KEY (viaje_camion)				REFERENCES [GD2C2021].[SQLI].Camion(cami_id)			ON DELETE NO ACTION ON UPDATE NO ACTION ;
+ALTER TABLE [GD2C2021].[SQLI].Viaje					ADD FOREIGN KEY (viaje_chofer)				REFERENCES [GD2C2021].[SQLI].Chofer(chofer_nro_legajo)			ON DELETE NO ACTION ON UPDATE NO ACTION ;
+ALTER TABLE [GD2C2021].[SQLI].Viaje					ADD FOREIGN KEY (viaje_recorrido)			REFERENCES [GD2C2021].[SQLI].Recorrido(reco_id)			ON DELETE NO ACTION ON UPDATE NO ACTION ;
 
-	ALTER TABLE [GD2C2021].[SQLI].Taller				ADD PRIMARY KEY (taller_id)
-	ALTER TABLE [GD2C2021].[SQLI].Taller				ADD FOREIGN KEY (taller_ciudad)				REFERENCES [GD2C2021].[SQLI].Ciudad(ciudad_id)			ON DELETE NO ACTION ON UPDATE NO ACTION ;
+ALTER TABLE [GD2C2021].[SQLI].Taller				ADD PRIMARY KEY (taller_id)
+ALTER TABLE [GD2C2021].[SQLI].Taller				ADD FOREIGN KEY (taller_ciudad)				REFERENCES [GD2C2021].[SQLI].Ciudad(ciudad_id)			ON DELETE NO ACTION ON UPDATE NO ACTION ;
 
-	ALTER TABLE [GD2C2021].[SQLI].Mecanico				ADD PRIMARY KEY (meca_nro_legajo)
-	ALTER TABLE	[GD2C2021].[SQLI].Mecanico				ADD FOREIGN KEY(meca_taller)				REFERENCES [GD2C2021].[SQLI].Taller(taller_id)			ON DELETE NO ACTION ON UPDATE NO ACTION ;
+ALTER TABLE [GD2C2021].[SQLI].Mecanico				ADD PRIMARY KEY (meca_nro_legajo)
+ALTER TABLE	[GD2C2021].[SQLI].Mecanico				ADD FOREIGN KEY(meca_taller)				REFERENCES [GD2C2021].[SQLI].Taller(taller_id)			ON DELETE NO ACTION ON UPDATE NO ACTION ;
 
-	ALTER TABLE [GD2C2021].[SQLI].Tipo_Tarea			ADD PRIMARY KEY (tipo_id)
+ALTER TABLE [GD2C2021].[SQLI].Tipo_Tarea			ADD PRIMARY KEY (tipo_id)
 
-	ALTER TABLE [GD2C2021].[SQLI].Herramientas			ADD PRIMARY KEY (herra_id)
+ALTER TABLE [GD2C2021].[SQLI].Herramientas			ADD PRIMARY KEY (herra_id)
 
-	ALTER TABLE [GD2C2021].[SQLI].Tipo_paquete			ADD PRIMARY KEY (t_pack_id)
+ALTER TABLE [GD2C2021].[SQLI].Tipo_paquete			ADD PRIMARY KEY (t_pack_id)
 
-	ALTER TABLE [GD2C2021].[SQLI].Paquete				ADD PRIMARY KEY (pack_id)
-	ALTER TABLE [GD2C2021].[SQLI].Paquete				ADD FOREIGN KEY (pack_tipo)					REFERENCES [GD2C2021].[SQLI].Tipo_paquete(t_pack_id)	ON DELETE NO ACTION ON UPDATE NO ACTION ;
-	ALTER TABLE [GD2C2021].[SQLI].Paquete				ADD FOREIGN KEY (pack_viaje)				REFERENCES [GD2C2021].[SQLI].Viaje(viaje_id)			ON DELETE NO ACTION ON UPDATE NO ACTION ;
+ALTER TABLE [GD2C2021].[SQLI].Paquete				ADD PRIMARY KEY (pack_id)
+ALTER TABLE [GD2C2021].[SQLI].Paquete				ADD FOREIGN KEY (pack_tipo)					REFERENCES [GD2C2021].[SQLI].Tipo_paquete(t_pack_id)	ON DELETE NO ACTION ON UPDATE NO ACTION ;
+ALTER TABLE [GD2C2021].[SQLI].Paquete				ADD FOREIGN KEY (pack_viaje)				REFERENCES [GD2C2021].[SQLI].Viaje(viaje_id)			ON DELETE NO ACTION ON UPDATE NO ACTION ;
 		
-	ALTER TABLE [GD2C2021].[SQLI].Orden_De_Trabajo		ADD PRIMARY KEY (odt_id)	
-	ALTER TABLE [GD2C2021].[SQLI].Orden_De_Trabajo		ADD FOREIGN KEY (odt_camion)				REFERENCES [GD2C2021].[SQLI].Camion(cami_id)			ON DELETE NO ACTION ON UPDATE NO ACTION ;
+ALTER TABLE [GD2C2021].[SQLI].Orden_De_Trabajo		ADD PRIMARY KEY (odt_id)	
+ALTER TABLE [GD2C2021].[SQLI].Orden_De_Trabajo		ADD FOREIGN KEY (odt_camion)				REFERENCES [GD2C2021].[SQLI].Camion(cami_id)			ON DELETE NO ACTION ON UPDATE NO ACTION ;
 	
-	ALTER TABLE [GD2C2021].[SQLI].Tareas				ADD PRIMARY KEY (tarea_codigo)
-	ALTER TABLE [GD2C2021].[SQLI].Tareas				ADD FOREIGN KEY (tarea_tipo)				REFERENCES [GD2C2021].[SQLI].Tipo_Tarea(tipo_id)		ON DELETE NO ACTION ON UPDATE NO ACTION ;
+ALTER TABLE [GD2C2021].[SQLI].Tareas				ADD PRIMARY KEY (tarea_codigo)
+ALTER TABLE [GD2C2021].[SQLI].Tareas				ADD FOREIGN KEY (tarea_tipo)				REFERENCES [GD2C2021].[SQLI].Tipo_Tarea(tipo_id)		ON DELETE NO ACTION ON UPDATE NO ACTION ;
 	
-	ALTER TABLE [GD2C2021].[SQLI].Herramienta_Por_Tarea	ADD FOREIGN KEY (tarea_codigo)				REFERENCES [GD2C2021].[SQLI].Tareas(tarea_codigo)		ON DELETE NO ACTION ON UPDATE NO ACTION ;
-	ALTER TABLE [GD2C2021].[SQLI].Herramienta_Por_Tarea ADD FOREIGN KEY (herra_id)					REFERENCES [GD2C2021].[SQLI].Herramientas(herra_id)		ON DELETE NO ACTION ON UPDATE NO ACTION ;
+ALTER TABLE [GD2C2021].[SQLI].Herramienta_Por_Tarea	ADD FOREIGN KEY (tarea_codigo)				REFERENCES [GD2C2021].[SQLI].Tareas(tarea_codigo)		ON DELETE NO ACTION ON UPDATE NO ACTION ;
+ALTER TABLE [GD2C2021].[SQLI].Herramienta_Por_Tarea ADD FOREIGN KEY (herra_id)					REFERENCES [GD2C2021].[SQLI].Herramientas(herra_id)		ON DELETE NO ACTION ON UPDATE NO ACTION ;
 	
-	ALTER TABLE [GD2C2021].[SQLI].Tarea_Por_ODT			ADD FOREIGN KEY (tarea_id)					REFERENCES [GD2C2021].[SQLI].Tareas(tarea_codigo)		ON DELETE NO ACTION ON UPDATE NO ACTION ;
-	ALTER TABLE [GD2C2021].[SQLI].Tarea_Por_ODT			ADD FOREIGN KEY (odt_id)					REFERENCES [GD2C2021].[SQLI].Orden_De_Trabajo(odt_id)	ON DELETE NO ACTION ON UPDATE NO ACTION ;
-	ALTER TABLE [GD2C2021].[SQLI].Tarea_Por_ODT			ADD FOREIGN KEY (tarea_mecanico)			REFERENCES [GD2C2021].[SQLI].Mecanico(meca_nro_legajo)	ON DELETE NO ACTION ON UPDATE NO ACTION ;
+ALTER TABLE [GD2C2021].[SQLI].Tarea_Por_ODT			ADD FOREIGN KEY (tarea_id)					REFERENCES [GD2C2021].[SQLI].Tareas(tarea_codigo)		ON DELETE NO ACTION ON UPDATE NO ACTION ;
+ALTER TABLE [GD2C2021].[SQLI].Tarea_Por_ODT			ADD FOREIGN KEY (odt_id)					REFERENCES [GD2C2021].[SQLI].Orden_De_Trabajo(odt_id)	ON DELETE NO ACTION ON UPDATE NO ACTION ;
+ALTER TABLE [GD2C2021].[SQLI].Tarea_Por_ODT			ADD FOREIGN KEY (tarea_mecanico)			REFERENCES [GD2C2021].[SQLI].Mecanico(meca_nro_legajo)	ON DELETE NO ACTION ON UPDATE NO ACTION ;
 GO
 
 -------------------------------- procedures para realizar las migraciones de las tablas --------------------------------
@@ -371,104 +420,21 @@ GO
 
 -------------------------------- procedure migracion ----------------------------------------------------------------
 
-CREATE PROCEDURE Migracion AS
-	
-	EXEC Insercion_Tabla_Herramientas
-	EXEC Insercion_Tabla_Ciudad
-	EXEC Insercion_Tabla_Tipo_Paquete
-	EXEC Insercion_Tabla_Modelo
-	EXEC Insercion_Tabla_Marca
-	EXEC Insercion_Tabla_Camion
-	EXEC Insercion_Tabla_Chofer
-	EXEC Insercion_Tabla_Recorrido
-	EXEC Insercion_Tabla_Taller
-	EXEC Insercion_Tabla_Mecanico
-	EXEC Insercion_Tabla_Tipo_Tarea
-	EXEC Insercion_Tabla_Viaje
-	EXEC Insercion_Tabla_Paquete
-	EXEC Insercion_Tabla_Tareas
-	EXEC Insercion_Tabla_Herramienta_Por_Tarea
-	EXEC Insercion_Tabla_Orden_De_Trabajo
-	EXEC Insercion_Tabla_Tarea_Por_ODT
+EXEC Insercion_Tabla_Herramientas
+EXEC Insercion_Tabla_Ciudad
+EXEC Insercion_Tabla_Tipo_Paquete
+EXEC Insercion_Tabla_Modelo
+EXEC Insercion_Tabla_Marca
+EXEC Insercion_Tabla_Camion
+EXEC Insercion_Tabla_Chofer
+EXEC Insercion_Tabla_Recorrido
+EXEC Insercion_Tabla_Taller
+EXEC Insercion_Tabla_Mecanico
+EXEC Insercion_Tabla_Tipo_Tarea
+EXEC Insercion_Tabla_Viaje
+EXEC Insercion_Tabla_Paquete
+EXEC Insercion_Tabla_Tareas
+EXEC Insercion_Tabla_Herramienta_Por_Tarea
+EXEC Insercion_Tabla_Orden_De_Trabajo
+EXEC Insercion_Tabla_Tarea_Por_ODT
 GO
-
--------------------------------- procedures para reseteos de tablas -------------------------------------------------
-CREATE PROCEDURE Reseteo_Tablas AS
-
-	IF (OBJECT_ID('GD2C2021.SQLI.Paquete')IS NOT NULL)					DROP TABLE [GD2C2021].[SQLI].Paquete
-	IF (OBJECT_ID('GD2C2021.SQLI.Orden_De_Trabajo')IS NOT NULL)			DROP TABLE [GD2C2021].[SQLI].Orden_De_Trabajo
-	IF (OBJECT_ID('GD2C2021.SQLI.Tareas')IS NOT NULL)					DROP TABLE [GD2C2021].[SQLI].Tareas
-	IF (OBJECT_ID('GD2C2021.SQLI.Herramienta_Por_Tarea')IS NOT NULL)	DROP TABLE [GD2C2021].[SQLI].Herramienta_Por_Tarea
-	IF (OBJECT_ID('GD2C2021.SQLI.Tarea_Por_ODT')IS NOT NULL)			DROP TABLE [GD2C2021].[SQLI].Tarea_Por_ODT
-	IF (OBJECT_ID('GD2C2021.SQLI.Tipo_Paquete')IS NOT NULL)				DROP TABLE [GD2C2021].[SQLI].Tipo_Paquete
-	IF (OBJECT_ID('GD2C2021.SQLI.Herramientas')IS NOT NULL)				DROP TABLE [GD2C2021].[SQLI].Herramientas
-	IF (OBJECT_ID('GD2C2021.SQLI.Tipo_Tarea')IS NOT NULL)				DROP TABLE [GD2C2021].[SQLI].Tipo_Tarea
-	IF (OBJECT_ID('GD2C2021.SQLI.Mecanico')IS NOT NULL)					DROP TABLE [GD2C2021].[SQLI].Mecanico
-	IF (OBJECT_ID('GD2C2021.SQLI.Taller')IS NOT NULL)					DROP TABLE [GD2C2021].[SQLI].Taller
-	IF (OBJECT_ID('GD2C2021.SQLI.Viaje')IS NOT NULL)					DROP TABLE [GD2C2021].[SQLI].Viaje
-	IF (OBJECT_ID('GD2C2021.SQLI.Recorrido')IS NOT NULL)				DROP TABLE [GD2C2021].[SQLI].Recorrido
-	IF (OBJECT_ID('GD2C2021.SQLI.Ciudad')IS NOT NULL)					DROP TABLE [GD2C2021].[SQLI].Ciudad
-	IF (OBJECT_ID('GD2C2021.SQLI.Chofer')IS NOT NULL)					DROP TABLE [GD2C2021].[SQLI].Chofer
-	IF (OBJECT_ID('GD2C2021.SQLI.Camion')IS NOT NULL)					DROP TABLE [GD2C2021].[SQLI].Camion
-	IF (OBJECT_ID('GD2C2021.SQLI.Marca')IS NOT NULL)					DROP TABLE [GD2C2021].[SQLI].Marca
-	IF (OBJECT_ID('GD2C2021.SQLI.Modelo')IS NOT NULL)					DROP TABLE [GD2C2021].[SQLI].Modelo
-
-GO
-
-CREATE PROCEDURE Reseteo_Procedures AS
-
-	IF EXISTS (SELECT * FROM  sys.procedures WHERE  NAME = 'Creacion_de_Tablas' AND type = 'p')						DROP PROCEDURE dbo.Creacion_de_Tablas
-	IF EXISTS (SELECT * FROM  sys.procedures WHERE  NAME = 'PK_Y_FK' AND type = 'p')								DROP PROCEDURE dbo.PK_Y_FK
-	IF EXISTS (SELECT * FROM  sys.procedures WHERE  NAME = 'Insercion_Tabla_Ciudad' AND type = 'p')					DROP PROCEDURE dbo.Insercion_Tabla_Ciudad
-	IF EXISTS (SELECT * FROM  sys.procedures WHERE  NAME = 'Insercion_Tabla_Herramientas' AND type = 'p')			DROP PROCEDURE dbo.Insercion_Tabla_Herramientas
-	IF EXISTS (SELECT * FROM  sys.procedures WHERE  NAME = 'Insercion_Tabla_Recorrido' AND type = 'p')				DROP PROCEDURE dbo.Insercion_Tabla_Recorrido
-	IF EXISTS (SELECT * FROM  sys.procedures WHERE  NAME = 'Insercion_Tabla_Taller' AND type = 'p')					DROP PROCEDURE dbo.Insercion_Tabla_Taller
-	IF EXISTS (SELECT * FROM  sys.procedures WHERE  NAME = 'Insercion_Tabla_Chofer' AND type = 'p')					DROP PROCEDURE dbo.Insercion_Tabla_Chofer
-	IF EXISTS (SELECT * FROM  sys.procedures WHERE  NAME = 'Insercion_Tabla_Modelo' AND type = 'p')					DROP PROCEDURE dbo.Insercion_Tabla_Modelo
-	IF EXISTS (SELECT * FROM  sys.procedures WHERE  NAME = 'Insercion_Tabla_Tipo_Paquete' AND type = 'p')			DROP PROCEDURE dbo.Insercion_Tabla_Tipo_Paquete
-	IF EXISTS (SELECT * FROM  sys.procedures WHERE  NAME = 'Insercion_Tabla_Marca' AND type = 'p')					DROP PROCEDURE dbo.Insercion_Tabla_Marca
-	IF EXISTS (SELECT * FROM  sys.procedures WHERE  NAME = 'Insercion_Tabla_Camion' AND type = 'p')					DROP PROCEDURE dbo.Insercion_Tabla_Camion
-	IF EXISTS (SELECT * FROM  sys.procedures WHERE  NAME = 'Insercion_Tabla_Mecanico' AND type = 'p')				DROP PROCEDURE dbo.Insercion_Tabla_Mecanico
-	IF EXISTS (SELECT * FROM  sys.procedures WHERE  NAME = 'Insercion_Tabla_Paquete' AND type = 'p')				DROP PROCEDURE dbo.Insercion_Tabla_Paquete
-	IF EXISTS (SELECT * FROM  sys.procedures WHERE  NAME = 'Insercion_Tabla_Viaje' AND type = 'p')					DROP PROCEDURE dbo.Insercion_Tabla_Viaje
-	IF EXISTS (SELECT * FROM  sys.procedures WHERE  NAME = 'Insercion_Tabla_Tipo_Tarea' AND type = 'p')				DROP PROCEDURE dbo.Insercion_Tabla_Tipo_Tarea
-	IF EXISTS (SELECT * FROM  sys.procedures WHERE  NAME = 'Insercion_Tabla_Tareas' AND type = 'p')					DROP PROCEDURE dbo.Insercion_Tabla_Tareas
-	IF EXISTS (SELECT * FROM  sys.procedures WHERE  NAME = 'Insercion_Tabla_Herramienta_Por_Tarea' AND type = 'p')  DROP PROCEDURE dbo.Insercion_Tabla_Herramienta_Por_Tarea
-	IF EXISTS (SELECT * FROM  sys.procedures WHERE  NAME = 'Insercion_Tabla_Orden_De_Trabajo' AND type = 'p')		DROP PROCEDURE dbo.Insercion_Tabla_Orden_De_Trabajo
-	IF EXISTS (SELECT * FROM  sys.procedures WHERE  NAME = 'Insercion_Tabla_Tarea_Por_ODT' AND type = 'p')			DROP PROCEDURE dbo.Insercion_Tabla_Tarea_Por_ODT
-	IF EXISTS (SELECT * FROM  sys.procedures WHERE  NAME = 'Migracion' AND type = 'p')								DROP PROCEDURE dbo.Migracion
-	IF EXISTS (SELECT * FROM  sys.procedures WHERE  NAME = 'Reseteo_Tablas' AND type = 'p')							DROP PROCEDURE dbo.Reseteo_Tablas
-	IF EXISTS (SELECT * FROM  sys.procedures WHERE  NAME = 'Reseteo_Procedures' AND type = 'p')						DROP PROCEDURE dbo.Reseteo_Procedures
-	IF EXISTS (SELECT * FROM  sys.procedures WHERE  NAME = 'Reseteo' AND type = 'p')								DROP PROCEDURE dbo.Reseteo
-	IF EXISTS (SELECT * FROM  sys.procedures WHERE  NAME = 'Play' AND type = 'p')									DROP PROCEDURE dbo.Play
-
-GO
-
-CREATE PROCEDURE Reseteo AS
-
-	EXEC Reseteo_Tablas
-	EXEC Reseteo_Procedures
-
-GO
--------------------------------- procedure principal ----------------------------------------------------------------
-/* si se toca f5 para iniciar y ya habia algo creado hay que tocar f5 2 veces porque tira un error que no supe sacar
-( consulta a los ayudantes) pero funciona de 10 sin contar ese detalle */
-CREATE PROCEDURE Play AS
-	IF EXISTS (SELECT * FROM   sys.schemas WHERE  NAME = 'SQLI')
-	BEGIN
-		EXEC Reseteo
-		DROP SCHEMA SQLI
-	END
-	ELSE
-	BEGIN
-		EXEC ('use [GD2C2021]')
-		EXEC ('create schema SQLI')
-		EXEC Creacion_de_Tablas
-		EXEC PK_Y_FK
-		EXEC Migracion
-	END
-
-GO
-
--------------------------------- TOCA PLAY PAPAAAA ----------------------------------------------------------------
-EXEC Play
