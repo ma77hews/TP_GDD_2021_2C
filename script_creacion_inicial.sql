@@ -87,6 +87,7 @@ CREATE PROCEDURE Creacion_de_Tablas	AS
 		meca_cost_hora		INT,
 		meca_mail			NVARCHAR(255),
 		meca_fecha_nac		DATETIME2(3),
+		meca_taller			INT
 	)
 	
 	CREATE TABLE [GD2C2021].[SQLI].Tipo_Tarea 
@@ -185,6 +186,7 @@ CREATE PROCEDURE PK_Y_FK AS
 	ALTER TABLE [GD2C2021].[SQLI].Taller				ADD FOREIGN KEY (taller_ciudad)				REFERENCES [GD2C2021].[SQLI].Ciudad(ciudad_id)			ON DELETE NO ACTION ON UPDATE NO ACTION ;
 
 	ALTER TABLE [GD2C2021].[SQLI].Mecanico				ADD PRIMARY KEY (meca_nro_legajo)
+	ALTER TABLE	[GD2C2021].[SQLI].Mecanico				ADD FOREIGN KEY(meca_taller)				REFERENCES [GD2C2021].[SQLI].Taller(taller_id)			ON DELETE NO ACTION ON UPDATE NO ACTION ;
 
 	ALTER TABLE [GD2C2021].[SQLI].Tipo_Tarea			ADD PRIMARY KEY (tipo_id)
 
@@ -261,18 +263,19 @@ CREATE PROCEDURE Insercion_Tabla_Recorrido AS
 	JOIN [GD2C2021].[SQLI].[Ciudad] c2 ON c2.ciudad_nombre = RECORRIDO_CIUDAD_DESTINO
 GO
 
-CREATE PROCEDURE Insercion_Tabla_Mecanico AS
-	INSERT INTO [GD2C2021].[SQLI].Mecanico(meca_nro_legajo, meca_nombre, meca_apellido,meca_dni,meca_direccion,meca_telefono,meca_cost_hora,meca_mail,meca_fecha_nac)
-	SELECT DISTINCT MECANICO_NRO_LEGAJO,MECANICO_NOMBRE,MECANICO_APELLIDO,MECANICO_DNI,MECANICO_DIRECCION,MECANICO_TELEFONO,MECANICO_COSTO_HORA,MECANICO_MAIL,MECANICO_FECHA_NAC
-	FROM			[GD2C2021].[gd_esquema].Maestra AS MASTERTABLE
-	WHERE			(MECANICO_NRO_LEGAJO is not null)
-GO
-
 CREATE PROCEDURE Insercion_Tabla_Taller AS
 	INSERT INTO [GD2C2021].[SQLI].Taller (taller_direccion,taller_telefono,taller_mail,taller_nombre,taller_ciudad)
 	SELECT DISTINCT TALLER_DIRECCION,TALLER_TELEFONO,TALLER_MAIL,TALLER_NOMBRE,ciudad_id 
 	FROM gd_esquema.Maestra
 	JOIN [GD2C2021].[SQLI].Ciudad on ciudad_nombre = TALLER_CIUDAD
+GO
+
+CREATE PROCEDURE Insercion_Tabla_Mecanico AS
+	INSERT INTO [GD2C2021].[SQLI].Mecanico(meca_nro_legajo, meca_nombre, meca_apellido,meca_dni,meca_direccion,meca_telefono,meca_cost_hora,meca_mail,meca_fecha_nac, meca_taller)
+	SELECT DISTINCT MECANICO_NRO_LEGAJO,MECANICO_NOMBRE,MECANICO_APELLIDO,MECANICO_DNI,MECANICO_DIRECCION,MECANICO_TELEFONO,MECANICO_COSTO_HORA,MECANICO_MAIL,MECANICO_FECHA_NAC, t.taller_id
+	FROM			[GD2C2021].[gd_esquema].Maestra AS MASTERTABLE
+	JOIN			[GD2C2021].[SQLI].Taller t on t.taller_nombre = TALLER_NOMBRE
+	WHERE			(MECANICO_NRO_LEGAJO is not null)
 GO
 
 CREATE PROCEDURE Insercion_Tabla_Tipo_Tarea AS
