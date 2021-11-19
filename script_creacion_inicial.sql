@@ -374,7 +374,6 @@ GO
 CREATE PROCEDURE Migracion AS
 	
 	EXEC Insercion_Tabla_Herramientas
-	EXEC Insercion_Tabla_Mecanico
 	EXEC Insercion_Tabla_Ciudad
 	EXEC Insercion_Tabla_Tipo_Paquete
 	EXEC Insercion_Tabla_Modelo
@@ -383,6 +382,7 @@ CREATE PROCEDURE Migracion AS
 	EXEC Insercion_Tabla_Chofer
 	EXEC Insercion_Tabla_Recorrido
 	EXEC Insercion_Tabla_Taller
+	EXEC Insercion_Tabla_Mecanico
 	EXEC Insercion_Tabla_Tipo_Tarea
 	EXEC Insercion_Tabla_Viaje
 	EXEC Insercion_Tabla_Paquete
@@ -457,11 +457,7 @@ CREATE PROCEDURE Play AS
 	IF EXISTS (SELECT * FROM   sys.schemas WHERE  NAME = 'SQLI')
 	BEGIN
 		EXEC Reseteo
-		--DROP SCHEMA SQLI
-		EXEC ('use [GD2C2021]')
-		EXEC Creacion_de_Tablas
-		EXEC PK_Y_FK
-		EXEC Migracion
+		DROP SCHEMA SQLI
 	END
 	ELSE
 	BEGIN

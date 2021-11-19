@@ -1,6 +1,7 @@
 IF EXISTS (select * from sys.objects where object_id = OBJECT_ID('[SQLI].buscarIdDelTiempoSegun') and type = 'FN')
 	DROP FUNCTION [SQLI].buscarIdDelTiempoSegun
 GO
+
 CREATE PROCEDURE Creacion_Tablas_BI AS
 
 	CREATE TABLE [GD2C2021].[SQLI].BI_Dimension_Camion
@@ -391,6 +392,7 @@ BEGIN
 	JOIN [GD2C2021].[SQLI].Tipo_Paquete on t_pack_id = pack_tipo
 	JOIN [GD2C2021].[SQLI].BI_Dimension_Chofer ch on ch.legajoChofer = viaje_chofer
 	JOIN [GD2C2021].[SQLI].BI_Dimension_Recorrido rec on rec.idRecorrido = viaje_recorrido
+	GROUP BY viaje_fecha_ini, viaje_chofer, viaje_camion, pack_id, viaje_recorrido, rec.precio, viaje_lts_cons, viaje_fecha_fin, ch.costo_x_hora
 END
 GO
 
@@ -531,8 +533,8 @@ CREATE VIEW [SQLI].COSTO_PROM_X_RANGO_ETARIO_CHOFERES AS
 GO
 
 CREATE VIEW [SQLI].GANANCIA_X_CAMION AS
-
-	SELECT viaje.camion, (viaje.ingreso_viaje - viaje.costo_viaje - SUM((meca.costo_x_hora * ta.tiempo_estimado * 8) + (herra.precio * herra.cantidad))) ganancia
+																	
+	SELECT viaje.camion, (viaje.ingreso_viaje - viaje.costo_viaje - (SUM(meca.costo_x_hora * ta.tiempo_estimado * 8) + SUM(herra.precio * herra.cantidad))) ganancia
 	
 
 	FROM [GD2C2021].[SQLI].BI_Hechos_Viajes viaje
@@ -541,16 +543,8 @@ CREATE VIEW [SQLI].GANANCIA_X_CAMION AS
 	JOIN [GD2C2021].[SQLI].BI_Dimension_Mecanico meca on meca.legajoMecanico = repa.legajo_mecanico
 	JOIN [GD2C2021].[SQLI].BI_Dimension_Tarea ta on ta.idTarea = repa.tarea
 	JOIN [GD2C2021].[SQLI].BI_Dimension_Herramienta herra on herra.idHerramienta = repa.herramienta
-	/*
-	WHERE viaje.camion in	(
-								SELECT camion
-								FROM [GD2C2021].[SQLI].BI_Hechos_Reparaciones
-								WHERE tarea = repa.tarea
-								AND legajo_mecanico = repa.legajo_mecanico
-								AND herramienta = herra.idHerramienta
-							)
-							*/
-	GROUP BY viaje.camion, viaje.costo_viaje
+	
+	GROUP BY viaje.camion, viaje.costo_viaje, viaje.ingreso_viaje
 GO
 								
 -------------------------------- procedures para reseteos de tablas -------------------------------------------------
@@ -594,6 +588,7 @@ BEGIN
 	IF EXISTS (SELECT * FROM  sys.procedures WHERE  NAME = 'BI_Reseteo_Tablas' AND type = 'p')						DROP PROCEDURE dbo.BI_Reseteo_Tablas
 	IF EXISTS (SELECT * FROM  sys.procedures WHERE  NAME = 'BI_Reseteo' AND type = 'p')								DROP PROCEDURE dbo.BI_Reseteo
 	IF EXISTS (SELECT * FROM  sys.procedures WHERE  NAME = 'BI_Play' AND type = 'p')								DROP PROCEDURE dbo.BI_Play
+	IF EXISTS (SELECT * FROM  sys.procedures WHERE  NAME = 'BI_Reseteo_Vistas' AND type = 'p')						DROP PROCEDURE dbo.BI_Reseteo_Vistas
 	IF EXISTS (SELECT * FROM  sys.procedures WHERE  NAME = 'BI_Reseteo_Procedures' AND type = 'p')					DROP PROCEDURE dbo.BI_Reseteo_Procedures
 END
 GO
