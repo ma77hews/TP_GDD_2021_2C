@@ -1,6 +1,6 @@
 IF EXISTS (select * from sys.objects where object_id = OBJECT_ID('[SQLI].buscarIdDelTiempoSegun') and type = 'FN')
 	DROP FUNCTION [SQLI].buscarIdDelTiempoSegun
-
+GO
 CREATE PROCEDURE Creacion_Tablas_BI AS
 
 	CREATE TABLE [GD2C2021].[SQLI].BI_Dimension_Camion
@@ -610,9 +610,10 @@ GO
 
 CREATE PROCEDURE BI_Reseteo AS
 BEGIN
-	EXEC BI_Reseteo_Tablas
-	EXEC BI_Reseteo_Procedures
 	EXEC BI_Reseteo_Vistas
+	EXEC BI_Reseteo_Procedures
+	EXEC BI_Reseteo_Tablas
+	
 END
 GO
 
