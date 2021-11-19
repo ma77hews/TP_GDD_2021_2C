@@ -1,3 +1,6 @@
+IF EXISTS (select * from sys.objects where object_id = OBJECT_ID('[SQLI].buscarIdDelTiempoSegun') and type = 'FN')
+	DROP FUNCTION [SQLI].buscarIdDelTiempoSegun
+
 CREATE PROCEDURE Creacion_Tablas_BI AS
 
 	CREATE TABLE [GD2C2021].[SQLI].BI_Dimension_Camion
@@ -208,10 +211,10 @@ GO
 
 CREATE PROCEDURE Insercion_Dimension_Herramienta AS
 BEGIN
-	INSERT INTO [GD2C2021].[SQLI].BI_Dimension_Herramienta(idHerramienta, detalle, codigo, precio, cantidad)
-	SELECT		herra_id, herra_detalle,herra_code, herra_precio, hxt.mxt_cantidad
-	FROM		[GD2C2021].[SQLI].Herramientas
-	JOIN		[GD2C2021].[SQLI].Herramienta_Por_Tarea hxt on hxt.herra_id = herra_id
+	INSERT INTO [GD2C2021].[SQLI].BI_Dimension_Herramienta(idHerramienta, detalle, codigo, precio, cantidad)--cantidad esta en null
+	SELECT DISTINCT		h.herra_id, h.herra_detalle, h.herra_code, h.herra_precio, hxt.mxt_cantidad
+	FROM		[GD2C2021].[SQLI].Herramientas h
+	JOIN		[GD2C2021].[SQLI].Herramienta_Por_Tarea hxt on hxt.herra_id = h.herra_id
 END
 GO
 
@@ -282,7 +285,7 @@ GO
 CREATE PROCEDURE Insercion_Dimension_Mecanico AS
 BEGIN
 	INSERT INTO [GD2C2021].[SQLI].BI_Dimension_Mecanico(legajoMecanico, nombre, apellido, dni, costo_x_hora, direccion,	telefono, mail, fecha_nacimiento, edad)
-	SELECT		meca_nro_legajo, meca_nombre, meca_apellido,meca_dni,meca_direccion,meca_telefono,meca_cost_hora,meca_mail,meca_fecha_nac, CASE
+	SELECT		meca_nro_legajo, meca_nombre, meca_apellido, meca_dni, meca_cost_hora, meca_direccion, meca_telefono, meca_mail, meca_fecha_nac, CASE
 		WHEN (2021 - year(meca_fecha_nac)) between 18 and 30		THEN '18-30 anios'
 		WHEN (2021 - year(meca_fecha_nac)) between 31 and 50		THEN '31-50 anios'
 		ELSE		'> 50 anios'
@@ -401,25 +404,52 @@ END
 GO
 --Nota: en este ultimo, metimos la fecha inicial de la tarea de una OdT porque la fecha de generacion de la OdT la tenemos en formato NVARCHAR(255) (figuraba asi en la tabla maestra)
 
+-------------------------------- procedure migracion ----------------------------------------------------------------
+CREATE PROCEDURE BI_Migracion AS
+BEGIN	
+	EXEC Insercion_Dimension_Camion
+	EXEC Insercion_Dimension_Marca
+	EXEC Insercion_Dimension_Modelo
+	EXEC Insercion_Dimension_Taller
+	EXEC Insercion_Dimension_Tarea
+	EXEC Insercion_Dimension_Recorrido
+	EXEC Insercion_Dimension_Chofer
+	EXEC Insercion_Dimension_Mecanico
+	EXEC Insercion_Dimension_Tiempo
+	EXEC Insercion_Dimension_Herramienta
+	EXEC Insercion_Dimension_Paquete
+	EXEC Insercion_Dimension_ODT
+	EXEC Insercion_Hechos_Viajes
+	EXEC Insercion_Hechos_Reparaciones
+END
+GO
+SELECT * FROM [GD2C2021].[SQLI].BI_Hechos_Reparaciones
+SELECT * FROM [GD2C2021].[SQLI].BI_Dimension_Tiempo
 -----------------------------------Vistas------------------------------------------------------------------------------
-CREATE VIEW [GD2C2021].[SQLI].MAX_TIEMPO_FDS_DE_CADA_CAMION_X_CUATRI AS
-BEGIN
-	SELECT	r.camion, r.cuatrimestre,
+
+--[SQLI].MAX_TIEMPO_FDS_DE_CADA_CAMION_X_CUATRI no anda
+--Msg 130, Level 15, State 1, Procedure MAX_TIEMPO_FDS_DE_CADA_CAMION_X_CUATRI, Line 5 [Batch Start Line 428]
+--Cannot perform an aggregate function on an expression containing an aggregate or a subquery.
+CREATE VIEW [SQLI].MAX_TIEMPO_FDS_DE_CADA_CAMION_X_CUATRI AS
+
+	SELECT	r.camion, cuatrimestre,
 	(
 		SELECT	MAX(DATEDIFF(DAY, MIN(txo.tarea_fecha_inicio), MAX(txo.tarea_fecha_fin)))
 		FROM	[GD2C2021].[SQLI].Tarea_Por_ODT txo
 		JOIN	[GD2C2021].[SQLI].Orden_De_Trabajo orden on orden.odt_id = txo.odt_id
-		WHERE odt_id = r.odt AND orden.odt_camion = r.camion
+		WHERE	orden.odt_id = r.odt AND orden.odt_camion = r.camion
 	)
 
 	FROM	[GD2C2021].[SQLI].BI_Hechos_Reparaciones r
 	JOIN	[GD2C2021].[SQLI].BI_Dimension_Tiempo on r.tiempo = idTiempo
-	GROUP BY r.camion, r.cuatrimestre
-END
-GO
+	GROUP BY r.camion, cuatrimestre, r.odt
 
-CREATE VIEW [GD2C2021].[SQLI].COSTO_MANTENIMIENTO_X_CAMION_X_TALLER_X_CUATRI AS
-BEGIN
+GO
+--COSTO_MANTENIMIENTO_X_CAMION_X_TALLER_X_CUATRI no anda
+--Msg 8124, Level 16, State 1, Procedure COSTO_MANTENIMIENTO_X_CAMION_X_TALLER_X_CUATRI, Line 5 [Batch Start Line 444]
+--Multiple columns are specified in an aggregated expression containing an outer reference. If an expression being aggregated contains an outer reference, then that outer reference must be the only column referenced in the expression.
+CREATE VIEW [SQLI].COSTO_MANTENIMIENTO_X_CAMION_X_TALLER_X_CUATRI AS
+
 	SELECT r.camion, t.cuatrimestre, r.taller,
 	((
 		SELECT SUM(meca.costo_x_hora * task.tiempo_estimado * 8)
@@ -441,19 +471,25 @@ BEGIN
 	FROM [GD2C2021].[SQLI].BI_Hechos_Reparaciones r
 	JOIN [GD2C2021].[SQLI].BI_Dimension_Tiempo t on t.idTiempo = r.tiempo
 	JOIN [GD2C2021].[SQLI].BI_Dimension_Tarea task on task.idTarea = r.tarea
-	GROUP BY r.camion, t.cuatrimestre, r.taller
-END
+	GROUP BY r.camion, t.cuatrimestre, r.taller, task.idTarea
+
 GO
 
-
-CREATE VIEW [GD2C2021].[SQLI].DESVIO_PROM_DE_CADA_TAREA_X_TALLER AS
-BEGIN
-
-END
+CREATE VIEW [SQLI].DESVIO_PROM_DE_CADA_TAREA_X_TALLER (idTaller, codigoTarea, desvioPromedioCosto) AS
+	SELECT r.taller, r.tarea, STDEV(AUX.COSTO_TAREA)
+		FROM [GD2C2021].[SQLI].BI_Hechos_Reparaciones r             --h.cantidad esta en null por un error mas arriba
+			JOIN (SELECT herramienta, taller, legajo_mecanico, tarea, SUM(h.precio*h.cantidad) + SUM(mec.costo_x_hora*t.tiempo_estimado*8) COSTO_TAREA 
+					FROM [GD2C2021].[SQLI].BI_Hechos_Reparaciones
+					JOIN [GD2C2021].[SQLI].BI_Dimension_Herramienta h ON herramienta = h.idHerramienta
+					JOIN [GD2C2021].[SQLI].BI_Dimension_Mecanico mec ON legajo_mecanico = mec.legajoMecanico
+					JOIN [GD2C2021].[SQLI].BI_Dimension_Tarea t ON tarea = t.idTarea
+					GROUP BY taller, tarea, herramienta, legajo_mecanico
+					) AUX on (r.legajo_mecanico = AUX.legajo_mecanico AND r.herramienta = AUX.herramienta AND r.tarea = AUX.tarea)
+	GROUP BY r.taller, r.tarea
 GO
 
-CREATE VIEW [GD2C2021].[SQLI].TOP_5_TAREAS_REALIZADAS_X_MODELO AS
-BEGIN
+CREATE VIEW [SQLI].TOP_5_TAREAS_REALIZADAS_X_MODELO AS
+
 	SELECT r1.modelo, r1.tarea
 	FROM [GD2C2021].[SQLI].BI_Hechos_Reparaciones r1
 	WHERE r1.tarea in	(
@@ -464,27 +500,30 @@ BEGIN
 							ORDER BY COUNT(DISTINCT r2.tarea) DESC
 						)
 	GROUP BY r1.modelo, r1.tarea
-END
+
 GO
 
-CREATE VIEW [GD2C2021].[SQLI].TOP_10_HERRAM_MAS_USADAS_X_TALLER AS
-BEGIN
+CREATE VIEW [SQLI].TOP_10_HERRAM_MAS_USADAS_X_TALLER AS
+
 	SELECT repa.herramienta, repa.taller
 	FROM [GD2C2021].[SQLI].BI_Hechos_Reparaciones repa
 	WHERE repa.herramienta in	(
 									SELECT TOP 10 r2.herramienta
 									FROM [GD2C2021].[SQLI].BI_Hechos_Reparaciones r2
-									JOIN [GD2C2021].[SQLI].BI_Hechos_Herramienta h2 on h2.idHerramienta = r2.herramienta
+									JOIN [GD2C2021].[SQLI].BI_Dimension_Herramienta h2 on h2.idHerramienta = r2.herramienta
 									WHERE r2.taller = repa.taller
 									GROUP BY r2.herramienta
 									ORDER BY COUNT(DISTINCT r2.herramienta) DESC
 								)
 	GROUP BY repa.herramienta, repa.taller
-END
+
 GO
 
-CREATE VIEW [GD2C2021].[SQLI].FACTURACION_TOTAL_POR_RECORRIDO_POR_CUATRI AS
-BEGIN
+--FACTURACION_TOTAL_POR_RECORRIDO_POR_CUATRI no anda
+--Msg 8124, Level 16, State 1, Procedure FACTURACION_TOTAL_POR_RECORRIDO_POR_CUATRI, Line 5 [Batch Start Line 514]
+--Multiple columns are specified in an aggregated expression containing an outer reference. If an expression being aggregated contains an outer reference, then that outer reference must be the only column referenced in the expression.
+CREATE VIEW [SQLI].FACTURACION_TOTAL_POR_RECORRIDO_POR_CUATRI AS
+
 	SELECT tiem.cuatrimestre, viaje.recorrido_realizado, 
 	(
 		SELECT SUM(pack.precio_final + reco.precio)
@@ -498,22 +537,24 @@ BEGIN
 	)
 	FROM [GD2C2021].[SQLI].BI_Hechos_Viajes viaje
 	JOIN [GD2C2021].[SQLI].BI_Dimension_Tiempo tiem on tiem.idTiempo = viaje.tiempo
-	JOIN [GD2C2021].[SQLI].BI_Dimension_Recorrido reco on reco.idReco = viaje.recorrido_realizado
+	JOIN [GD2C2021].[SQLI].BI_Dimension_Recorrido reco on reco.idRecorrido = viaje.recorrido_realizado
 	GROUP BY tiem.cuatrimestre, viaje.recorrido_realizado
-END
+
 GO
 
-CREATE VIEW [GD2C2021].[SQLI].COSTO_PROM_X_RANGO_ETARIO_CHOFERES AS
-BEGIN
-	SELECT c.edad, (SUM(c.costo_x_hora) / COUNT(DISTINCT c.legajoChofer))
+CREATE VIEW [SQLI].COSTO_PROM_X_RANGO_ETARIO_CHOFERES AS
+
+	SELECT c.edad, (SUM(c.costo_x_hora) / COUNT(DISTINCT c.legajoChofer)) costo
 	FROM [GD2C2021].[SQLI].BI_Hechos_Viajes
-	JOIN [GD2C2021].[SQLI].BI_Hechos_Chofer c on c.legajoChofer = legajo_chofer
+	JOIN [GD2C2021].[SQLI].BI_Dimension_Chofer c on c.legajoChofer = legajo_chofer
 	GROUP BY c.edad
-END
 GO
 
-CREATE VIEW [GD2C2021].[SQLI].GANANCIA_X_CAMION AS
-BEGIN
+--GANANCIA_X_CAMION no anda
+--Msg 512, Level 16, State 1, Line 546
+--Subquery returned more than 1 value. This is not permitted when the subquery follows =, !=, <, <= , >, >= or when the subquery is used as an expression.
+CREATE VIEW [SQLI].GANANCIA_X_CAMION AS
+
 	SELECT viaje.camion, 
 	(
 		SELECT SUM(viaje1.precio_recorrido + pack.precio_final)
@@ -524,52 +565,31 @@ BEGIN
 																		FROM [GD2C2021].[SQLI].BI_Hechos_Viajes
 																		WHERE camion = viaje.camion
 																	)
-	) --Ingresos
+	) ingresos, --Ingresos
 	-
 	(
 		SELECT (viaje2.duracion_viaje * ch.costo_x_hora * 8) + (viaje2.lts_consumidos * 100)
 		FROM [GD2C2021].[SQLI].BI_Hechos_Viajes viaje2
-		JOIN [GD2C2021].[SQLI].BI_Hechos_Chofer ch on ch.legajoChofer = viaje2.legajo_chofer
+		JOIN [GD2C2021].[SQLI].BI_Dimension_Chofer ch on ch.legajoChofer = viaje2.legajo_chofer
 		WHERE ch.legajoChofer in	(
 										SELECT legajo_chofer
 										FROM [GD2C2021].[SQLI].BI_Hechos_Viajes 
 										WHERE camion = viaje.camion
 									)
-	) --Costo de viaje
+	) costo_de_viaje,--Costo de viaje
 	-
 	(
 		SELECT SUM(meca.costo_x_hora * ta.tiempo_estimado * 8) + SUM(herra.precio * herra.cantidad)
 		FROM [GD2C2021].[SQLI].BI_Hechos_Viajes v
 		JOIN [GD2C2021].[SQLI].BI_Hechos_Reparaciones r on r.camion = v.camion
-		JOIN [GD2C2021].[SQLI].BI_Hechos_Herramienta herra on r.herramienta = herra.idHerramienta
-		JOIN [GD2C2021].[SQLI].BI_Hechos_Mecanico meca on meca.legajoMecanico = r.legajo_mecanico
-		JOIN [GD2C2021].[SQLI].BI_Hechos_Tarea ta on ta.idTarea = r.tarea
+		JOIN [GD2C2021].[SQLI].BI_Dimension_Herramienta herra on r.herramienta = herra.idHerramienta
+		JOIN [GD2C2021].[SQLI].BI_Dimension_Mecanico meca on meca.legajoMecanico = r.legajo_mecanico
+		JOIN [GD2C2021].[SQLI].BI_Dimension_Tarea ta on ta.idTarea = r.tarea
 		WHERE r.camion = viaje.camion
-	) --Costo de mantenimiento
+	) costo_de_mantenimiento--Costo de mantenimiento
 
 	FROM [GD2C2021].[SQLI].BI_Hechos_Viajes viaje
-	GROUP BY cami.patente
-END
-GO
-
--------------------------------- procedure migracion ----------------------------------------------------------------
-CREATE PROCEDURE BI_Migracion AS
-BEGIN	
-	EXEC Insercion_Dimension_Camion
-	EXEC Insercion_Dimension_Marca
-	EXEC Insercion_Dimension_Modelo
-	EXEC Insercion_Dimension_Taller
-	EXEC Insercion_Dimension_Tarea
-	EXEC Insercion_Dimension_Recorrido
-	EXEC Insercion_Dimension_Chofer
-	EXEC Insercion_Dimension_Mecanico
-	EXEC Insercion_Dimension_Tiempo
-	EXEC Insercion_Dimension_Herramienta
-	EXEC Insercion_Dimension_Paquete
-	EXEC Insercion_Dimension_ODT
-	EXEC Insercion_Hechos_Reparaciones
-	EXEC Insercion_Hechos_Viajes
-END
+	GROUP BY viaje.camion--cami.patente
 GO
 
 -------------------------------- procedures para reseteos de tablas -------------------------------------------------
