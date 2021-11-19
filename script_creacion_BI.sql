@@ -210,7 +210,11 @@ BEGIN
 	GROUP BY	pack_id, t_pack_descripcion, t_pack_alto_max, t_pack_largo_max, t_pack_ancho_max, t_pack_peso_maximo, pack_cantidad, t_pack_precio
 END
 GO
-
+/*
+SELECT * FROM [GD2C2021].[SQLI].BI_Dimension_Herramienta
+SELECT * FROM [GD2C2021].[SQLI].Herramientas
+SELECT * FROM [GD2C2021].[SQLI].Herramienta_Por_Tarea
+*/
 CREATE PROCEDURE Insercion_Dimension_Herramienta AS
 BEGIN
 	INSERT INTO [GD2C2021].[SQLI].BI_Dimension_Herramienta(idHerramienta, detalle, codigo, precio, cantidad)--cantidad esta en null
@@ -226,6 +230,7 @@ BEGIN
 	SELECT		odt.odt_id, odt.odt_estado, odt.odt_fecha_generado, DATEDIFF(DAY, MIN(txo.tarea_fecha_inicio), MAX(txo.tarea_fecha_fin))
 	FROM		[GD2C2021].[SQLI].Orden_De_Trabajo odt
 	JOIN		[GD2C2021].[SQLI].Tarea_Por_ODT txo on txo.odt_id = odt.odt_id
+	GROUP BY	odt.odt_id, odt.odt_estado, odt.odt_fecha_generado
 
 END
 GO
@@ -258,10 +263,10 @@ GO
 CREATE PROCEDURE Insercion_Dimension_Tarea AS
 BEGIN
 	INSERT INTO [GD2C2021].[SQLI].BI_Dimension_Tarea(idTarea, detalle, tipo, tiempo_estimado, desvio_tarea)
-	SELECT	t.tarea_codigo, t.tarea_descripcion, t.tipo_tarea, t.tarea_tiempo_est, DATEDIFF(DAY, txo.tarea_fecha_inicio, txo.tarea_fe_in_plani)
+	SELECT DISTINCT	t.tarea_codigo, t.tarea_descripcion, t.tarea_tipo, t.tarea_tiempo_est, DATEDIFF(DAY, txo.tarea_fecha_inicio, txo.tarea_fe_in_plani)
 	FROM [GD2C2021].[SQLI].Tareas t
 	JOIN [GD2C2021].[SQLI].Tipo_Tarea on tipo_id = t.tarea_tipo
-	JOIN [GD2C2021].[SQLI].Tarea_Por_ODT txo on txo.tarea_id = t.tarea_id
+	JOIN [GD2C2021].[SQLI].Tarea_Por_ODT txo on txo.tarea_id = t.tarea_codigo
 END
 GO
 
@@ -428,29 +433,22 @@ BEGIN
 	EXEC Insercion_Hechos_Reparaciones
 END
 GO
-SELECT * FROM [GD2C2021].[SQLI].BI_Hechos_Reparaciones
-SELECT * FROM [GD2C2021].[SQLI].BI_Dimension_Tiempo
+
 -----------------------------------Vistas------------------------------------------------------------------------------
 
---[SQLI].MAX_TIEMPO_FDS_DE_CADA_CAMION_X_CUATRI no anda
---Msg 130, Level 15, State 1, Procedure MAX_TIEMPO_FDS_DE_CADA_CAMION_X_CUATRI, Line 5 [Batch Start Line 428]
---Cannot perform an aggregate function on an expression containing an aggregate or a subquery.
 CREATE VIEW [SQLI].MAX_TIEMPO_FDS_DE_CADA_CAMION_X_CUATRI AS
 
-	SELECT	c.camion, t.cuatrimestre, MAX(o.duracion_odt)
+	SELECT	c.idCamion, t.cuatrimestre, MAX(o.duracion_odt) tiempo_fuera_de_servicio
 	FROM	[GD2C2021].[SQLI].BI_Hechos_Reparaciones r
 	JOIN	[GD2C2021].[SQLI].BI_Dimension_Tiempo t on r.tiempo = t.idTiempo
 	JOIN	[GD2C2021].[SQLI].BI_Dimension_ODT o on o.idODT = r.odt
 	JOIN	[GD2C2021].[SQLI].BI_Dimension_Camion c on c.idCamion = r.camion
-	GROUP BY c.camion, t.cuatrimestre
-
+	GROUP BY c.idCamion, t.cuatrimestre
 GO
---COSTO_MANTENIMIENTO_X_CAMION_X_TALLER_X_CUATRI no anda
---Msg 8124, Level 16, State 1, Procedure COSTO_MANTENIMIENTO_X_CAMION_X_TALLER_X_CUATRI, Line 5 [Batch Start Line 444]
---Multiple columns are specified in an aggregated expression containing an outer reference. If an expression being aggregated contains an outer reference, then that outer reference must be the only column referenced in the expression.
+
 CREATE VIEW [SQLI].COSTO_MANTENIMIENTO_X_CAMION_X_TALLER_X_CUATRI AS
 
-	SELECT r.camion, t.cuatrimestre, r.taller, SUM((meca.costo_x_hora * task.tiempo_estimado * 8) + (herra.precio * herra.cantidad))
+	SELECT r.camion, t.cuatrimestre, r.taller, SUM((meca.costo_x_hora * task.tiempo_estimado * 8) + (herra.precio * herra.cantidad)) costo_mantenimiento
 	FROM [GD2C2021].[SQLI].BI_Hechos_Reparaciones r
 	JOIN [GD2C2021].[SQLI].BI_Dimension_Tiempo t on t.idTiempo = r.tiempo
 	JOIN [GD2C2021].[SQLI].BI_Dimension_Mecanico meca on meca.legajoMecanico = r.legajo_mecanico
@@ -465,7 +463,6 @@ CREATE VIEW [SQLI].COSTO_MANTENIMIENTO_X_CAMION_X_TALLER_X_CUATRI AS
 								GROUP BY herramienta
 							)
 	GROUP BY r.camion, t.cuatrimestre, r.taller
-
 GO
 
 CREATE VIEW [SQLI].DESVIO_PROM_DE_CADA_TAREA_X_TALLER AS
@@ -480,7 +477,7 @@ CREATE VIEW [SQLI].DESVIO_PROM_DE_CADA_TAREA_X_TALLER AS
 					) AUX on (r.legajo_mecanico = AUX.legajo_mecanico AND r.herramienta = AUX.herramienta AND r.tarea = AUX.tarea)
 	GROUP BY r.taller, r.tarea*/
 
-	SELECT r.taller, r.tarea, AVG(t.desvio_tarea)
+	SELECT r.taller, r.tarea, AVG(t.desvio_tarea) costo_desvio_promedio
 	FROM [GD2C2021].[SQLI].BI_Hechos_Reparaciones r
 	JOIN [GD2C2021].[SQLI].BI_Dimension_Tarea t on t.idTarea = r.tarea
 	WHERE r.taller in	(
@@ -504,7 +501,6 @@ CREATE VIEW [SQLI].TOP_5_TAREAS_REALIZADAS_X_MODELO AS
 							ORDER BY COUNT(DISTINCT r2.tarea) DESC
 						)
 	GROUP BY r1.modelo, r1.tarea
-
 GO
 
 CREATE VIEW [SQLI].TOP_10_HERRAM_MAS_USADAS_X_TALLER AS
@@ -520,15 +516,11 @@ CREATE VIEW [SQLI].TOP_10_HERRAM_MAS_USADAS_X_TALLER AS
 									ORDER BY COUNT(DISTINCT r2.herramienta) DESC
 								)
 	GROUP BY repa.herramienta, repa.taller
-
 GO
 
---FACTURACION_TOTAL_POR_RECORRIDO_POR_CUATRI no anda
---Msg 8124, Level 16, State 1, Procedure FACTURACION_TOTAL_POR_RECORRIDO_POR_CUATRI, Line 5 [Batch Start Line 514]
---Multiple columns are specified in an aggregated expression containing an outer reference. If an expression being aggregated contains an outer reference, then that outer reference must be the only column referenced in the expression.
 CREATE VIEW [SQLI].FACTURACION_TOTAL_POR_RECORRIDO_POR_CUATRI AS
 
-	SELECT tiem.cuatrimestre, viaje.recorrido_realizado, SUM(pack.precio_final + reco.precio)
+	SELECT tiem.cuatrimestre, viaje.recorrido_realizado, SUM(pack.precio_final + reco.precio) facturacion_total
 	FROM [GD2C2021].[SQLI].BI_Hechos_Viajes viaje
 	JOIN [GD2C2021].[SQLI].BI_Dimension_Tiempo tiem on tiem.idTiempo = viaje.tiempo
 	JOIN [GD2C2021].[SQLI].BI_Dimension_Recorrido reco on reco.idRecorrido = viaje.recorrido_realizado
@@ -540,7 +532,6 @@ CREATE VIEW [SQLI].FACTURACION_TOTAL_POR_RECORRIDO_POR_CUATRI AS
 										GROUP BY viaje1.combo_paquete
 									)	
 	GROUP BY tiem.cuatrimestre, viaje.recorrido_realizado
-
 GO
 
 CREATE VIEW [SQLI].COSTO_PROM_X_RANGO_ETARIO_CHOFERES AS
@@ -554,9 +545,11 @@ GO
 --GANANCIA_X_CAMION no anda
 --Msg 512, Level 16, State 1, Line 546
 --Subquery returned more than 1 value. This is not permitted when the subquery follows =, !=, <, <= , >, >= or when the subquery is used as an expression.
+SELECT * FROM [SQLI].GANANCIA_X_CAMION
+SELECT * FROM [GD2C2021].[SQLI].BI_Hechos_Viajes
 CREATE VIEW [SQLI].GANANCIA_X_CAMION AS
 
-	SELECT viaje.camion, SUM(viaje.precio_recorrido + pack.precio_final) - viaje.costo_viaje - SUM((viaje.duracion_viaje * ch.costo_x_hora * 8) + (viaje.lts_consumidos * 100)) - (SUM(meca.costo_x_hora * ta.tiempo_estimado * 8) + SUM(herra.precio * herra.cantidad))
+	SELECT viaje.camion, (SUM(viaje.precio_recorrido + pack.precio_final) - viaje.costo_viaje - SUM((viaje.duracion_viaje * ch.costo_x_hora * 8) + (viaje.lts_consumidos * 100)) - (SUM(meca.costo_x_hora * ta.tiempo_estimado * 8) + SUM(herra.precio * herra.cantidad))) ganancia
 	
 
 	FROM [GD2C2021].[SQLI].BI_Hechos_Viajes viaje
@@ -573,9 +566,34 @@ CREATE VIEW [SQLI].GANANCIA_X_CAMION AS
 								AND legajo_mecanico = repa.legajo_mecanico
 								AND herramienta = herra.idHerramienta
 							)
-	GROUP BY viaje.camion
+	GROUP BY viaje.camion, viaje.costo_viaje
 GO
+SELECT * FROM [SQLI].asd
+DROP VIEW [SQLI].asd
+CREATE VIEW [SQLI].asd AS
 
+	SELECT viaje.camion, (SUM(viaje.precio_recorrido + pack.precio_final) - viaje.costo_viaje - (SUM(meca.costo_x_hora * ta.tiempo_estimado * 8) + SUM(herra.precio * herra.cantidad))) ganancia
+	
+
+	FROM [GD2C2021].[SQLI].BI_Hechos_Viajes viaje
+	JOIN [GD2C2021].[SQLI].BI_Hechos_Reparaciones repa on repa.tiempo = viaje.tiempo AND repa.camion = viaje.camion
+	JOIN [GD2C2021].[SQLI].BI_Dimension_Paquete pack on pack.idPaquete = viaje.combo_paquete
+	--JOIN [GD2C2021].[SQLI].BI_Dimension_Chofer ch on ch.legajoChofer = viaje.legajo_chofer
+	JOIN [GD2C2021].[SQLI].BI_Dimension_Mecanico meca on meca.legajoMecanico = repa.legajo_mecanico
+	JOIN [GD2C2021].[SQLI].BI_Dimension_Tarea ta on ta.idTarea = repa.tarea
+	JOIN [GD2C2021].[SQLI].BI_Dimension_Herramienta herra on herra.idHerramienta = repa.herramienta
+	/*
+	WHERE viaje.camion in	(
+								SELECT camion
+								FROM [GD2C2021].[SQLI].BI_Hechos_Reparaciones
+								WHERE tarea = repa.tarea
+								AND legajo_mecanico = repa.legajo_mecanico
+								AND herramienta = herra.idHerramienta
+							)
+							*/
+	GROUP BY viaje.camion, viaje.costo_viaje
+GO
+								
 -------------------------------- procedures para reseteos de tablas -------------------------------------------------
 CREATE PROCEDURE BI_Reseteo_Tablas AS
 BEGIN
@@ -626,14 +644,14 @@ GO
 
 CREATE PROCEDURE BI_Reseteo_Vistas AS
 BEGIN
-	IF EXISTS(select * FROM sys.views where name = 'MAX_TIEMPO_FDS_DE_CADA_CAMION_X_CUATRI')			DROP VIEW [GD2C2021].[SQLI].MAX_TIEMPO_FDS_DE_CADA_CAMION_X_CUATRI
-	IF EXISTS(select * FROM sys.views where name = 'COSTO_MANTENIMIENTO_X_CAMION_X_TALLER_X_CUATRI')	DROP VIEW [GD2C2021].[SQLI].COSTO_MANTENIMIENTO_X_CAMION_X_TALLER_X_CUATRI
-	IF EXISTS(select * FROM sys.views where name = 'DESVIO_PROM_DE_CADA_TAREA_X_TALLER')				DROP VIEW [GD2C2021].[SQLI].DESVIO_PROM_DE_CADA_TAREA_X_TALLER
-	IF EXISTS(select * FROM sys.views where name = 'TOP_5_TAREAS_REALIZADAS_X_MODELO')					DROP VIEW [GD2C2021].[SQLI].TOP_5_TAREAS_REALIZADAS_X_MODELO
-	IF EXISTS(select * FROM sys.views where name = 'TOP_10_HERRAM_MAS_USADAS_X_TALLER')					DROP VIEW [GD2C2021].[SQLI].TOP_10_HERRAM_MAS_USADAS_X_TALLER
-	IF EXISTS(select * FROM sys.views where name = 'FACTURACION_TOTAL_POR_RECORRIDO_POR_CUATRI')		DROP VIEW [GD2C2021].[SQLI].FACTURACION_TOTAL_POR_RECORRIDO_POR_CUATRI
-	IF EXISTS(select * FROM sys.views where name = 'COSTO_PROM_X_RANGO_ETARIO_CHOFERES')				DROP VIEW [GD2C2021].[SQLI].COSTO_PROM_X_RANGO_ETARIO_CHOFERES
-	IF EXISTS(select * FROM sys.views where name = 'GANANCIA_X_CAMION')									DROP VIEW [GD2C2021].[SQLI].GANANCIA_X_CAMION
+	IF EXISTS(select * FROM sys.views where name = 'MAX_TIEMPO_FDS_DE_CADA_CAMION_X_CUATRI')			DROP VIEW [SQLI].MAX_TIEMPO_FDS_DE_CADA_CAMION_X_CUATRI
+	IF EXISTS(select * FROM sys.views where name = 'COSTO_MANTENIMIENTO_X_CAMION_X_TALLER_X_CUATRI')	DROP VIEW [SQLI].COSTO_MANTENIMIENTO_X_CAMION_X_TALLER_X_CUATRI
+	IF EXISTS(select * FROM sys.views where name = 'DESVIO_PROM_DE_CADA_TAREA_X_TALLER')				DROP VIEW [SQLI].DESVIO_PROM_DE_CADA_TAREA_X_TALLER
+	IF EXISTS(select * FROM sys.views where name = 'TOP_5_TAREAS_REALIZADAS_X_MODELO')					DROP VIEW [SQLI].TOP_5_TAREAS_REALIZADAS_X_MODELO
+	IF EXISTS(select * FROM sys.views where name = 'TOP_10_HERRAM_MAS_USADAS_X_TALLER')					DROP VIEW [SQLI].TOP_10_HERRAM_MAS_USADAS_X_TALLER
+	IF EXISTS(select * FROM sys.views where name = 'FACTURACION_TOTAL_POR_RECORRIDO_POR_CUATRI')		DROP VIEW [SQLI].FACTURACION_TOTAL_POR_RECORRIDO_POR_CUATRI
+	IF EXISTS(select * FROM sys.views where name = 'COSTO_PROM_X_RANGO_ETARIO_CHOFERES')				DROP VIEW [SQLI].COSTO_PROM_X_RANGO_ETARIO_CHOFERES
+	IF EXISTS(select * FROM sys.views where name = 'GANANCIA_X_CAMION')									DROP VIEW [SQLI].GANANCIA_X_CAMION
 END
 GO
 

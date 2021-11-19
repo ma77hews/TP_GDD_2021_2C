@@ -88,7 +88,7 @@ CREATE PROCEDURE Creacion_de_Tablas	AS
 		meca_mail			NVARCHAR(255),
 		meca_fecha_nac		DATETIME2(3),
 	)
-
+	
 	CREATE TABLE [GD2C2021].[SQLI].Tipo_Tarea 
 	(
 		tipo_id				INT IDENTITY,
@@ -449,7 +449,7 @@ CREATE PROCEDURE Reseteo AS
 GO
 -------------------------------- procedure principal ----------------------------------------------------------------
 /* si se toca f5 para iniciar y ya habia algo creado hay que tocar f5 2 veces porque tira un error que no supe sacar
-( consulta a los ayudantes) pero funciona de 10 sin contar esa falopeada */
+( consulta a los ayudantes) pero funciona de 10 sin contar ese detalle */
 CREATE PROCEDURE Play AS
 	IF EXISTS (SELECT * FROM   sys.schemas WHERE  NAME = 'SQLI')
 	BEGIN
