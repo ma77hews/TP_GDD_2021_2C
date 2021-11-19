@@ -154,7 +154,8 @@ CREATE PROCEDURE Creacion_Tablas_BI AS
 		precio_recorrido	INT,
 		lts_consumidos		INT,
 		duracion_viaje		INT,
-		costo_viaje			INT
+		costo_viaje			INT,
+		ingreso_viaje		INT
 	)
 
 	ALTER TABLE [GD2C2021].[SQLI].BI_Hechos_Viajes	ADD PRIMARY KEY CLUSTERED(tiempo, legajo_chofer, camion, recorrido_realizado, combo_paquete)
@@ -379,13 +380,15 @@ GO
 
 CREATE PROCEDURE Insercion_Hechos_Viajes AS
 BEGIN
-	INSERT INTO [GD2C2021].[SQLI].BI_Hechos_Viajes(tiempo, legajo_chofer, camion, combo_paquete, recorrido_realizado, precio_recorrido, lts_consumidos, duracion_viaje, costo_viaje)
+	INSERT INTO [GD2C2021].[SQLI].BI_Hechos_Viajes(tiempo, legajo_chofer, camion, combo_paquete, recorrido_realizado, precio_recorrido, lts_consumidos, duracion_viaje, costo_viaje, ingreso_viaje)
 	SELECT DISTINCT [GD2C2021].[SQLI].buscarIdDelTiempoSegun(viaje_fecha_ini), viaje_chofer, viaje_camion, pack_id, viaje_recorrido, rec.precio, 
 	viaje_lts_cons, DATEDIFF(DAY, viaje_fecha_ini, viaje_fecha_fin), 
-	DATEDIFF(DAY, viaje_fecha_ini, viaje_fecha_fin) * ch.costo_x_hora * 8
+	DATEDIFF(DAY, viaje_fecha_ini, viaje_fecha_fin) * ch.costo_x_hora * 8,
+	SUM(rec.precio + (pack_cantidad * t_pack_precio))
 
 	FROM [GD2C2021].[SQLI].Viaje
 	JOIN [GD2C2021].[SQLI].Paquete on pack_viaje = viaje_id
+	JOIN [GD2C2021].[SQLI].Tipo_Paquete on t_pack_id = pack_tipo
 	JOIN [GD2C2021].[SQLI].BI_Dimension_Chofer ch on ch.legajoChofer = viaje_chofer
 	JOIN [GD2C2021].[SQLI].BI_Dimension_Recorrido rec on rec.idRecorrido = viaje_recorrido
 END
@@ -529,7 +532,7 @@ GO
 
 CREATE VIEW [SQLI].GANANCIA_X_CAMION AS
 
-	SELECT viaje.camion, (SUM(viaje.precio_recorrido + pack.precio_final) - viaje.costo_viaje - SUM((meca.costo_x_hora * ta.tiempo_estimado * 8) + (herra.precio * herra.cantidad))) ganancia
+	SELECT viaje.camion, (viaje.ingreso_viaje - viaje.costo_viaje - SUM((meca.costo_x_hora * ta.tiempo_estimado * 8) + (herra.precio * herra.cantidad))) ganancia
 	
 
 	FROM [GD2C2021].[SQLI].BI_Hechos_Viajes viaje
