@@ -271,10 +271,10 @@ CREATE PROCEDURE Insercion_Tabla_Taller AS
 GO
 
 CREATE PROCEDURE Insercion_Tabla_Mecanico AS
-	INSERT INTO [GD2C2021].[SQLI].Mecanico(meca_nro_legajo, meca_nombre, meca_apellido,meca_dni,meca_direccion,meca_telefono,meca_cost_hora,meca_mail,meca_fecha_nac, meca_taller)
-	SELECT DISTINCT MECANICO_NRO_LEGAJO,MECANICO_NOMBRE,MECANICO_APELLIDO,MECANICO_DNI,MECANICO_DIRECCION,MECANICO_TELEFONO,MECANICO_COSTO_HORA,MECANICO_MAIL,MECANICO_FECHA_NAC, t.taller_id
+	INSERT INTO [GD2C2021].[SQLI].Mecanico(meca_nro_legajo, meca_nombre, meca_apellido, meca_dni, meca_direccion, meca_telefono, meca_cost_hora, meca_mail, meca_fecha_nac, meca_taller)
+	SELECT DISTINCT MECANICO_NRO_LEGAJO, MECANICO_NOMBRE, MECANICO_APELLIDO, MECANICO_DNI, MECANICO_DIRECCION, MECANICO_TELEFONO, MECANICO_COSTO_HORA, MECANICO_MAIL, MECANICO_FECHA_NAC, t.taller_id
 	FROM			[GD2C2021].[gd_esquema].Maestra AS MASTERTABLE
-	JOIN			[GD2C2021].[SQLI].Taller t on t.taller_nombre = TALLER_NOMBRE
+	JOIN			[GD2C2021].[SQLI].Taller t on t.taller_nombre = MASTERTABLE.TALLER_NOMBRE
 	WHERE			(MECANICO_NRO_LEGAJO is not null)
 GO
 
@@ -359,8 +359,8 @@ Insercion_Tabla_Orden_De_Trabajo ==> Usamos el id del camion en la tabla Orden_D
 */
 
 CREATE PROCEDURE Insercion_Tabla_Herramienta_Por_Tarea AS
-    INSERT INTO [GD2C2021].[SQLI].Herramienta_Por_Tarea (tarea_codigo, herra_id)--, mxt_cantidad) FE DE ERRATAS mxt_cantidad esta comentado porque no existe la columna en la tabla maestra.
-    SELECT        tar.tarea_codigo, her.herra_id --', MXT_CANTIDAD'
+    INSERT INTO [GD2C2021].[SQLI].Herramienta_Por_Tarea (tarea_codigo, herra_id, mxt_cantidad)--, mxt_cantidad) FE DE ERRATAS mxt_cantidad esta comentado porque no existe la columna en la tabla maestra.
+    SELECT        tar.tarea_codigo, her.herra_id, 0 --', MXT_CANTIDAD'
     FROM        [GD2C2021].[gd_esquema].Maestra as MASTERTABLE
     join        [GD2C2021].[SQLI].Herramientas her on MASTERTABLE.MATERIAL_COD = her.herra_code and MASTERTABLE.MATERIAL_DESCRIPCION = her.herra_detalle
         and MASTERTABLE.MATERIAL_PRECIO = her.herra_precio
@@ -457,7 +457,11 @@ CREATE PROCEDURE Play AS
 	IF EXISTS (SELECT * FROM   sys.schemas WHERE  NAME = 'SQLI')
 	BEGIN
 		EXEC Reseteo
-		DROP SCHEMA SQLI
+		--DROP SCHEMA SQLI
+		EXEC ('use [GD2C2021]')
+		EXEC Creacion_de_Tablas
+		EXEC PK_Y_FK
+		EXEC Migracion
 	END
 	ELSE
 	BEGIN
@@ -472,4 +476,3 @@ GO
 
 -------------------------------- TOCA PLAY PAPAAAA ----------------------------------------------------------------
 EXEC Play
-
