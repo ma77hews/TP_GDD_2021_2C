@@ -29,6 +29,7 @@ IF (OBJECT_ID('GD2C2021.SQLI.BI_Dimension_Chofer')IS NOT NULL)					DROP TABLE [G
 IF (OBJECT_ID('GD2C2021.SQLI.BI_Dimension_Mecanico')IS NOT NULL)				DROP TABLE [GD2C2021].[SQLI].BI_Dimension_Mecanico
 IF (OBJECT_ID('GD2C2021.SQLI.BI_Dimension_Paquete')IS NOT NULL)					DROP TABLE [GD2C2021].[SQLI].BI_Dimension_Paquete
 IF (OBJECT_ID('GD2C2021.SQLI.BI_Dimension_Herramienta')IS NOT NULL)				DROP TABLE [GD2C2021].[SQLI].BI_Dimension_Herramienta
+IF (OBJECT_ID('GD2C2021.SQLI.BI_Dimension_Rango_Etario')IS NOT NULL)			DROP TABLE [GD2C2021].[SQLI].BI_Dimension_Rango_Etario
 IF (OBJECT_ID('GD2C2021.SQLI.BI_Dimension_Tiempo')IS NOT NULL)					DROP TABLE [GD2C2021].[SQLI].BI_Dimension_Tiempo
 IF (OBJECT_ID('GD2C2021.SQLI.BI_Dimension_ODT')IS NOT NULL)						DROP TABLE [GD2C2021].[SQLI].BI_Dimension_ODT
 
@@ -47,6 +48,7 @@ IF EXISTS (SELECT * FROM  sys.procedures WHERE  NAME = 'Insercion_Dimension_Tiem
 IF EXISTS (SELECT * FROM  sys.procedures WHERE  NAME = 'Insercion_Dimension_Herramienta' AND type = 'p')		DROP PROCEDURE dbo.Insercion_Dimension_Herramienta
 IF EXISTS (SELECT * FROM  sys.procedures WHERE  NAME = 'Insercion_Dimension_Paquete' AND type = 'p')			DROP PROCEDURE dbo.Insercion_Dimension_Paquete
 IF EXISTS (SELECT * FROM  sys.procedures WHERE  NAME = 'Insercion_Dimension_ODT' AND type = 'p')				DROP PROCEDURE dbo.Insercion_Dimension_ODT
+IF EXISTS (SELECT * FROM  sys.procedures WHERE  NAME = 'Insercion_Dimension_RangoEtario' AND type = 'p')		DROP PROCEDURE dbo.Insercion_Dimension_RangoEtario
 IF EXISTS (SELECT * FROM  sys.procedures WHERE  NAME = 'Insercion_Hechos_Reparaciones' AND type = 'p')			DROP PROCEDURE dbo.Insercion_Hechos_Reparaciones
 IF EXISTS (SELECT * FROM  sys.procedures WHERE  NAME = 'Insercion_Hechos_Viajes' AND type = 'p')				DROP PROCEDURE dbo.Insercion_Hechos_Viajes
 	
@@ -190,6 +192,15 @@ CREATE TABLE [GD2C2021].[SQLI].BI_Dimension_ODT
 )
 
 ALTER TABLE [GD2C2021].[SQLI].BI_Dimension_ODT	ADD PRIMARY KEY(idODT)
+
+CREATE TABLE[GD2C2021].[SQLI].BI_Dimension_Rango_Etario
+(
+	idRango			INT IDENTITY,
+	legajo			INT,
+	clasificacion	NVARCHAR(20)
+)
+
+ALTER TABLE [GD2C2021].[SQLI].BI_Dimension_Rango_Etario ADD PRIMARY KEY(idRango)
 	
 CREATE TABLE [GD2C2021].[SQLI].BI_Hechos_Viajes
 (
@@ -428,6 +439,29 @@ BEGIN
 END
 GO
 
+CREATE PROCEDURE Insercion_Dimension_RangoEtario AS
+BEGIN
+	INSERT INTO [GD2C2021].[SQLI].BI_Dimension_Rango_Etario(legajo, clasificacion)
+	(
+		SELECT legajoChofer, CASE
+			WHEN (2021 - year(fecha_nacimiento)) between 18 and 30		THEN '18-30 anios'
+			WHEN (2021 - year(fecha_nacimiento)) between 31 and 50		THEN '31-50 anios'
+			ELSE	'> 50 anios'
+			END
+		FROM [GD2C2021].[SQLI].BI_Dimension_Chofer
+	)
+	UNION
+	(
+		SELECT legajoMecanico, CASE
+			WHEN (2021 - year(fecha_nacimiento)) between 18 and 30		THEN '18-30 anios'
+			WHEN (2021 - year(fecha_nacimiento)) between 31 and 50		THEN '31-50 anios'
+			ELSE	'> 50 anios'
+			END
+		FROM [GD2C2021].[SQLI].BI_Dimension_Mecanico
+	)
+END
+GO
+
 CREATE PROCEDURE Insercion_Hechos_Viajes AS
 BEGIN
 	INSERT INTO [GD2C2021].[SQLI].BI_Hechos_Viajes(tiempo, legajo_chofer, camion, combo_paquete, recorrido_realizado, precio_recorrido, lts_consumidos, duracion_viaje, costo_viaje, ingreso_viaje)
@@ -481,6 +515,7 @@ EXEC Insercion_Dimension_Tiempo
 EXEC Insercion_Dimension_Herramienta
 EXEC Insercion_Dimension_Paquete
 EXEC Insercion_Dimension_ODT
+EXEC Insercion_Dimension_RangoEtario
 EXEC Insercion_Hechos_Viajes
 EXEC Insercion_Hechos_Reparaciones
 GO
@@ -502,7 +537,6 @@ CREATE VIEW [SQLI].COSTO_MANTENIMIENTO_X_CAMION_X_TALLER_X_CUATRI AS
 	SELECT r.camion, t.cuatrimestre, r.taller, SUM(costo_materiales + costo_mdo) costo_mantenimiento
 	FROM [GD2C2021].[SQLI].BI_Hechos_Reparaciones r
 	JOIN [GD2C2021].[SQLI].BI_Dimension_Tiempo t on t.idTiempo = r.tiempo
-	JOIN [GD2C2021].[SQLI].BI_Dimension_Mecanico meca on meca.legajoMecanico = r.legajo_mecanico
 	JOIN [GD2C2021].[SQLI].BI_Dimension_Tarea task on task.idTarea = r.tarea
 	JOIN [GD2C2021].[SQLI].BI_Dimension_Herramienta herra on herra.idHerramienta = r.herramienta
 	WHERE r.herramienta in	(
@@ -510,7 +544,6 @@ CREATE VIEW [SQLI].COSTO_MANTENIMIENTO_X_CAMION_X_TALLER_X_CUATRI AS
 								FROM [GD2C2021].[SQLI].BI_Hechos_Reparaciones
 								WHERE tarea = task.idTarea
 								AND camion = r.camion
-								AND legajo_mecanico = meca.legajoMecanico
 								GROUP BY herramienta
 							)
 	GROUP BY r.camion, t.cuatrimestre, r.taller
