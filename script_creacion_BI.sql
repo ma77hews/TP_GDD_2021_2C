@@ -113,8 +113,7 @@ CREATE TABLE [GD2C2021].[SQLI].BI_Dimension_Tarea
 	idTarea			INT NOT NULL,
 	detalle			NVARCHAR(255),
 	tipo			NVARCHAR(255),
-	tiempo_estimado	INT,
-	desvio_tarea	INT
+	tiempo_estimado	INT
 )
 
 ALTER TABLE [GD2C2021].[SQLI].BI_Dimension_Tarea ADD PRIMARY KEY(idTarea)
@@ -215,15 +214,18 @@ ALTER TABLE [GD2C2021].[SQLI].BI_Hechos_Viajes	ADD FOREIGN KEY(combo_paquete)			
 
 CREATE TABLE [GD2C2021].[SQLI].BI_Hechos_Reparaciones
 (
-	tiempo			INT NOT NULL,
-	camion			INT NOT NULL,
-	marca			INT NOT NULL,
-	modelo			INT NOT NULL,
-	odt				INT NOT NULL,
-	taller			INT NOT NULL,
-	tarea			INT NOT NULL,
-	legajo_mecanico	INT NOT NULL,
-	herramienta		INT NOT NULL
+	tiempo				INT NOT NULL,
+	camion				INT NOT NULL,
+	marca				INT NOT NULL,
+	modelo				INT NOT NULL,
+	odt					INT NOT NULL,
+	taller				INT NOT NULL,
+	tarea				INT NOT NULL,
+	legajo_mecanico		INT NOT NULL,
+	herramienta			INT NOT NULL,
+	costo_mdo			INT,
+	costo_materiales	INT,
+	desvio_tarea		INT
 )
 
 ALTER TABLE [GD2C2021].[SQLI].BI_Hechos_Reparaciones ADD PRIMARY KEY CLUSTERED
@@ -307,8 +309,8 @@ GO
 
 CREATE PROCEDURE Insercion_Dimension_Tarea AS
 BEGIN
-	INSERT INTO [GD2C2021].[SQLI].BI_Dimension_Tarea(idTarea, detalle, tipo, tiempo_estimado, desvio_tarea)
-	SELECT DISTINCT	t.tarea_codigo, t.tarea_descripcion, t.tarea_tipo, t.tarea_tiempo_est, DATEDIFF(DAY, txo.tarea_fecha_inicio, txo.tarea_fe_in_plani)
+	INSERT INTO [GD2C2021].[SQLI].BI_Dimension_Tarea(idTarea, detalle, tipo, tiempo_estimado)
+	SELECT DISTINCT	t.tarea_codigo, t.tarea_descripcion, t.tarea_tipo, t.tarea_tiempo_est
 	FROM [GD2C2021].[SQLI].Tareas t
 	JOIN [GD2C2021].[SQLI].Tipo_Tarea on tipo_id = t.tarea_tipo
 	JOIN [GD2C2021].[SQLI].Tarea_Por_ODT txo on txo.tarea_id = t.tarea_codigo
@@ -445,9 +447,12 @@ GO
 
 CREATE PROCEDURE Insercion_Hechos_Reparaciones AS
 BEGIN
-	INSERT INTO [GD2C2021].[SQLI].BI_Hechos_Reparaciones(tiempo, camion, marca, modelo, odt, taller, tarea, legajo_mecanico, herramienta)
+	INSERT INTO [GD2C2021].[SQLI].BI_Hechos_Reparaciones(tiempo, camion, marca, modelo, odt, taller, tarea, legajo_mecanico, herramienta, costo_mdo, costo_materiales, desvio_tarea)
 	SELECT DISTINCT [GD2C2021].[SQLI].buscarIdDelTiempoSegun(txo.tarea_fecha_inicio), odt_camion, mar.marca_id, mode.modelo_id, 
-	odt.odt_id, tal.taller_id, tar.tarea_codigo, mec.meca_nro_legajo, her.herra_id
+	odt.odt_id, tal.taller_id, tar.tarea_codigo, mec.meca_nro_legajo, her.herra_id,
+	SUM(mec.meca_cost_hora * DATEDIFF(DAY, txo.tarea_fecha_inicio, txo.tarea_fecha_fin) * 8),
+	SUM(her.herra_precio * hpt.mxt_cantidad),
+	DATEDIFF(DAY, txo.tarea_fecha_inicio, txo.tarea_fe_in_plani)
 	FROM [GD2C2021].[SQLI].Orden_De_Trabajo odt
 	JOIN [GD2C2021].[SQLI].Tarea_Por_ODT txo on txo.odt_id = odt.odt_id
 	JOIN [GD2C2021].[SQLI].Camion cam on cam.cami_id = odt.odt_camion
@@ -494,7 +499,7 @@ GO
 
 CREATE VIEW [SQLI].COSTO_MANTENIMIENTO_X_CAMION_X_TALLER_X_CUATRI AS
 
-	SELECT r.camion, t.cuatrimestre, r.taller, SUM((meca.costo_x_hora * task.tiempo_estimado * 8) + (herra.precio * herra.cantidad)) costo_mantenimiento
+	SELECT r.camion, t.cuatrimestre, r.taller, SUM(costo_materiales + costo_mdo) costo_mantenimiento
 	FROM [GD2C2021].[SQLI].BI_Hechos_Reparaciones r
 	JOIN [GD2C2021].[SQLI].BI_Dimension_Tiempo t on t.idTiempo = r.tiempo
 	JOIN [GD2C2021].[SQLI].BI_Dimension_Mecanico meca on meca.legajoMecanico = r.legajo_mecanico
@@ -512,7 +517,7 @@ CREATE VIEW [SQLI].COSTO_MANTENIMIENTO_X_CAMION_X_TALLER_X_CUATRI AS
 GO
 
 CREATE VIEW [SQLI].DESVIO_PROM_DE_CADA_TAREA_X_TALLER AS
-	SELECT r.taller, r.tarea, AVG(t.desvio_tarea) costo_desvio_promedio
+	SELECT r.taller, r.tarea, AVG(r.desvio_tarea) costo_desvio_promedio
 	FROM [GD2C2021].[SQLI].BI_Hechos_Reparaciones r
 	JOIN [GD2C2021].[SQLI].BI_Dimension_Tarea t on t.idTarea = r.tarea
 	WHERE r.taller in	(
@@ -579,9 +584,7 @@ GO
 
 CREATE VIEW [SQLI].GANANCIA_X_CAMION AS
 																	
-	SELECT viaje.camion, (viaje.ingreso_viaje - viaje.costo_viaje - (SUM(meca.costo_x_hora * ta.tiempo_estimado * 8) + SUM(herra.precio * herra.cantidad))) ganancia
-	
-
+	SELECT viaje.camion, (viaje.ingreso_viaje - viaje.costo_viaje - (repa.costo_materiales + repa.costo_mdo) ganancia
 	FROM [GD2C2021].[SQLI].BI_Hechos_Viajes viaje
 	JOIN [GD2C2021].[SQLI].BI_Hechos_Reparaciones repa on repa.tiempo = viaje.tiempo AND repa.camion = viaje.camion
 	JOIN [GD2C2021].[SQLI].BI_Dimension_Paquete pack on pack.idPaquete = viaje.combo_paquete

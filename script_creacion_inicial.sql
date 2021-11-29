@@ -169,7 +169,8 @@ CREATE TABLE [GD2C2021].[SQLI].Paquete
 	pack_id				INT IDENTITY,
 	pack_tipo			INT,
 	pack_cantidad		INT,
-	pack_viaje			INT
+	pack_viaje			INT,
+	pack_camion			INT
 )
 
 CREATE TABLE [GD2C2021].[SQLI].Orden_De_Trabajo 
@@ -185,6 +186,7 @@ CREATE TABLE [GD2C2021].[SQLI].Tarea_Por_ODT
 	tarea_id			INT,
 	odt_id				INT,
 	tarea_mecanico		INT,
+	txo_camion			INT,
 	tarea_fecha_inicio	DATETIME2(3),
 	tarea_fecha_fin		DATETIME2(3),
 	tarea_fe_in_plani	DATETIME2(3) 
@@ -246,6 +248,7 @@ ALTER TABLE [GD2C2021].[SQLI].Tipo_paquete			ADD PRIMARY KEY (t_pack_id)
 ALTER TABLE [GD2C2021].[SQLI].Paquete				ADD PRIMARY KEY (pack_id)
 ALTER TABLE [GD2C2021].[SQLI].Paquete				ADD FOREIGN KEY (pack_tipo)					REFERENCES [GD2C2021].[SQLI].Tipo_paquete(t_pack_id)	ON DELETE NO ACTION ON UPDATE NO ACTION ;
 ALTER TABLE [GD2C2021].[SQLI].Paquete				ADD FOREIGN KEY (pack_viaje)				REFERENCES [GD2C2021].[SQLI].Viaje(viaje_id)			ON DELETE NO ACTION ON UPDATE NO ACTION ;
+ALTER TABLE [GD2C2021].[SQLI].Paquete				ADD FOREIGN KEY (pack_camion)				REFERENCES [GD2C2021].[SQLI].Camion(cami_id)			ON DELETE NO ACTION ON UPDATE NO ACTION ;
 		
 ALTER TABLE [GD2C2021].[SQLI].Orden_De_Trabajo		ADD PRIMARY KEY (odt_id)	
 ALTER TABLE [GD2C2021].[SQLI].Orden_De_Trabajo		ADD FOREIGN KEY (odt_camion)				REFERENCES [GD2C2021].[SQLI].Camion(cami_id)			ON DELETE NO ACTION ON UPDATE NO ACTION ;
@@ -256,9 +259,10 @@ ALTER TABLE [GD2C2021].[SQLI].Tareas				ADD FOREIGN KEY (tarea_tipo)				REFERENC
 ALTER TABLE [GD2C2021].[SQLI].Herramienta_Por_Tarea	ADD FOREIGN KEY (tarea_codigo)				REFERENCES [GD2C2021].[SQLI].Tareas(tarea_codigo)		ON DELETE NO ACTION ON UPDATE NO ACTION ;
 ALTER TABLE [GD2C2021].[SQLI].Herramienta_Por_Tarea ADD FOREIGN KEY (herra_id)					REFERENCES [GD2C2021].[SQLI].Herramientas(herra_id)		ON DELETE NO ACTION ON UPDATE NO ACTION ;
 	
-ALTER TABLE [GD2C2021].[SQLI].Tarea_Por_ODT			ADD FOREIGN KEY (tarea_id)					REFERENCES [GD2C2021].[SQLI].Tareas(tarea_codigo)		ON DELETE NO ACTION ON UPDATE NO ACTION ;
-ALTER TABLE [GD2C2021].[SQLI].Tarea_Por_ODT			ADD FOREIGN KEY (odt_id)					REFERENCES [GD2C2021].[SQLI].Orden_De_Trabajo(odt_id)	ON DELETE NO ACTION ON UPDATE NO ACTION ;
-ALTER TABLE [GD2C2021].[SQLI].Tarea_Por_ODT			ADD FOREIGN KEY (tarea_mecanico)			REFERENCES [GD2C2021].[SQLI].Mecanico(meca_nro_legajo)	ON DELETE NO ACTION ON UPDATE NO ACTION ;
+ALTER TABLE [GD2C2021].[SQLI].Tarea_Por_ODT			ADD FOREIGN KEY (tarea_id)					REFERENCES [GD2C2021].[SQLI].Tareas(tarea_codigo)			ON DELETE NO ACTION ON UPDATE NO ACTION ;
+ALTER TABLE [GD2C2021].[SQLI].Tarea_Por_ODT			ADD FOREIGN KEY (odt_id)					REFERENCES [GD2C2021].[SQLI].Orden_De_Trabajo(odt_id)		ON DELETE NO ACTION ON UPDATE NO ACTION ;
+ALTER TABLE [GD2C2021].[SQLI].Tarea_Por_ODT			ADD FOREIGN KEY (tarea_mecanico)			REFERENCES [GD2C2021].[SQLI].Mecanico(meca_nro_legajo)		ON DELETE NO ACTION ON UPDATE NO ACTION ;
+ALTER TABLE [GD2C2021].[SQLI].Tarea_Por_ODT			ADD FOREIGN KEY (txo_camion)				REFERENCES [GD2C2021].[SQLI].Orden_De_Trabajo(odt_camion)	ON DELETE NO ACTION ON UPDATE NO ACTION ;
 GO
 
 -------------------------------- procedures para realizar las migraciones de las tablas --------------------------------
@@ -372,12 +376,14 @@ CREATE PROCEDURE Insercion_Tabla_Viaje AS
 GO
 
 CREATE PROCEDURE Insercion_Tabla_Paquete AS
-	INSERT INTO			[GD2C2021].[SQLI].Paquete (pack_tipo, pack_cantidad, pack_viaje)
-	SELECT	DISTINCT	tip.t_pack_id, PAQUETE_CANTIDAD, v1.viaje_id
+	INSERT INTO			[GD2C2021].[SQLI].Paquete (pack_tipo, pack_cantidad, pack_viaje/*, pack_camion*/)
+	SELECT	DISTINCT	tip.t_pack_id, PAQUETE_CANTIDAD, v1.viaje_id, v1.viaje_camion/*, c.cami_id*/
 	FROM				[GD2C2021].[gd_esquema].Maestra AS MASTERTABLE
 	JOIN				[GD2C2021].[SQLI].Tipo_Paquete tip on tip.t_pack_descripcion = MASTERTABLE.PAQUETE_DESCRIPCION
 	JOIN				[GD2C2021].[SQLI].Viaje v1 on MASTERTABLE.VIAJE_FECHA_INICIO = v1.viaje_fecha_ini and MASTERTABLE.VIAJE_FECHA_FIN = v1.viaje_fecha_fin
+--	JOIN				[GD2C2021].[SQLI].Camion c on MASTERTABLE.CAMION_PATENTE = c.cami_patente
 	where				(MASTERTABLE.PAQUETE_DESCRIPCION is not null) or (MASTERTABLE.VIAJE_FECHA_INICIO is not null) or (MASTERTABLE.VIAJE_FECHA_FIN is not null)
+--						or (MASTERTABLE.CAMION_PATENTE is not null)
 	group by			tip.t_pack_id, PAQUETE_CANTIDAD, v1.viaje_id
 GO
 
@@ -391,8 +397,8 @@ CREATE PROCEDURE Insercion_Tabla_Orden_De_Trabajo AS
 GO
 
 CREATE PROCEDURE Insercion_Tabla_Tarea_Por_ODT AS
-	INSERT INTO [GD2C2021].[SQLI].Tarea_Por_ODT (tarea_id, odt_id, tarea_mecanico, tarea_fecha_inicio, tarea_fecha_fin, tarea_fe_in_plani)
-	SELECT tar.tarea_codigo, ord.odt_id, mec.meca_nro_legajo, TAREA_FECHA_INICIO, TAREA_FECHA_FIN, TAREA_FECHA_INICIO_PLANIFICADO
+	INSERT INTO [GD2C2021].[SQLI].Tarea_Por_ODT (tarea_id, odt_id, tarea_mecanico, txo_camion, tarea_fecha_inicio, tarea_fecha_fin, tarea_fe_in_plani)
+	SELECT tar.tarea_codigo, ord.odt_id, mec.meca_nro_legajo, ord.odt_camion, TAREA_FECHA_FIN, TAREA_FECHA_INICIO_PLANIFICADO
 	FROM [GD2C2021].[gd_esquema].Maestra as MASTERTABLE
 	join [GD2C2021].[SQLI].Tareas tar on MASTERTABLE.TAREA_CODIGO = tar.tarea_codigo
 	join [GD2C2021].[SQLI].Orden_De_Trabajo ord on MASTERTABLE.ORDEN_TRABAJO_ESTADO = ord.odt_estado and MASTERTABLE.ORDEN_TRABAJO_FECHA = ord.odt_fecha_generado
@@ -401,11 +407,6 @@ CREATE PROCEDURE Insercion_Tabla_Tarea_Por_ODT AS
 			or (MASTERTABLE.MECANICO_NRO_LEGAJO is not null) or (TAREA_FECHA_INICIO is not null) or (TAREA_FECHA_FIN is not null) or (TAREA_FECHA_INICIO_PLANIFICADO is not null)
 	 group by tar.tarea_codigo, ord.odt_id, mec.meca_nro_legajo, TAREA_FECHA_INICIO, TAREA_FECHA_FIN, TAREA_FECHA_INICIO_PLANIFICADO
 GO
-
-/*
-En la correcion del tp, nos pusieron que no se esta teniendo en cuenta el camion para identificar el viaje ==> Esto se hace en el procedure 
-Insercion_Tabla_Orden_De_Trabajo ==> Usamos el id del camion en la tabla Orden_De_Trabajo, no en Tarea_Por_ODT
-*/
 
 CREATE PROCEDURE Insercion_Tabla_Herramienta_Por_Tarea AS
     INSERT INTO [GD2C2021].[SQLI].Herramienta_Por_Tarea (tarea_codigo, herra_id, mxt_cantidad)--, mxt_cantidad) FE DE ERRATAS mxt_cantidad esta comentado porque no existe la columna en la tabla maestra.
