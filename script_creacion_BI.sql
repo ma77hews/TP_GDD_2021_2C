@@ -217,7 +217,7 @@ CREATE TABLE [GD2C2021].[SQLI].BI_Hechos_Viajes
 	duracion_viaje		INT,
 	costo_viaje			INT,
 	ingreso_viaje		INT,
-	rango_etario		NVARCHAR(20) NOT NULL,
+	rango_etario		INT NOT NULL,
 	costo_por_hora		INT
 )
 
@@ -225,7 +225,7 @@ ALTER TABLE [GD2C2021].[SQLI].BI_Hechos_Viajes	ADD PRIMARY KEY CLUSTERED(tiempo,
 ALTER TABLE [GD2C2021].[SQLI].BI_Hechos_Viajes	ADD FOREIGN KEY(tiempo)						REFERENCES [GD2C2021].[SQLI].BI_Dimension_Tiempo(idTiempo)					ON DELETE NO ACTION ON UPDATE NO ACTION ;
 ALTER TABLE [GD2C2021].[SQLI].BI_Hechos_Viajes	ADD FOREIGN KEY(camion)						REFERENCES [GD2C2021].[SQLI].BI_Dimension_Camion(idCamion)					ON DELETE NO ACTION ON UPDATE NO ACTION ;
 ALTER TABLE [GD2C2021].[SQLI].BI_Hechos_Viajes	ADD FOREIGN KEY(recorrido_realizado)		REFERENCES [GD2C2021].[SQLI].BI_Dimension_Recorrido(idRecorrido)			ON DELETE NO ACTION ON UPDATE NO ACTION ;
-ALTER TABLE [GD2C2021].[SQLI].BI_Hechos_Viajes	ADD FOREIGN KEY(rango_etario)				REFERENCES [GD2C2021].[SQLI].BI_Dimension_Rango_Etario(clasificacion)		ON DELETE NO ACTION ON UPDATE NO ACTION ;
+ALTER TABLE [GD2C2021].[SQLI].BI_Hechos_Viajes	ADD FOREIGN KEY(rango_etario)				REFERENCES [GD2C2021].[SQLI].BI_Dimension_Rango_Etario(idRango)		ON DELETE NO ACTION ON UPDATE NO ACTION ;
 ALTER TABLE [GD2C2021].[SQLI].BI_Hechos_Viajes	ADD FOREIGN KEY(combo_paquete)				REFERENCES [GD2C2021].[SQLI].BI_Dimension_Paquete(idPaquete)				ON DELETE NO ACTION ON UPDATE NO ACTION ;
 
 CREATE TABLE [GD2C2021].[SQLI].BI_Hechos_Reparaciones
@@ -242,7 +242,7 @@ CREATE TABLE [GD2C2021].[SQLI].BI_Hechos_Reparaciones
 	costo_mdo			INT,
 	costo_materiales	INT,
 	desvio_tarea		INT,
-	rango_etario		NVARCHAR(20) NOT NULL
+	rango_etario		INT NOT NULL
 )
 
 ALTER TABLE [GD2C2021].[SQLI].BI_Hechos_Reparaciones ADD PRIMARY KEY CLUSTERED
@@ -255,7 +255,7 @@ ALTER TABLE [GD2C2021].[SQLI].BI_Hechos_Reparaciones	ADD FOREIGN KEY(modelo)				
 ALTER TABLE [GD2C2021].[SQLI].BI_Hechos_Reparaciones	ADD FOREIGN KEY(odt)				REFERENCES [GD2C2021].[SQLI].BI_Dimension_ODT(idODT)							ON DELETE NO ACTION ON UPDATE NO ACTION ;
 ALTER TABLE [GD2C2021].[SQLI].BI_Hechos_Reparaciones	ADD FOREIGN KEY(taller)				REFERENCES [GD2C2021].[SQLI].BI_Dimension_Taller(idTaller)						ON DELETE NO ACTION ON UPDATE NO ACTION ;
 ALTER TABLE [GD2C2021].[SQLI].BI_Hechos_Reparaciones	ADD FOREIGN KEY(tarea)				REFERENCES [GD2C2021].[SQLI].BI_Dimension_Tarea(idTarea)						ON DELETE NO ACTION ON UPDATE NO ACTION ;
-ALTER TABLE [GD2C2021].[SQLI].BI_Hechos_Reparaciones	ADD FOREIGN KEY(rango_etario)		REFERENCES [GD2C2021].[SQLI].BI_Dimension_Rango_Etario(clasificacion)			ON DELETE NO ACTION ON UPDATE NO ACTION ;
+ALTER TABLE [GD2C2021].[SQLI].BI_Hechos_Reparaciones	ADD FOREIGN KEY(rango_etario)		REFERENCES [GD2C2021].[SQLI].BI_Dimension_Rango_Etario(idRango)			ON DELETE NO ACTION ON UPDATE NO ACTION ;
 ALTER TABLE [GD2C2021].[SQLI].BI_Hechos_Reparaciones	ADD FOREIGN KEY(herramienta)		REFERENCES [GD2C2021].[SQLI].BI_Dimension_Herramienta(idHerramienta)			ON DELETE NO ACTION ON UPDATE NO ACTION ;
 GO
 
@@ -445,15 +445,15 @@ END
 GO
 
 CREATE FUNCTION [SQLI].rangoEtarioPara(@fecha DATETIME2(3)) 
-RETURNS NVARCHAR(20)
+RETURNS INT
 AS
 BEGIN
-	DECLARE @rango NVARCHAR(20)
+	DECLARE @rango INT
 	
 	SELECT @rango = CASE
-						WHEN DATEDIFF(dd, GETDATE(), @fecha) >= 18 AND 	DATEDIFF(dd, GETDATE(), @fecha) <= 30 THEN '18-30 anios'
-						WHEN DATEDIFF(dd, GETDATE(), @fecha) >= 31 AND 	DATEDIFF(dd, GETDATE(), @fecha) <= 50 THEN '31-50 anios'
-						ELSE																					   '> 50 anios'
+						WHEN DATEDIFF(dd, GETDATE(), @fecha) >= 18 AND 	DATEDIFF(dd, GETDATE(), @fecha) <= 30 THEN 1
+						WHEN DATEDIFF(dd, GETDATE(), @fecha) >= 31 AND 	DATEDIFF(dd, GETDATE(), @fecha) <= 50 THEN 2
+						ELSE																					   3
 					END
 	RETURN @rango
 END
@@ -462,7 +462,11 @@ GO
 CREATE PROCEDURE Insercion_Dimension_RangoEtario AS
 BEGIN
 	INSERT INTO [GD2C2021].[SQLI].BI_Dimension_Rango_Etario(clasificacion)
-	VALUES('18-30 anios', '31-50 anios', '> 50 anios')
+	VALUES('18-30 anios')
+	INSERT INTO [GD2C2021].[SQLI].BI_Dimension_Rango_Etario(clasificacion)
+	VALUES('31-50 anios')
+	INSERT INTO [GD2C2021].[SQLI].BI_Dimension_Rango_Etario(clasificacion)
+	VALUES('> 50 anios')
 END
 GO
 
@@ -480,10 +484,10 @@ BEGIN
 	JOIN [GD2C2021].[SQLI].Tipo_Paquete on t_pack_id = pack_tipo
 	JOIN [GD2C2021].[SQLI].Chofer ch on ch.chofer_nro_legajo = viaje_chofer
 	JOIN [GD2C2021].[SQLI].BI_Dimension_Recorrido rec on rec.idRecorrido = viaje_recorrido
-	GROUP BY viaje_fecha_ini, viaje_chofer, viaje_camion, pack_id, viaje_recorrido, rec.precio, viaje_lts_cons, viaje_fecha_fin, ch.chofer_costo_hora
+	GROUP BY viaje_fecha_ini, viaje_chofer, viaje_camion, pack_id, viaje_recorrido, rec.precio, viaje_lts_cons, viaje_fecha_fin, ch.chofer_fecha_nac, ch.chofer_costo_hora
 END
 GO
-
+--SELECT * FROM [GD2C2021].[SQLI].BI_Hechos_Reparaciones
 CREATE PROCEDURE Insercion_Hechos_Reparaciones AS
 BEGIN
 	INSERT INTO [GD2C2021].[SQLI].BI_Hechos_Reparaciones(tiempo, camion, marca, modelo, odt, taller, tarea, herramienta, costo_mdo, costo_materiales, desvio_tarea, rango_etario)
@@ -504,7 +508,7 @@ BEGIN
 		JOIN [GD2C2021].[SQLI].Herramienta_Por_Tarea hpt on hpt.tarea_codigo = tar.tarea_codigo
 		JOIN [GD2C2021].[SQLI].Herramientas her on her.herra_id = hpt.herra_id
 
-	group by rango
+		GROUP BY txo.tarea_fecha_inicio, odt_camion, mar.marca_id, mode.modelo_id, odt.odt_id, tal.taller_id, tar.tarea_codigo, her.herra_id, txo.tarea_fe_in_plani, mec.meca_fecha_nac
 END
 GO
 --Nota: en este ultimo, metimos la fecha inicial de la tarea de una OdT porque la fecha de generacion de la OdT la tenemos en formato NVARCHAR(255) (figuraba asi en la tabla maestra)
@@ -517,8 +521,8 @@ EXEC Insercion_Dimension_Modelo
 EXEC Insercion_Dimension_Taller
 EXEC Insercion_Dimension_Tarea
 EXEC Insercion_Dimension_Recorrido
-EXEC Insercion_Dimension_Chofer
-EXEC Insercion_Dimension_Mecanico
+--EXEC Insercion_Dimension_Chofer
+--EXEC Insercion_Dimension_Mecanico
 EXEC Insercion_Dimension_Tiempo
 EXEC Insercion_Dimension_Herramienta
 EXEC Insercion_Dimension_Paquete
