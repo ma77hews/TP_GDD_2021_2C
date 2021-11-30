@@ -217,16 +217,16 @@ CREATE TABLE [GD2C2021].[SQLI].BI_Hechos_Viajes
 	duracion_viaje		INT,
 	costo_viaje			INT,
 	ingreso_viaje		INT,
-	rango_etario		NVARCHAR(20),
+	rango_etario		NVARCHAR(20) NOT NULL,
 	costo_por_hora		INT
 )
 
-ALTER TABLE [GD2C2021].[SQLI].BI_Hechos_Viajes	ADD PRIMARY KEY CLUSTERED(tiempo, /*legajo_chofer,*/ camion, recorrido_realizado, combo_paquete)
-ALTER TABLE [GD2C2021].[SQLI].BI_Hechos_Viajes	ADD FOREIGN KEY(tiempo)						REFERENCES [GD2C2021].[SQLI].BI_Dimension_Tiempo(idTiempo)			ON DELETE NO ACTION ON UPDATE NO ACTION ;
-ALTER TABLE [GD2C2021].[SQLI].BI_Hechos_Viajes	ADD FOREIGN KEY(camion)						REFERENCES [GD2C2021].[SQLI].BI_Dimension_Camion(idCamion)			ON DELETE NO ACTION ON UPDATE NO ACTION ;
-ALTER TABLE [GD2C2021].[SQLI].BI_Hechos_Viajes	ADD FOREIGN KEY(recorrido_realizado)		REFERENCES [GD2C2021].[SQLI].BI_Dimension_Recorrido(idRecorrido)	ON DELETE NO ACTION ON UPDATE NO ACTION ;
---ALTER TABLE [GD2C2021].[SQLI].BI_Hechos_Viajes	ADD FOREIGN KEY(legajo_chofer)				REFERENCES [GD2C2021].[SQLI].BI_Dimension_Chofer(legajoChofer)		ON DELETE NO ACTION ON UPDATE NO ACTION ;
-ALTER TABLE [GD2C2021].[SQLI].BI_Hechos_Viajes	ADD FOREIGN KEY(combo_paquete)				REFERENCES [GD2C2021].[SQLI].BI_Dimension_Paquete(idPaquete)		ON DELETE NO ACTION ON UPDATE NO ACTION ;
+ALTER TABLE [GD2C2021].[SQLI].BI_Hechos_Viajes	ADD PRIMARY KEY CLUSTERED(tiempo, camion, recorrido_realizado, combo_paquete, rango_etario)
+ALTER TABLE [GD2C2021].[SQLI].BI_Hechos_Viajes	ADD FOREIGN KEY(tiempo)						REFERENCES [GD2C2021].[SQLI].BI_Dimension_Tiempo(idTiempo)					ON DELETE NO ACTION ON UPDATE NO ACTION ;
+ALTER TABLE [GD2C2021].[SQLI].BI_Hechos_Viajes	ADD FOREIGN KEY(camion)						REFERENCES [GD2C2021].[SQLI].BI_Dimension_Camion(idCamion)					ON DELETE NO ACTION ON UPDATE NO ACTION ;
+ALTER TABLE [GD2C2021].[SQLI].BI_Hechos_Viajes	ADD FOREIGN KEY(recorrido_realizado)		REFERENCES [GD2C2021].[SQLI].BI_Dimension_Recorrido(idRecorrido)			ON DELETE NO ACTION ON UPDATE NO ACTION ;
+ALTER TABLE [GD2C2021].[SQLI].BI_Hechos_Viajes	ADD FOREIGN KEY(rango_etario)				REFERENCES [GD2C2021].[SQLI].BI_Dimension_Rango_Etario(clasificacion)		ON DELETE NO ACTION ON UPDATE NO ACTION ;
+ALTER TABLE [GD2C2021].[SQLI].BI_Hechos_Viajes	ADD FOREIGN KEY(combo_paquete)				REFERENCES [GD2C2021].[SQLI].BI_Dimension_Paquete(idPaquete)				ON DELETE NO ACTION ON UPDATE NO ACTION ;
 
 CREATE TABLE [GD2C2021].[SQLI].BI_Hechos_Reparaciones
 (
@@ -242,21 +242,21 @@ CREATE TABLE [GD2C2021].[SQLI].BI_Hechos_Reparaciones
 	costo_mdo			INT,
 	costo_materiales	INT,
 	desvio_tarea		INT,
-	rango_etario		NVARCHAR(20)
+	rango_etario		NVARCHAR(20) NOT NULL
 )
 
 ALTER TABLE [GD2C2021].[SQLI].BI_Hechos_Reparaciones ADD PRIMARY KEY CLUSTERED
-(tiempo, camion, marca, modelo, odt, taller, tarea, /*legajo_mecanico,*/ herramienta)
+(tiempo, camion, marca, modelo, odt, taller, tarea, herramienta, rango_etario)
 
-ALTER TABLE [GD2C2021].[SQLI].BI_Hechos_Reparaciones	ADD FOREIGN KEY(tiempo)				REFERENCES [GD2C2021].[SQLI].BI_Dimension_Tiempo(idTiempo)					ON DELETE NO ACTION ON UPDATE NO ACTION ;
-ALTER TABLE [GD2C2021].[SQLI].BI_Hechos_Reparaciones	ADD FOREIGN KEY(camion)				REFERENCES [GD2C2021].[SQLI].BI_Dimension_Camion(idCamion)					ON DELETE NO ACTION ON UPDATE NO ACTION ;
-ALTER TABLE [GD2C2021].[SQLI].BI_Hechos_Reparaciones	ADD FOREIGN KEY(marca)				REFERENCES [GD2C2021].[SQLI].BI_Dimension_Marca(idMarca)					ON DELETE NO ACTION ON UPDATE NO ACTION ;
-ALTER TABLE [GD2C2021].[SQLI].BI_Hechos_Reparaciones	ADD FOREIGN KEY(modelo)				REFERENCES [GD2C2021].[SQLI].BI_Dimension_Modelo(idModelo)					ON DELETE NO ACTION ON UPDATE NO ACTION ;
-ALTER TABLE [GD2C2021].[SQLI].BI_Hechos_Reparaciones	ADD FOREIGN KEY(odt)				REFERENCES [GD2C2021].[SQLI].BI_Dimension_ODT(idODT)						ON DELETE NO ACTION ON UPDATE NO ACTION ;
-ALTER TABLE [GD2C2021].[SQLI].BI_Hechos_Reparaciones	ADD FOREIGN KEY(taller)				REFERENCES [GD2C2021].[SQLI].BI_Dimension_Taller(idTaller)					ON DELETE NO ACTION ON UPDATE NO ACTION ;
-ALTER TABLE [GD2C2021].[SQLI].BI_Hechos_Reparaciones	ADD FOREIGN KEY(tarea)				REFERENCES [GD2C2021].[SQLI].BI_Dimension_Tarea(idTarea)					ON DELETE NO ACTION ON UPDATE NO ACTION ;
---ALTER TABLE [GD2C2021].[SQLI].BI_Hechos_Reparaciones	ADD FOREIGN KEY(legajo_mecanico)	REFERENCES [GD2C2021].[SQLI].BI_Dimension_Mecanico(legajoMecanico)			ON DELETE NO ACTION ON UPDATE NO ACTION ;
-ALTER TABLE [GD2C2021].[SQLI].BI_Hechos_Reparaciones	ADD FOREIGN KEY(herramienta)		REFERENCES [GD2C2021].[SQLI].BI_Dimension_Herramienta(idHerramienta)		ON DELETE NO ACTION ON UPDATE NO ACTION ;
+ALTER TABLE [GD2C2021].[SQLI].BI_Hechos_Reparaciones	ADD FOREIGN KEY(tiempo)				REFERENCES [GD2C2021].[SQLI].BI_Dimension_Tiempo(idTiempo)						ON DELETE NO ACTION ON UPDATE NO ACTION ;
+ALTER TABLE [GD2C2021].[SQLI].BI_Hechos_Reparaciones	ADD FOREIGN KEY(camion)				REFERENCES [GD2C2021].[SQLI].BI_Dimension_Camion(idCamion)						ON DELETE NO ACTION ON UPDATE NO ACTION ;
+ALTER TABLE [GD2C2021].[SQLI].BI_Hechos_Reparaciones	ADD FOREIGN KEY(marca)				REFERENCES [GD2C2021].[SQLI].BI_Dimension_Marca(idMarca)						ON DELETE NO ACTION ON UPDATE NO ACTION ;
+ALTER TABLE [GD2C2021].[SQLI].BI_Hechos_Reparaciones	ADD FOREIGN KEY(modelo)				REFERENCES [GD2C2021].[SQLI].BI_Dimension_Modelo(idModelo)						ON DELETE NO ACTION ON UPDATE NO ACTION ;
+ALTER TABLE [GD2C2021].[SQLI].BI_Hechos_Reparaciones	ADD FOREIGN KEY(odt)				REFERENCES [GD2C2021].[SQLI].BI_Dimension_ODT(idODT)							ON DELETE NO ACTION ON UPDATE NO ACTION ;
+ALTER TABLE [GD2C2021].[SQLI].BI_Hechos_Reparaciones	ADD FOREIGN KEY(taller)				REFERENCES [GD2C2021].[SQLI].BI_Dimension_Taller(idTaller)						ON DELETE NO ACTION ON UPDATE NO ACTION ;
+ALTER TABLE [GD2C2021].[SQLI].BI_Hechos_Reparaciones	ADD FOREIGN KEY(tarea)				REFERENCES [GD2C2021].[SQLI].BI_Dimension_Tarea(idTarea)						ON DELETE NO ACTION ON UPDATE NO ACTION ;
+ALTER TABLE [GD2C2021].[SQLI].BI_Hechos_Reparaciones	ADD FOREIGN KEY(rango_etario)		REFERENCES [GD2C2021].[SQLI].BI_Dimension_Rango_Etario(clasificacion)			ON DELETE NO ACTION ON UPDATE NO ACTION ;
+ALTER TABLE [GD2C2021].[SQLI].BI_Hechos_Reparaciones	ADD FOREIGN KEY(herramienta)		REFERENCES [GD2C2021].[SQLI].BI_Dimension_Herramienta(idHerramienta)			ON DELETE NO ACTION ON UPDATE NO ACTION ;
 GO
 
 -------------------------------- procedures para realizar las migraciones de las tablas --------------------------------
@@ -491,18 +491,20 @@ BEGIN
 	SUM(mec.meca_cost_hora * DATEDIFF(DAY, txo.tarea_fecha_inicio, txo.tarea_fecha_fin) * 8),
 	SUM(her.herra_precio * hpt.mxt_cantidad),
 	DATEDIFF(DAY, txo.tarea_fecha_inicio, txo.tarea_fe_in_plani),
-	[GD2C2021].[SQLI].rangoEtarioPara(mec.meca_fecha_nac)
+	[GD2C2021].[SQLI].rangoEtarioPara(mec.meca_fecha_nac) as rango
 
 	FROM [GD2C2021].[SQLI].Orden_De_Trabajo odt
-	JOIN [GD2C2021].[SQLI].Tarea_Por_ODT txo on txo.odt_id = odt.odt_id
-	JOIN [GD2C2021].[SQLI].Camion cam on cam.cami_id = odt.odt_camion
-	JOIN [GD2C2021].[SQLI].Marca mar on mar.marca_id = cam.cami_marca
-	JOIN [GD2C2021].[SQLI].Modelo mode on mode.modelo_id = cam.cami_modelo
-	JOIN [GD2C2021].[SQLI].Mecanico mec on mec.meca_nro_legajo = txo.tarea_mecanico
-	JOIN [GD2C2021].[SQLI].Taller tal on tal.taller_id = mec.meca_taller 
-	JOIN [GD2C2021].[SQLI].Tareas tar on tar.tarea_codigo = txo.tarea_id
-	JOIN [GD2C2021].[SQLI].Herramienta_Por_Tarea hpt on hpt.tarea_codigo = tar.tarea_codigo
-	JOIN [GD2C2021].[SQLI].Herramientas her on her.herra_id = hpt.herra_id
+		JOIN [GD2C2021].[SQLI].Tarea_Por_ODT txo on txo.odt_id = odt.odt_id
+		JOIN [GD2C2021].[SQLI].Camion cam on cam.cami_id = odt.odt_camion
+		JOIN [GD2C2021].[SQLI].Marca mar on mar.marca_id = cam.cami_marca
+		JOIN [GD2C2021].[SQLI].Modelo mode on mode.modelo_id = cam.cami_modelo
+		JOIN [GD2C2021].[SQLI].Mecanico mec on mec.meca_nro_legajo = txo.tarea_mecanico
+		JOIN [GD2C2021].[SQLI].Taller tal on tal.taller_id = mec.meca_taller 
+		JOIN [GD2C2021].[SQLI].Tareas tar on tar.tarea_codigo = txo.tarea_id
+		JOIN [GD2C2021].[SQLI].Herramienta_Por_Tarea hpt on hpt.tarea_codigo = tar.tarea_codigo
+		JOIN [GD2C2021].[SQLI].Herramientas her on her.herra_id = hpt.herra_id
+
+	group by rango
 END
 GO
 --Nota: en este ultimo, metimos la fecha inicial de la tarea de una OdT porque la fecha de generacion de la OdT la tenemos en formato NVARCHAR(255) (figuraba asi en la tabla maestra)
@@ -630,7 +632,6 @@ CREATE VIEW [SQLI].GANANCIA_X_CAMION AS
 	FROM [GD2C2021].[SQLI].BI_Hechos_Viajes viaje
 	JOIN [GD2C2021].[SQLI].BI_Hechos_Reparaciones repa on repa.tiempo = viaje.tiempo AND repa.camion = viaje.camion
 	JOIN [GD2C2021].[SQLI].BI_Dimension_Paquete pack on pack.idPaquete = viaje.combo_paquete
---	JOIN [GD2C2021].[SQLI].BI_Dimension_Mecanico meca on meca.legajoMecanico = repa.legajo_mecanico
 	JOIN [GD2C2021].[SQLI].BI_Dimension_Tarea ta on ta.idTarea = repa.tarea
 	JOIN [GD2C2021].[SQLI].BI_Dimension_Herramienta herra on herra.idHerramienta = repa.herramienta
 	

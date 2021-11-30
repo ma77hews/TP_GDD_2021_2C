@@ -169,8 +169,7 @@ CREATE TABLE [GD2C2021].[SQLI].Paquete
 	pack_id				INT IDENTITY,
 	pack_tipo			INT,
 	pack_cantidad		INT,
-	pack_viaje			INT,
-	pack_camion			INT
+	pack_viaje			INT
 )
 
 CREATE TABLE [GD2C2021].[SQLI].Orden_De_Trabajo 
@@ -248,7 +247,6 @@ ALTER TABLE [GD2C2021].[SQLI].Tipo_paquete			ADD PRIMARY KEY (t_pack_id)
 ALTER TABLE [GD2C2021].[SQLI].Paquete				ADD PRIMARY KEY (pack_id)
 ALTER TABLE [GD2C2021].[SQLI].Paquete				ADD FOREIGN KEY (pack_tipo)					REFERENCES [GD2C2021].[SQLI].Tipo_paquete(t_pack_id)	ON DELETE NO ACTION ON UPDATE NO ACTION ;
 ALTER TABLE [GD2C2021].[SQLI].Paquete				ADD FOREIGN KEY (pack_viaje)				REFERENCES [GD2C2021].[SQLI].Viaje(viaje_id)			ON DELETE NO ACTION ON UPDATE NO ACTION ;
-ALTER TABLE [GD2C2021].[SQLI].Paquete				ADD FOREIGN KEY (pack_camion)				REFERENCES [GD2C2021].[SQLI].Camion(cami_id)			ON DELETE NO ACTION ON UPDATE NO ACTION ;
 		
 ALTER TABLE [GD2C2021].[SQLI].Orden_De_Trabajo		ADD PRIMARY KEY (odt_id)	
 ALTER TABLE [GD2C2021].[SQLI].Orden_De_Trabajo		ADD FOREIGN KEY (odt_camion)				REFERENCES [GD2C2021].[SQLI].Camion(cami_id)			ON DELETE NO ACTION ON UPDATE NO ACTION ;
@@ -347,7 +345,7 @@ GO
 
 CREATE PROCEDURE Insercion_Tabla_Herramientas AS
 	INSERT INTO [GD2C2021].[SQLI].Herramientas(herra_code, herra_detalle, herra_precio)
-	SELECT		MATERIAL_COD, MATERIAL_DESCRIPCION, MATERIAL_PRECIO
+	SELECT		MASTERTABLE.MATERIAL_COD, MASTERTABLE.MATERIAL_DESCRIPCION, MASTERTABLE.MATERIAL_PRECIO
 	FROM		[GD2C2021].[gd_esquema].Maestra
 	where		(MATERIAL_COD is not null) or (MATERIAL_DESCRIPCION is not null) and (MATERIAL_PRECIO is not null)
 	GROUP BY	MATERIAL_COD, MATERIAL_DESCRIPCION, MATERIAL_PRECIO
@@ -376,16 +374,26 @@ CREATE PROCEDURE Insercion_Tabla_Viaje AS
 GO
 
 CREATE PROCEDURE Insercion_Tabla_Paquete AS
-	INSERT INTO			[GD2C2021].[SQLI].Paquete (pack_tipo, pack_cantidad, pack_viaje/*, pack_camion*/)
-	SELECT	DISTINCT	tip.t_pack_id, PAQUETE_CANTIDAD, v1.viaje_id, v1.viaje_camion/*, c.cami_id*/
+	INSERT INTO			[GD2C2021].[SQLI].Paquete (pack_tipo, pack_cantidad, pack_viaje)
+	SELECT	DISTINCT	tip.t_pack_id, SUM(MASTERTABLE.PAQUETE_CANTIDAD), v1.viaje_id
 	FROM				[GD2C2021].[gd_esquema].Maestra AS MASTERTABLE
 	JOIN				[GD2C2021].[SQLI].Tipo_Paquete tip on tip.t_pack_descripcion = MASTERTABLE.PAQUETE_DESCRIPCION
-	JOIN				[GD2C2021].[SQLI].Viaje v1 on MASTERTABLE.VIAJE_FECHA_INICIO = v1.viaje_fecha_ini and MASTERTABLE.VIAJE_FECHA_FIN = v1.viaje_fecha_fin
---	JOIN				[GD2C2021].[SQLI].Camion c on MASTERTABLE.CAMION_PATENTE = c.cami_patente
-	where				(MASTERTABLE.PAQUETE_DESCRIPCION is not null) or (MASTERTABLE.VIAJE_FECHA_INICIO is not null) or (MASTERTABLE.VIAJE_FECHA_FIN is not null)
---						or (MASTERTABLE.CAMION_PATENTE is not null)
-	group by			tip.t_pack_id, PAQUETE_CANTIDAD, v1.viaje_id
+	JOIN				[GD2C2021].[SQLI].Viaje v1 on MASTERTABLE.VIAJE_FECHA_INICIO = v1.viaje_fecha_ini and MASTERTABLE.VIAJE_FECHA_FIN = v1.viaje_fecha_fin and MASTERTABLE.CHOFER_NRO_LEGAJO = v1.viaje_chofer
+	where				((MASTERTABLE.PAQUETE_DESCRIPCION is not null) or (MASTERTABLE.VIAJE_FECHA_INICIO is not null) or (MASTERTABLE.VIAJE_FECHA_FIN is not null)
+						or (MASTERTABLE.CAMION_PATENTE is not null))
+						and v1.viaje_camion in	(
+													SELECT cami_id
+													FROM [GD2C2021].[SQLI].Camion
+													JOIN [GD2C2021].[gd_esquema].Maestra as MASTERTABLE on MASTERTABLE.CAMION_PATENTE = cami_patente
+															and MASTERTABLE.CAMION_FECHA_ALTA = cami_fecha_alta and MASTERTABLE.CAMION_NRO_CHASIS = cami_nro_chasis
+															and MASTERTABLE.CAMION_NRO_MOTOR = cami_nro_motor
+												)
+	group by			tip.t_pack_id, v1.viaje_id
 GO
+/*
+NOTA: En una correccion nos pusieron "No se está teniendo en cuenta el camión para identificar el viaje". Como nosotros asumimos que la PK del camion NO es la patente
+      en la tabla Viaje guardamos el id del camion que hizo el viaje y no la patente de ese camion
+*/
 
 CREATE PROCEDURE Insercion_Tabla_Orden_De_Trabajo AS
 	INSERT INTO [GD2C2021].[SQLI].Orden_De_Trabajo (odt_camion, odt_estado, odt_fecha_generado)
