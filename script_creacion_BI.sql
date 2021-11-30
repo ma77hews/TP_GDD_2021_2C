@@ -488,15 +488,32 @@ BEGIN
 END
 GO
 --SELECT * FROM [GD2C2021].[SQLI].BI_Hechos_Reparaciones
+/*[30/11 18:13] +54 9 11 3604-1645: y yo lo que hago es buscar el primary key del rango que le corresponde
+[30/11 18:13] +54 9 11 3604-1645: en el join
+[30/11 18:13] +54 9 11 3604-1645: lo pones en la condición
+[30/11 18:15] +54 9 11 3604-1645: join dimensionrangoetario on case when edad chofer > 18 and < 31 else ...
+[30/11 18:22] Casti: Y en el then que te queda?
+[30/11 18:26] +54 9 11 3604-1645: 1, 2, 3, 4
+[30/11 18:26] +54 9 11 3604-1645: para cada caso
+[30/11 18:26] +54 9 11 3604-1645: seria la PK de la dimensión rango etario*/
+--SELECT * FROM [GD2C2021].[SQLI].BI_Hechos_Reparaciones
+--(tiempo, camion, marca, modelo, odt, taller, tarea, herramienta, rango_etario)
 CREATE PROCEDURE Insercion_Hechos_Reparaciones AS
 BEGIN
-	INSERT INTO [GD2C2021].[SQLI].BI_Hechos_Reparaciones(tiempo, camion, marca, modelo, odt, taller, tarea, herramienta, costo_mdo, costo_materiales, desvio_tarea, rango_etario)
-	SELECT DISTINCT [GD2C2021].[SQLI].buscarIdDelTiempoSegun(txo.tarea_fecha_inicio), odt_camion, mar.marca_id, mode.modelo_id, odt.odt_id, tal.taller_id, tar.tarea_codigo, her.herra_id,
+	INSERT INTO [GD2C2021].[SQLI].BI_Hechos_Reparaciones(odt, camion, marca, modelo, tiempo, taller, tarea, herramienta, costo_mdo, costo_materiales, desvio_tarea, rango_etario)
+	SELECT DISTINCT odt.odt_id,
+	odt_camion,
+	mar.marca_id,
+	mode.modelo_id,
+	[GD2C2021].[SQLI].buscarIdDelTiempoSegun(txo.tarea_fecha_inicio),
+	tal.taller_id,
+	tar.tarea_codigo,
+	her.herra_id,
 	SUM(mec.meca_cost_hora * DATEDIFF(DAY, txo.tarea_fecha_inicio, txo.tarea_fecha_fin) * 8),
 	SUM(her.herra_precio * hpt.mxt_cantidad),
 	DATEDIFF(DAY, txo.tarea_fecha_inicio, txo.tarea_fe_in_plani),
 	[GD2C2021].[SQLI].rangoEtarioPara(mec.meca_fecha_nac) as rango
-
+	
 	FROM [GD2C2021].[SQLI].Orden_De_Trabajo odt
 		JOIN [GD2C2021].[SQLI].Tarea_Por_ODT txo on txo.odt_id = odt.odt_id
 		JOIN [GD2C2021].[SQLI].Camion cam on cam.cami_id = odt.odt_camion
@@ -626,18 +643,19 @@ CREATE VIEW [SQLI].COSTO_PROM_X_RANGO_ETARIO_CHOFERES AS
 	JOIN [GD2C2021].[SQLI].BI_Dimension_Chofer c on c.legajoChofer = legajo_chofer
 	GROUP BY c.edad*/
 
-	SELECT DISTINCT	rango_etario, SUM(costo_por_hora) / COUNT(rango_etario)
+	SELECT DISTINCT	rango_etario, SUM(costo_por_hora) / COUNT(rango_etario) cantidad
 	FROM	[GD2C2021].[SQLI].BI_Hechos_Viajes
+	GROUP BY rango_etario
 GO
 
 CREATE VIEW [SQLI].GANANCIA_X_CAMION AS
 																	
-	SELECT viaje.camion, (viaje.ingreso_viaje - viaje.costo_viaje - (repa.costo_materiales + repa.costo_mdo) ganancia
+	SELECT viaje.camion, ((viaje.ingreso_viaje - viaje.costo_viaje) - (repa.costo_materiales + repa.costo_mdo)) ganancia
 	FROM [GD2C2021].[SQLI].BI_Hechos_Viajes viaje
 	JOIN [GD2C2021].[SQLI].BI_Hechos_Reparaciones repa on repa.tiempo = viaje.tiempo AND repa.camion = viaje.camion
 	JOIN [GD2C2021].[SQLI].BI_Dimension_Paquete pack on pack.idPaquete = viaje.combo_paquete
 	JOIN [GD2C2021].[SQLI].BI_Dimension_Tarea ta on ta.idTarea = repa.tarea
 	JOIN [GD2C2021].[SQLI].BI_Dimension_Herramienta herra on herra.idHerramienta = repa.herramienta
 	
-	GROUP BY viaje.camion, viaje.costo_viaje, viaje.ingreso_viaje
+	GROUP BY viaje.camion, viaje.costo_viaje, viaje.ingreso_viaje, repa.costo_materiales, repa.costo_mdo
 GO
