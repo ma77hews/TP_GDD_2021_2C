@@ -184,7 +184,7 @@ CREATE TABLE [GD2C2021].[SQLI].Tarea_Por_ODT
 	tarea_id			INT,
 	odt_id				INT,
 	tarea_mecanico		INT,
-	txo_camion			NVARCHAR(255),
+--	txo_camion			NVARCHAR(255),
 	tarea_fecha_inicio	DATETIME2(3),
 	tarea_fecha_fin		DATETIME2(3),
 	tarea_fe_in_plani	DATETIME2(3) 
@@ -259,7 +259,7 @@ ALTER TABLE [GD2C2021].[SQLI].Herramienta_Por_Tarea ADD FOREIGN KEY (herra_id)		
 ALTER TABLE [GD2C2021].[SQLI].Tarea_Por_ODT			ADD FOREIGN KEY (tarea_id)					REFERENCES [GD2C2021].[SQLI].Tareas(tarea_codigo)			ON DELETE NO ACTION ON UPDATE NO ACTION ;
 ALTER TABLE [GD2C2021].[SQLI].Tarea_Por_ODT			ADD FOREIGN KEY (odt_id)					REFERENCES [GD2C2021].[SQLI].Orden_De_Trabajo(odt_id)		ON DELETE NO ACTION ON UPDATE NO ACTION ;
 ALTER TABLE [GD2C2021].[SQLI].Tarea_Por_ODT			ADD FOREIGN KEY (tarea_mecanico)			REFERENCES [GD2C2021].[SQLI].Mecanico(meca_nro_legajo)		ON DELETE NO ACTION ON UPDATE NO ACTION ;
-ALTER TABLE [GD2C2021].[SQLI].Tarea_Por_ODT			ADD FOREIGN KEY (txo_camion)				REFERENCES [GD2C2021].[SQLI].Camion(cami_patente)	ON DELETE NO ACTION ON UPDATE NO ACTION ;
+--ALTER TABLE [GD2C2021].[SQLI].Tarea_Por_ODT			ADD FOREIGN KEY (txo_camion)				REFERENCES [GD2C2021].[SQLI].Camion(cami_patente)	ON DELETE NO ACTION ON UPDATE NO ACTION ;
 GO
 
 -------------------------------- procedures para realizar las migraciones de las tablas --------------------------------
@@ -378,21 +378,11 @@ CREATE PROCEDURE Insercion_Tabla_Paquete AS
 	FROM				[GD2C2021].[gd_esquema].Maestra AS MASTERTABLE
 	JOIN				[GD2C2021].[SQLI].Tipo_Paquete tip on tip.t_pack_descripcion = MASTERTABLE.PAQUETE_DESCRIPCION
 	JOIN				[GD2C2021].[SQLI].Viaje v1 on MASTERTABLE.VIAJE_FECHA_INICIO = v1.viaje_fecha_ini and MASTERTABLE.VIAJE_FECHA_FIN = v1.viaje_fecha_fin and MASTERTABLE.CHOFER_NRO_LEGAJO = v1.viaje_chofer
+							and MASTERTABLE.CAMION_PATENTE = v1.viaje_camion
 	where				((MASTERTABLE.PAQUETE_DESCRIPCION is not null) or (MASTERTABLE.VIAJE_FECHA_INICIO is not null) or (MASTERTABLE.VIAJE_FECHA_FIN is not null)
 						or (MASTERTABLE.CAMION_PATENTE is not null))
-						and v1.viaje_camion in	(
-													SELECT cami_patente
-													FROM [GD2C2021].[SQLI].Camion
-													JOIN [GD2C2021].[gd_esquema].Maestra as MASTERTABLE on MASTERTABLE.CAMION_PATENTE = cami_patente
-															and MASTERTABLE.CAMION_FECHA_ALTA = cami_fecha_alta and MASTERTABLE.CAMION_NRO_CHASIS = cami_nro_chasis
-															and MASTERTABLE.CAMION_NRO_MOTOR = cami_nro_motor
-												)
 	group by			tip.t_pack_id, v1.viaje_id
 GO
-/*
-NOTA: En una correccion nos pusieron "No se está teniendo en cuenta el camión para identificar el viaje". Como nosotros asumimos que la PK del camion NO es la patente
-      en la tabla Viaje guardamos el id del camion que hizo el viaje y no la patente de ese camion
-*/
 
 CREATE PROCEDURE Insercion_Tabla_Orden_De_Trabajo AS
 	INSERT INTO [GD2C2021].[SQLI].Orden_De_Trabajo (odt_camion, odt_estado, odt_fecha_generado)
@@ -404,11 +394,11 @@ CREATE PROCEDURE Insercion_Tabla_Orden_De_Trabajo AS
 GO
 
 CREATE PROCEDURE Insercion_Tabla_Tarea_Por_ODT AS
-	INSERT INTO [GD2C2021].[SQLI].Tarea_Por_ODT (tarea_id, odt_id, tarea_mecanico, txo_camion, tarea_fecha_inicio, tarea_fecha_fin, tarea_fe_in_plani)
-	SELECT tar.tarea_codigo, ord.odt_id, mec.meca_nro_legajo, ord.odt_camion, TAREA_FECHA_INICIO, TAREA_FECHA_FIN, TAREA_FECHA_INICIO_PLANIFICADO
+	INSERT INTO [GD2C2021].[SQLI].Tarea_Por_ODT (tarea_id, odt_id, tarea_mecanico/*, txo_camion*/, tarea_fecha_inicio, tarea_fecha_fin, tarea_fe_in_plani)
+	SELECT tar.tarea_codigo, ord.odt_id, mec.meca_nro_legajo/*, ord.odt_camion,*/ TAREA_FECHA_INICIO, TAREA_FECHA_FIN, TAREA_FECHA_INICIO_PLANIFICADO
 	FROM [GD2C2021].[gd_esquema].Maestra as MASTERTABLE
 	join [GD2C2021].[SQLI].Tareas tar on MASTERTABLE.TAREA_CODIGO = tar.tarea_codigo
-	join [GD2C2021].[SQLI].Orden_De_Trabajo ord on MASTERTABLE.ORDEN_TRABAJO_ESTADO = ord.odt_estado and MASTERTABLE.ORDEN_TRABAJO_FECHA = ord.odt_fecha_generado
+	join [GD2C2021].[SQLI].Orden_De_Trabajo ord on MASTERTABLE.ORDEN_TRABAJO_ESTADO = ord.odt_estado and MASTERTABLE.ORDEN_TRABAJO_FECHA = ord.odt_fecha_generado and MASTERTABLE.CAMION_PATENTE = ord.odt_camion
 	join [GD2C2021].[SQLI].Mecanico mec on MASTERTABLE.MECANICO_NRO_LEGAJO = mec.meca_nro_legajo
 	where (MASTERTABLE.TAREA_CODIGO is not null) or (MASTERTABLE.ORDEN_TRABAJO_ESTADO is not null) or (MASTERTABLE.ORDEN_TRABAJO_FECHA is not null)
 			or (MASTERTABLE.MECANICO_NRO_LEGAJO is not null) or (TAREA_FECHA_INICIO is not null) or (TAREA_FECHA_FIN is not null) or (TAREA_FECHA_INICIO_PLANIFICADO is not null)
