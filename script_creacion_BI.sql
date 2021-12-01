@@ -207,6 +207,7 @@ ALTER TABLE [GD2C2021].[SQLI].BI_Dimension_Rango_Etario ADD PRIMARY KEY(idRango)
 	
 CREATE TABLE [GD2C2021].[SQLI].BI_Hechos_Viajes
 (
+	idViaje				INT IDENTITY,
 	tiempo				INT NOT NULL,
 	camion				NVARCHAR(255) NOT NULL,
 	combo_paquete		INT NOT NULL, --Un int que distigue univocamente cada uno de las combinaciones de paquetes
@@ -221,7 +222,7 @@ CREATE TABLE [GD2C2021].[SQLI].BI_Hechos_Viajes
 	costo_por_hora		INT
 )
 
-ALTER TABLE [GD2C2021].[SQLI].BI_Hechos_Viajes	ADD PRIMARY KEY CLUSTERED(tiempo, camion, recorrido_realizado, combo_paquete, id_rango_etario)
+ALTER TABLE [GD2C2021].[SQLI].BI_Hechos_Viajes	ADD PRIMARY KEY CLUSTERED(idViaje, tiempo, camion, recorrido_realizado, combo_paquete, id_rango_etario)
 ALTER TABLE [GD2C2021].[SQLI].BI_Hechos_Viajes	ADD FOREIGN KEY(tiempo)						REFERENCES [GD2C2021].[SQLI].BI_Dimension_Tiempo(idTiempo)					ON DELETE NO ACTION ON UPDATE NO ACTION ;
 ALTER TABLE [GD2C2021].[SQLI].BI_Hechos_Viajes	ADD FOREIGN KEY(camion)						REFERENCES [GD2C2021].[SQLI].BI_Dimension_Camion(patente)					ON DELETE NO ACTION ON UPDATE NO ACTION ;
 ALTER TABLE [GD2C2021].[SQLI].BI_Hechos_Viajes	ADD FOREIGN KEY(recorrido_realizado)		REFERENCES [GD2C2021].[SQLI].BI_Dimension_Recorrido(idRecorrido)			ON DELETE NO ACTION ON UPDATE NO ACTION ;
@@ -230,6 +231,7 @@ ALTER TABLE [GD2C2021].[SQLI].BI_Hechos_Viajes	ADD FOREIGN KEY(combo_paquete)			
 
 CREATE TABLE [GD2C2021].[SQLI].BI_Hechos_Reparaciones
 (
+	idRepa				INT IDENTITY,
 	tiempo				INT NOT NULL,
 	camion				NVARCHAR(255) NOT NULL,
 	marca				INT NOT NULL,
@@ -238,7 +240,7 @@ CREATE TABLE [GD2C2021].[SQLI].BI_Hechos_Reparaciones
 	taller				INT NOT NULL,
 	tarea				INT NOT NULL,
 	herramienta			INT NOT NULL,
-	costo_mdo			INT NOT NULL,
+	costo_mdo			INT,
 	costo_materiales	INT,
 	desvio_tarea		INT,
 	id_rango_etario		INT NOT NULL,
@@ -246,7 +248,7 @@ CREATE TABLE [GD2C2021].[SQLI].BI_Hechos_Reparaciones
 )
 
 ALTER TABLE [GD2C2021].[SQLI].BI_Hechos_Reparaciones ADD PRIMARY KEY CLUSTERED
-(tiempo, camion, marca, modelo, odt, taller, tarea, herramienta, costo_mdo, id_rango_etario)
+(idRepa, tiempo, camion, marca, modelo, odt, taller, tarea, herramienta, id_rango_etario)
 
 ALTER TABLE [GD2C2021].[SQLI].BI_Hechos_Reparaciones	ADD FOREIGN KEY(tiempo)				REFERENCES [GD2C2021].[SQLI].BI_Dimension_Tiempo(idTiempo)						ON DELETE NO ACTION ON UPDATE NO ACTION ;
 ALTER TABLE [GD2C2021].[SQLI].BI_Hechos_Reparaciones	ADD FOREIGN KEY(camion)				REFERENCES [GD2C2021].[SQLI].BI_Dimension_Camion(patente)						ON DELETE NO ACTION ON UPDATE NO ACTION ;
@@ -467,17 +469,6 @@ BEGIN
 	VALUES('31-50 anios')
 	INSERT INTO [GD2C2021].[SQLI].BI_Dimension_Rango_Etario(clasificacion)
 	VALUES('> 50 anios')
-
-	/*INSERT INTO [GD2C2021].[SQLI].BI_Dimension_Rango_Etario(legajo, clasificacion)
-	(
-		SELECT meca_nro_legajo, [GD2C2021].[SQLI].rangoEtarioPara(meca_fecha_nac)
-		FROM [GD2C2021].[SQLI].Mecanico
-	)
-	UNION
-	(
-		SELECT chofer_nro_legajo, [GD2C2021].[SQLI].rangoEtarioPara(chofer_fecha_nac)
-		FROM [GD2C2021].[SQLI].Chofer	
-	)*/
 END
 GO
 

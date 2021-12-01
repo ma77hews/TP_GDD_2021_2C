@@ -394,8 +394,8 @@ CREATE PROCEDURE Insercion_Tabla_Orden_De_Trabajo AS
 GO
 
 CREATE PROCEDURE Insercion_Tabla_Tarea_Por_ODT AS
-	INSERT INTO [GD2C2021].[SQLI].Tarea_Por_ODT (tarea_id, odt_id, tarea_mecanico/*, txo_camion*/, tarea_fecha_inicio, tarea_fecha_fin, tarea_fe_in_plani)
-	SELECT tar.tarea_codigo, ord.odt_id, mec.meca_nro_legajo/*, ord.odt_camion,*/, TAREA_FECHA_INICIO, TAREA_FECHA_FIN, TAREA_FECHA_INICIO_PLANIFICADO
+	INSERT INTO [GD2C2021].[SQLI].Tarea_Por_ODT (tarea_id, odt_id, tarea_mecanico, tarea_fecha_inicio, tarea_fecha_fin, tarea_fe_in_plani)
+	SELECT tar.tarea_codigo, ord.odt_id, mec.meca_nro_legajo, TAREA_FECHA_INICIO, TAREA_FECHA_FIN, TAREA_FECHA_INICIO_PLANIFICADO
 	FROM [GD2C2021].[gd_esquema].Maestra as MASTERTABLE
 	join [GD2C2021].[SQLI].Tareas tar on MASTERTABLE.TAREA_CODIGO = tar.tarea_codigo
 	join [GD2C2021].[SQLI].Orden_De_Trabajo ord on MASTERTABLE.ORDEN_TRABAJO_ESTADO = ord.odt_estado and MASTERTABLE.ORDEN_TRABAJO_FECHA = ord.odt_fecha_generado and MASTERTABLE.CAMION_PATENTE = ord.odt_camion
