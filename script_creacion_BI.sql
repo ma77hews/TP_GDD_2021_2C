@@ -238,7 +238,7 @@ CREATE TABLE [GD2C2021].[SQLI].BI_Hechos_Reparaciones
 	taller				INT NOT NULL,
 	tarea				INT NOT NULL,
 	herramienta			INT NOT NULL,
-	costo_mdo			INT,
+	costo_mdo			INT NOT NULL,
 	costo_materiales	INT,
 	desvio_tarea		INT,
 	id_rango_etario		INT NOT NULL,
@@ -246,7 +246,7 @@ CREATE TABLE [GD2C2021].[SQLI].BI_Hechos_Reparaciones
 )
 
 ALTER TABLE [GD2C2021].[SQLI].BI_Hechos_Reparaciones ADD PRIMARY KEY CLUSTERED
-(tiempo, camion, marca, modelo, odt, taller, tarea, herramienta, id_rango_etario)
+(tiempo, camion, marca, modelo, odt, taller, tarea, herramienta, costo_mdo, id_rango_etario)
 
 ALTER TABLE [GD2C2021].[SQLI].BI_Hechos_Reparaciones	ADD FOREIGN KEY(tiempo)				REFERENCES [GD2C2021].[SQLI].BI_Dimension_Tiempo(idTiempo)						ON DELETE NO ACTION ON UPDATE NO ACTION ;
 ALTER TABLE [GD2C2021].[SQLI].BI_Hechos_Reparaciones	ADD FOREIGN KEY(camion)				REFERENCES [GD2C2021].[SQLI].BI_Dimension_Camion(patente)						ON DELETE NO ACTION ON UPDATE NO ACTION ;
