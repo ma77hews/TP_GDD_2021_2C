@@ -200,7 +200,8 @@ ALTER TABLE [GD2C2021].[SQLI].BI_Dimension_ODT	ADD PRIMARY KEY(idODT)
 CREATE TABLE[GD2C2021].[SQLI].BI_Dimension_Rango_Etario
 (
 	idRango			INT IDENTITY,
-	clasificacion	NVARCHAR(20)
+--	legajo			INT NOT NULL,
+	clasificacion	NVARCHAR(20) NOT NULL
 )
 
 ALTER TABLE [GD2C2021].[SQLI].BI_Dimension_Rango_Etario ADD PRIMARY KEY(idRango)
@@ -208,7 +209,6 @@ ALTER TABLE [GD2C2021].[SQLI].BI_Dimension_Rango_Etario ADD PRIMARY KEY(idRango)
 CREATE TABLE [GD2C2021].[SQLI].BI_Hechos_Viajes
 (
 	tiempo				INT NOT NULL,
---	legajo_chofer		INT NOT NULL,
 	camion				INT NOT NULL,
 	combo_paquete		INT NOT NULL, --Un int que distigue univocamente cada uno de las combinaciones de paquetes
 	recorrido_realizado	INT NOT NULL,
@@ -217,15 +217,16 @@ CREATE TABLE [GD2C2021].[SQLI].BI_Hechos_Viajes
 	duracion_viaje		INT,
 	costo_viaje			INT,
 	ingreso_viaje		INT,
-	rango_etario		INT NOT NULL,
+	id_rango_etario		INT NOT NULL,
+	rango_etario		NVARCHAR(20),
 	costo_por_hora		INT
 )
 
-ALTER TABLE [GD2C2021].[SQLI].BI_Hechos_Viajes	ADD PRIMARY KEY CLUSTERED(tiempo, camion, recorrido_realizado, combo_paquete, rango_etario)
+ALTER TABLE [GD2C2021].[SQLI].BI_Hechos_Viajes	ADD PRIMARY KEY CLUSTERED(tiempo, camion, recorrido_realizado, combo_paquete, id_rango_etario)
 ALTER TABLE [GD2C2021].[SQLI].BI_Hechos_Viajes	ADD FOREIGN KEY(tiempo)						REFERENCES [GD2C2021].[SQLI].BI_Dimension_Tiempo(idTiempo)					ON DELETE NO ACTION ON UPDATE NO ACTION ;
 ALTER TABLE [GD2C2021].[SQLI].BI_Hechos_Viajes	ADD FOREIGN KEY(camion)						REFERENCES [GD2C2021].[SQLI].BI_Dimension_Camion(idCamion)					ON DELETE NO ACTION ON UPDATE NO ACTION ;
 ALTER TABLE [GD2C2021].[SQLI].BI_Hechos_Viajes	ADD FOREIGN KEY(recorrido_realizado)		REFERENCES [GD2C2021].[SQLI].BI_Dimension_Recorrido(idRecorrido)			ON DELETE NO ACTION ON UPDATE NO ACTION ;
-ALTER TABLE [GD2C2021].[SQLI].BI_Hechos_Viajes	ADD FOREIGN KEY(rango_etario)				REFERENCES [GD2C2021].[SQLI].BI_Dimension_Rango_Etario(idRango)		ON DELETE NO ACTION ON UPDATE NO ACTION ;
+ALTER TABLE [GD2C2021].[SQLI].BI_Hechos_Viajes	ADD FOREIGN KEY(id_rango_etario)			REFERENCES [GD2C2021].[SQLI].BI_Dimension_Rango_Etario(idRango)				ON DELETE NO ACTION ON UPDATE NO ACTION ;
 ALTER TABLE [GD2C2021].[SQLI].BI_Hechos_Viajes	ADD FOREIGN KEY(combo_paquete)				REFERENCES [GD2C2021].[SQLI].BI_Dimension_Paquete(idPaquete)				ON DELETE NO ACTION ON UPDATE NO ACTION ;
 
 CREATE TABLE [GD2C2021].[SQLI].BI_Hechos_Reparaciones
@@ -237,16 +238,16 @@ CREATE TABLE [GD2C2021].[SQLI].BI_Hechos_Reparaciones
 	odt					INT NOT NULL,
 	taller				INT NOT NULL,
 	tarea				INT NOT NULL,
---	legajo_mecanico		INT NOT NULL,
 	herramienta			INT NOT NULL,
 	costo_mdo			INT,
 	costo_materiales	INT,
 	desvio_tarea		INT,
-	rango_etario		INT NOT NULL
+	id_rango_etario		INT NOT NULL,
+	rango_etario		NVARCHAR(20)
 )
 
 ALTER TABLE [GD2C2021].[SQLI].BI_Hechos_Reparaciones ADD PRIMARY KEY CLUSTERED
-(tiempo, camion, marca, modelo, odt, taller, tarea, herramienta, rango_etario)
+(tiempo, camion, marca, modelo, odt, taller, tarea, herramienta, id_rango_etario)
 
 ALTER TABLE [GD2C2021].[SQLI].BI_Hechos_Reparaciones	ADD FOREIGN KEY(tiempo)				REFERENCES [GD2C2021].[SQLI].BI_Dimension_Tiempo(idTiempo)						ON DELETE NO ACTION ON UPDATE NO ACTION ;
 ALTER TABLE [GD2C2021].[SQLI].BI_Hechos_Reparaciones	ADD FOREIGN KEY(camion)				REFERENCES [GD2C2021].[SQLI].BI_Dimension_Camion(idCamion)						ON DELETE NO ACTION ON UPDATE NO ACTION ;
@@ -255,7 +256,7 @@ ALTER TABLE [GD2C2021].[SQLI].BI_Hechos_Reparaciones	ADD FOREIGN KEY(modelo)				
 ALTER TABLE [GD2C2021].[SQLI].BI_Hechos_Reparaciones	ADD FOREIGN KEY(odt)				REFERENCES [GD2C2021].[SQLI].BI_Dimension_ODT(idODT)							ON DELETE NO ACTION ON UPDATE NO ACTION ;
 ALTER TABLE [GD2C2021].[SQLI].BI_Hechos_Reparaciones	ADD FOREIGN KEY(taller)				REFERENCES [GD2C2021].[SQLI].BI_Dimension_Taller(idTaller)						ON DELETE NO ACTION ON UPDATE NO ACTION ;
 ALTER TABLE [GD2C2021].[SQLI].BI_Hechos_Reparaciones	ADD FOREIGN KEY(tarea)				REFERENCES [GD2C2021].[SQLI].BI_Dimension_Tarea(idTarea)						ON DELETE NO ACTION ON UPDATE NO ACTION ;
-ALTER TABLE [GD2C2021].[SQLI].BI_Hechos_Reparaciones	ADD FOREIGN KEY(rango_etario)		REFERENCES [GD2C2021].[SQLI].BI_Dimension_Rango_Etario(idRango)			ON DELETE NO ACTION ON UPDATE NO ACTION ;
+ALTER TABLE [GD2C2021].[SQLI].BI_Hechos_Reparaciones	ADD FOREIGN KEY(id_rango_etario)	REFERENCES [GD2C2021].[SQLI].BI_Dimension_Rango_Etario(idRango)					ON DELETE NO ACTION ON UPDATE NO ACTION ;
 ALTER TABLE [GD2C2021].[SQLI].BI_Hechos_Reparaciones	ADD FOREIGN KEY(herramienta)		REFERENCES [GD2C2021].[SQLI].BI_Dimension_Herramienta(idHerramienta)			ON DELETE NO ACTION ON UPDATE NO ACTION ;
 GO
 
@@ -445,15 +446,15 @@ END
 GO
 
 CREATE FUNCTION [SQLI].rangoEtarioPara(@fecha DATETIME2(3)) 
-RETURNS INT
+RETURNS NVARCHAR(20)
 AS
 BEGIN
-	DECLARE @rango INT
+	DECLARE @rango NVARCHAR(20)
 	
 	SELECT @rango = CASE
-						WHEN DATEDIFF(dd, GETDATE(), @fecha) >= 18 AND 	DATEDIFF(dd, GETDATE(), @fecha) <= 30 THEN 1
-						WHEN DATEDIFF(dd, GETDATE(), @fecha) >= 31 AND 	DATEDIFF(dd, GETDATE(), @fecha) <= 50 THEN 2
-						ELSE																					   3
+						WHEN DATEDIFF(dd, GETDATE(), @fecha) >= 18 AND 	DATEDIFF(dd, GETDATE(), @fecha) <= 30 THEN '18-30 anios'
+						WHEN DATEDIFF(dd, GETDATE(), @fecha) >= 31 AND 	DATEDIFF(dd, GETDATE(), @fecha) <= 50 THEN '31-50 anios'
+						ELSE																					   '> 50 anios'
 					END
 	RETURN @rango
 END
@@ -467,65 +468,77 @@ BEGIN
 	VALUES('31-50 anios')
 	INSERT INTO [GD2C2021].[SQLI].BI_Dimension_Rango_Etario(clasificacion)
 	VALUES('> 50 anios')
+
+	/*INSERT INTO [GD2C2021].[SQLI].BI_Dimension_Rango_Etario(legajo, clasificacion)
+	(
+		SELECT meca_nro_legajo, [GD2C2021].[SQLI].rangoEtarioPara(meca_fecha_nac)
+		FROM [GD2C2021].[SQLI].Mecanico
+	)
+	UNION
+	(
+		SELECT chofer_nro_legajo, [GD2C2021].[SQLI].rangoEtarioPara(chofer_fecha_nac)
+		FROM [GD2C2021].[SQLI].Chofer	
+	)*/
 END
 GO
 
 CREATE PROCEDURE Insercion_Hechos_Viajes AS
 BEGIN
-	INSERT INTO [GD2C2021].[SQLI].BI_Hechos_Viajes(tiempo, camion, combo_paquete, recorrido_realizado, precio_recorrido, lts_consumidos, duracion_viaje, costo_viaje, ingreso_viaje, rango_etario, costo_por_hora)
+	INSERT INTO [GD2C2021].[SQLI].BI_Hechos_Viajes(tiempo, camion, combo_paquete, recorrido_realizado, precio_recorrido, lts_consumidos, duracion_viaje, costo_viaje, ingreso_viaje,
+	id_rango_etario, rango_etario, costo_por_hora)
 	SELECT DISTINCT [GD2C2021].[SQLI].buscarIdDelTiempoSegun(viaje_fecha_ini), viaje_camion, pack_id, viaje_recorrido, rec.precio, viaje_lts_cons, 
 	DATEDIFF(DAY, viaje_fecha_ini, viaje_fecha_fin), 
 	DATEDIFF(DAY, viaje_fecha_ini, viaje_fecha_fin) * ch.chofer_costo_hora * 8,
-	SUM(rec.precio + (pack_cantidad * t_pack_precio)),
-	[GD2C2021].[SQLI].rangoEtarioPara(ch.chofer_fecha_nac),	ch.chofer_costo_hora
+	SUM(rec.precio + (pack_cantidad * t_pack_precio)), r.idRango,
+	r.clasificacion, ch.chofer_costo_hora
 
 	FROM [GD2C2021].[SQLI].Viaje
 	JOIN [GD2C2021].[SQLI].Paquete on pack_viaje = viaje_id
 	JOIN [GD2C2021].[SQLI].Tipo_Paquete on t_pack_id = pack_tipo
 	JOIN [GD2C2021].[SQLI].Chofer ch on ch.chofer_nro_legajo = viaje_chofer
+	--Tengo que linkear este ch.chofer_nro_legajo con su rango etario correspondiente
+	JOIN [GD2C2021].[SQLI].BI_Dimension_Rango_Etario r on r.idRango = CASE
+				WHEN DATEDIFF(DD, GETDATE(), ch.chofer_fecha_nac) between 18 and 30 then 1 --Representa '18-30 anios'
+				WHEN DATEDIFF(DD, GETDATE(), ch.chofer_fecha_nac) between 31 and 50 then 2 --Representa '31-50 anios'
+				ELSE																	 3 --Representa '> 50 anios'
+				END
 	JOIN [GD2C2021].[SQLI].BI_Dimension_Recorrido rec on rec.idRecorrido = viaje_recorrido
-	GROUP BY viaje_fecha_ini, viaje_chofer, viaje_camion, pack_id, viaje_recorrido, rec.precio, viaje_lts_cons, viaje_fecha_fin, ch.chofer_fecha_nac, ch.chofer_costo_hora
+	GROUP BY r.idRango, r.clasificacion, viaje_chofer, viaje_camion, pack_id, viaje_recorrido, rec.precio, viaje_lts_cons, viaje_fecha_ini, viaje_fecha_fin, 
+	ch.chofer_fecha_nac, ch.chofer_costo_hora
 END
 GO
---SELECT * FROM [GD2C2021].[SQLI].BI_Hechos_Reparaciones
-/*[30/11 18:13] +54 9 11 3604-1645: y yo lo que hago es buscar el primary key del rango que le corresponde
-[30/11 18:13] +54 9 11 3604-1645: en el join
-[30/11 18:13] +54 9 11 3604-1645: lo pones en la condición
-[30/11 18:15] +54 9 11 3604-1645: join dimensionrangoetario on case when edad chofer > 18 and < 31 else ...
-[30/11 18:22] Casti: Y en el then que te queda?
-[30/11 18:26] +54 9 11 3604-1645: 1, 2, 3, 4
-[30/11 18:26] +54 9 11 3604-1645: para cada caso
-[30/11 18:26] +54 9 11 3604-1645: seria la PK de la dimensión rango etario*/
---SELECT * FROM [GD2C2021].[SQLI].BI_Hechos_Reparaciones
---(tiempo, camion, marca, modelo, odt, taller, tarea, herramienta, rango_etario)
+
 CREATE PROCEDURE Insercion_Hechos_Reparaciones AS
 BEGIN
-	INSERT INTO [GD2C2021].[SQLI].BI_Hechos_Reparaciones(odt, camion, marca, modelo, tiempo, taller, tarea, herramienta, costo_mdo, costo_materiales, desvio_tarea, rango_etario)
-	SELECT DISTINCT odt.odt_id,
-	odt_camion,
-	mar.marca_id,
-	mode.modelo_id,
+	INSERT INTO [GD2C2021].[SQLI].BI_Hechos_Reparaciones(odt, camion, marca, modelo, tiempo, taller, tarea, herramienta, costo_mdo, costo_materiales, desvio_tarea, 
+														id_rango_etario, rango_etario)
+	SELECT DISTINCT odt.odt_id,	odt_camion,	mar.marca_id, mode.modelo_id,
 	[GD2C2021].[SQLI].buscarIdDelTiempoSegun(txo.tarea_fecha_inicio),
-	tal.taller_id,
-	tar.tarea_codigo,
-	her.herra_id,
+	tal.taller_id, tar.tarea_codigo, her.herra_id,
 	SUM(mec.meca_cost_hora * DATEDIFF(DAY, txo.tarea_fecha_inicio, txo.tarea_fecha_fin) * 8),
 	SUM(her.herra_precio * hpt.mxt_cantidad),
-	DATEDIFF(DAY, txo.tarea_fecha_inicio, txo.tarea_fe_in_plani),
-	[GD2C2021].[SQLI].rangoEtarioPara(mec.meca_fecha_nac) as rango
-	
+	DATEDIFF(DAY, txo.tarea_fecha_inicio, txo.tarea_fe_in_plani), r.idRango,
+	r.clasificacion
+		
 	FROM [GD2C2021].[SQLI].Orden_De_Trabajo odt
 		JOIN [GD2C2021].[SQLI].Tarea_Por_ODT txo on txo.odt_id = odt.odt_id
 		JOIN [GD2C2021].[SQLI].Camion cam on cam.cami_id = odt.odt_camion
 		JOIN [GD2C2021].[SQLI].Marca mar on mar.marca_id = cam.cami_marca
 		JOIN [GD2C2021].[SQLI].Modelo mode on mode.modelo_id = cam.cami_modelo
 		JOIN [GD2C2021].[SQLI].Mecanico mec on mec.meca_nro_legajo = txo.tarea_mecanico
+		--Tengo que linkear este mec.meca_nro_legajo con su rango etario correspondiente.
 		JOIN [GD2C2021].[SQLI].Taller tal on tal.taller_id = mec.meca_taller 
 		JOIN [GD2C2021].[SQLI].Tareas tar on tar.tarea_codigo = txo.tarea_id
+		JOIN [GD2C2021].[SQLI].BI_Dimension_Rango_Etario r on r.idRango = CASE
+				WHEN DATEDIFF(DD, GETDATE(), mec.meca_fecha_nac) between 18 and 30 then 1 --Representa '18-30 anios'
+				WHEN DATEDIFF(DD, GETDATE(), mec.meca_fecha_nac) between 31 and 50 then 2 --Representa '31-50 anios'
+				ELSE																	3 --Representa '> 50 anios'
+				END
 		JOIN [GD2C2021].[SQLI].Herramienta_Por_Tarea hpt on hpt.tarea_codigo = tar.tarea_codigo
 		JOIN [GD2C2021].[SQLI].Herramientas her on her.herra_id = hpt.herra_id
 
-		GROUP BY txo.tarea_fecha_inicio, odt_camion, mar.marca_id, mode.modelo_id, odt.odt_id, tal.taller_id, tar.tarea_codigo, her.herra_id, txo.tarea_fe_in_plani, mec.meca_fecha_nac
+	GROUP BY r.idRango, r.clasificacion, txo.tarea_fecha_inicio, odt_camion, mar.marca_id, mode.modelo_id, odt.odt_id, tal.taller_id, tar.tarea_codigo, 
+	her.herra_id, txo.tarea_fe_in_plani, mec.meca_fecha_nac
 END
 GO
 --Nota: en este ultimo, metimos la fecha inicial de la tarea de una OdT porque la fecha de generacion de la OdT la tenemos en formato NVARCHAR(255) (figuraba asi en la tabla maestra)
@@ -538,8 +551,6 @@ EXEC Insercion_Dimension_Modelo
 EXEC Insercion_Dimension_Taller
 EXEC Insercion_Dimension_Tarea
 EXEC Insercion_Dimension_Recorrido
---EXEC Insercion_Dimension_Chofer
---EXEC Insercion_Dimension_Mecanico
 EXEC Insercion_Dimension_Tiempo
 EXEC Insercion_Dimension_Herramienta
 EXEC Insercion_Dimension_Paquete
@@ -622,7 +633,7 @@ GO
 
 CREATE VIEW [SQLI].FACTURACION_TOTAL_POR_RECORRIDO_POR_CUATRI AS
 
-	SELECT tiem.cuatrimestre, viaje.recorrido_realizado, SUM(pack.precio_final + reco.precio) facturacion_total
+	SELECT tiem.anio, tiem.cuatrimestre, viaje.recorrido_realizado, SUM(pack.precio_final + reco.precio) facturacion_total
 	FROM [GD2C2021].[SQLI].BI_Hechos_Viajes viaje
 	JOIN [GD2C2021].[SQLI].BI_Dimension_Tiempo tiem on tiem.idTiempo = viaje.tiempo
 	JOIN [GD2C2021].[SQLI].BI_Dimension_Recorrido reco on reco.idRecorrido = viaje.recorrido_realizado
@@ -633,7 +644,7 @@ CREATE VIEW [SQLI].FACTURACION_TOTAL_POR_RECORRIDO_POR_CUATRI AS
 										WHERE viaje1.recorrido_realizado = viaje.recorrido_realizado
 										GROUP BY viaje1.combo_paquete
 									)	
-	GROUP BY tiem.cuatrimestre, viaje.recorrido_realizado
+	GROUP BY tiem.anio, tiem.cuatrimestre, viaje.recorrido_realizado
 GO
 
 CREATE VIEW [SQLI].COSTO_PROM_X_RANGO_ETARIO_CHOFERES AS
@@ -643,9 +654,10 @@ CREATE VIEW [SQLI].COSTO_PROM_X_RANGO_ETARIO_CHOFERES AS
 	JOIN [GD2C2021].[SQLI].BI_Dimension_Chofer c on c.legajoChofer = legajo_chofer
 	GROUP BY c.edad*/
 
-	SELECT DISTINCT	rango_etario, SUM(costo_por_hora) / COUNT(rango_etario) cantidad
+	SELECT DISTINCT	r.clasificacion, (SUM(costo_por_hora) / COUNT(*)) costo_promedio
 	FROM	[GD2C2021].[SQLI].BI_Hechos_Viajes
-	GROUP BY rango_etario
+	JOIN	[GD2C2021].[SQLI].BI_Dimension_Rango_Etario r on r.idRango = id_rango_etario
+	GROUP BY r.clasificacion
 GO
 
 CREATE VIEW [SQLI].GANANCIA_X_CAMION AS
