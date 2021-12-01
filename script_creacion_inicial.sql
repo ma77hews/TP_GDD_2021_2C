@@ -67,10 +67,9 @@ CREATE TABLE [GD2C2021].[SQLI].Marca
 
 CREATE TABLE [GD2C2021].[SQLI].Camion 
 (
-	cami_id				INT IDENTITY,
 	cami_modelo			INT,
 	cami_marca			INT,
-	cami_patente		NVARCHAR(255),
+	cami_patente		NVARCHAR(255) NOT NULL,
 	cami_nro_chasis		NVARCHAR(255),
 	cami_nro_motor		NVARCHAR(255),
 	cami_fecha_alta		DATETIME2(3)
@@ -107,7 +106,7 @@ CREATE TABLE [GD2C2021].[SQLI].Recorrido
 CREATE TABLE [GD2C2021].[SQLI].Viaje 
 (
 	viaje_id			INT IDENTITY,
-	viaje_camion		INT,
+	viaje_camion		NVARCHAR(255),
 	viaje_chofer		INT,
 	viaje_recorrido		INT,
 	viaje_fecha_ini		DATETIME2(7),
@@ -175,7 +174,7 @@ CREATE TABLE [GD2C2021].[SQLI].Paquete
 CREATE TABLE [GD2C2021].[SQLI].Orden_De_Trabajo 
 (
 	odt_id				INT IDENTITY,
-	odt_camion			INT,
+	odt_camion			NVARCHAR(255),
 	odt_estado			NVARCHAR(255),
 	odt_fecha_generado	NVARCHAR(255)
 )
@@ -185,7 +184,7 @@ CREATE TABLE [GD2C2021].[SQLI].Tarea_Por_ODT
 	tarea_id			INT,
 	odt_id				INT,
 	tarea_mecanico		INT,
-	txo_camion			INT,
+	txo_camion			NVARCHAR(255),
 	tarea_fecha_inicio	DATETIME2(3),
 	tarea_fecha_fin		DATETIME2(3),
 	tarea_fe_in_plani	DATETIME2(3) 
@@ -215,7 +214,7 @@ ALTER TABLE [GD2C2021].[SQLI].Modelo				ADD PRIMARY KEY (modelo_id)
 
 ALTER TABLE [GD2C2021].[SQLI].Marca					ADD PRIMARY KEY (marca_id)
 
-ALTER TABLE [GD2C2021].[SQLI].Camion				ADD PRIMARY KEY (cami_id)
+ALTER TABLE [GD2C2021].[SQLI].Camion				ADD PRIMARY KEY (cami_patente)
 ALTER TABLE [GD2C2021].[SQLI].Camion				ADD FOREIGN KEY (cami_modelo)				REFERENCES [GD2C2021].[SQLI].Modelo(modelo_id)			ON DELETE NO ACTION ON UPDATE NO ACTION ;
 ALTER TABLE [GD2C2021].[SQLI].Camion				ADD FOREIGN KEY (cami_marca)				REFERENCES [GD2C2021].[SQLI].Marca(marca_id)			ON DELETE NO ACTION ON UPDATE NO ACTION ;
 	
@@ -228,7 +227,7 @@ ALTER TABLE [GD2C2021].[SQLI].Recorrido				ADD FOREIGN KEY (reco_ciudad_destino)
 ALTER TABLE [GD2C2021].[SQLI].Recorrido				ADD FOREIGN KEY (reco_ciudad_origen)		REFERENCES [GD2C2021].[SQLI].Ciudad(ciudad_id)			ON DELETE NO ACTION ON UPDATE NO ACTION ;
 
 ALTER TABLE [GD2C2021].[SQLI].Viaje					ADD PRIMARY KEY (viaje_id)
-ALTER TABLE [GD2C2021].[SQLI].Viaje					ADD FOREIGN KEY (viaje_camion)				REFERENCES [GD2C2021].[SQLI].Camion(cami_id)			ON DELETE NO ACTION ON UPDATE NO ACTION ;
+ALTER TABLE [GD2C2021].[SQLI].Viaje					ADD FOREIGN KEY (viaje_camion)				REFERENCES [GD2C2021].[SQLI].Camion(cami_patente)			ON DELETE NO ACTION ON UPDATE NO ACTION ;
 ALTER TABLE [GD2C2021].[SQLI].Viaje					ADD FOREIGN KEY (viaje_chofer)				REFERENCES [GD2C2021].[SQLI].Chofer(chofer_nro_legajo)			ON DELETE NO ACTION ON UPDATE NO ACTION ;
 ALTER TABLE [GD2C2021].[SQLI].Viaje					ADD FOREIGN KEY (viaje_recorrido)			REFERENCES [GD2C2021].[SQLI].Recorrido(reco_id)			ON DELETE NO ACTION ON UPDATE NO ACTION ;
 
@@ -249,7 +248,7 @@ ALTER TABLE [GD2C2021].[SQLI].Paquete				ADD FOREIGN KEY (pack_tipo)					REFEREN
 ALTER TABLE [GD2C2021].[SQLI].Paquete				ADD FOREIGN KEY (pack_viaje)				REFERENCES [GD2C2021].[SQLI].Viaje(viaje_id)			ON DELETE NO ACTION ON UPDATE NO ACTION ;
 		
 ALTER TABLE [GD2C2021].[SQLI].Orden_De_Trabajo		ADD PRIMARY KEY (odt_id)	
-ALTER TABLE [GD2C2021].[SQLI].Orden_De_Trabajo		ADD FOREIGN KEY (odt_camion)				REFERENCES [GD2C2021].[SQLI].Camion(cami_id)			ON DELETE NO ACTION ON UPDATE NO ACTION ;
+ALTER TABLE [GD2C2021].[SQLI].Orden_De_Trabajo		ADD FOREIGN KEY (odt_camion)				REFERENCES [GD2C2021].[SQLI].Camion(cami_patente)			ON DELETE NO ACTION ON UPDATE NO ACTION ;
 	
 ALTER TABLE [GD2C2021].[SQLI].Tareas				ADD PRIMARY KEY (tarea_codigo)
 ALTER TABLE [GD2C2021].[SQLI].Tareas				ADD FOREIGN KEY (tarea_tipo)				REFERENCES [GD2C2021].[SQLI].Tipo_Tarea(tipo_id)		ON DELETE NO ACTION ON UPDATE NO ACTION ;
@@ -260,7 +259,7 @@ ALTER TABLE [GD2C2021].[SQLI].Herramienta_Por_Tarea ADD FOREIGN KEY (herra_id)		
 ALTER TABLE [GD2C2021].[SQLI].Tarea_Por_ODT			ADD FOREIGN KEY (tarea_id)					REFERENCES [GD2C2021].[SQLI].Tareas(tarea_codigo)			ON DELETE NO ACTION ON UPDATE NO ACTION ;
 ALTER TABLE [GD2C2021].[SQLI].Tarea_Por_ODT			ADD FOREIGN KEY (odt_id)					REFERENCES [GD2C2021].[SQLI].Orden_De_Trabajo(odt_id)		ON DELETE NO ACTION ON UPDATE NO ACTION ;
 ALTER TABLE [GD2C2021].[SQLI].Tarea_Por_ODT			ADD FOREIGN KEY (tarea_mecanico)			REFERENCES [GD2C2021].[SQLI].Mecanico(meca_nro_legajo)		ON DELETE NO ACTION ON UPDATE NO ACTION ;
-ALTER TABLE [GD2C2021].[SQLI].Tarea_Por_ODT			ADD FOREIGN KEY (txo_camion)				REFERENCES [GD2C2021].[SQLI].Camion(cami_id)	ON DELETE NO ACTION ON UPDATE NO ACTION ;
+ALTER TABLE [GD2C2021].[SQLI].Tarea_Por_ODT			ADD FOREIGN KEY (txo_camion)				REFERENCES [GD2C2021].[SQLI].Camion(cami_patente)	ON DELETE NO ACTION ON UPDATE NO ACTION ;
 GO
 
 -------------------------------- procedures para realizar las migraciones de las tablas --------------------------------
@@ -364,13 +363,13 @@ GO
 
 CREATE PROCEDURE Insercion_Tabla_Viaje AS
 	INSERT INTO		[GD2C2021].[SQLI].Viaje (viaje_camion, viaje_chofer, viaje_recorrido, viaje_fecha_ini, viaje_fecha_fin, viaje_lts_cons)
-	SELECT DISTINCT	cam.cami_id, cho.chofer_nro_legajo, rec.reco_id, VIAJE_FECHA_INICIO, VIAJE_FECHA_FIN, VIAJE_CONSUMO_COMBUSTIBLE
+	SELECT DISTINCT	cam.cami_patente, cho.chofer_nro_legajo, rec.reco_id, VIAJE_FECHA_INICIO, VIAJE_FECHA_FIN, VIAJE_CONSUMO_COMBUSTIBLE
 	FROM			[GD2C2021].[gd_esquema].Maestra AS MASTERTABLE
 	join			[GD2C2021].[SQLI].Camion cam  on MASTERTABLE.CAMION_NRO_CHASIS = cam.cami_nro_chasis
 	join			[GD2C2021].[SQLI].Chofer cho  on MASTERTABLE.CHOFER_NRO_LEGAJO = cho.chofer_nro_legajo
 	join			[GD2C2021].[SQLI].Recorrido rec on MASTERTABLE.RECORRIDO_PRECIO = rec.reco_precio
-	where			(cam.cami_id is not null) or (cho.chofer_nro_legajo is not null) or (rec.reco_id is not null) or (VIAJE_FECHA_INICIO is not null) or (VIAJE_FECHA_FIN is not null) or (VIAJE_CONSUMO_COMBUSTIBLE is not null)
-	group by		cam.cami_id, cho.chofer_nro_legajo, rec.reco_id, VIAJE_FECHA_INICIO, VIAJE_FECHA_FIN, VIAJE_CONSUMO_COMBUSTIBLE
+	where			(cam.cami_patente is not null) or (cho.chofer_nro_legajo is not null) or (rec.reco_id is not null) or (VIAJE_FECHA_INICIO is not null) or (VIAJE_FECHA_FIN is not null) or (VIAJE_CONSUMO_COMBUSTIBLE is not null)
+	group by		cam.cami_patente, cho.chofer_nro_legajo, rec.reco_id, VIAJE_FECHA_INICIO, VIAJE_FECHA_FIN, VIAJE_CONSUMO_COMBUSTIBLE
 GO
 
 CREATE PROCEDURE Insercion_Tabla_Paquete AS
@@ -382,7 +381,7 @@ CREATE PROCEDURE Insercion_Tabla_Paquete AS
 	where				((MASTERTABLE.PAQUETE_DESCRIPCION is not null) or (MASTERTABLE.VIAJE_FECHA_INICIO is not null) or (MASTERTABLE.VIAJE_FECHA_FIN is not null)
 						or (MASTERTABLE.CAMION_PATENTE is not null))
 						and v1.viaje_camion in	(
-													SELECT cami_id
+													SELECT cami_patente
 													FROM [GD2C2021].[SQLI].Camion
 													JOIN [GD2C2021].[gd_esquema].Maestra as MASTERTABLE on MASTERTABLE.CAMION_PATENTE = cami_patente
 															and MASTERTABLE.CAMION_FECHA_ALTA = cami_fecha_alta and MASTERTABLE.CAMION_NRO_CHASIS = cami_nro_chasis
@@ -397,11 +396,11 @@ NOTA: En una correccion nos pusieron "No se está teniendo en cuenta el camión pa
 
 CREATE PROCEDURE Insercion_Tabla_Orden_De_Trabajo AS
 	INSERT INTO [GD2C2021].[SQLI].Orden_De_Trabajo (odt_camion, odt_estado, odt_fecha_generado)
-	SELECT		cam.cami_id, ORDEN_TRABAJO_ESTADO, ORDEN_TRABAJO_FECHA
+	SELECT		cam.cami_patente, ORDEN_TRABAJO_ESTADO, ORDEN_TRABAJO_FECHA
 	FROM		[GD2C2021].[gd_esquema].Maestra AS MASTERTABLE
 	join		[GD2C2021].[SQLI].Camion cam on MASTERTABLE.CAMION_NRO_CHASIS = cam.cami_nro_chasis AND MASTERTABLE.CAMION_PATENTE = cam.cami_patente
-	where		(CAMION_NRO_CHASIS is not null) and (cam.cami_id is not null) and (ORDEN_TRABAJO_ESTADO is not null) and (ORDEN_TRABAJO_FECHA is not null)
-	group by	cam.cami_id, ORDEN_TRABAJO_ESTADO, ORDEN_TRABAJO_FECHA
+	where		(CAMION_NRO_CHASIS is not null) and (cam.cami_patente is not null) and (ORDEN_TRABAJO_ESTADO is not null) and (ORDEN_TRABAJO_FECHA is not null)
+	group by	cam.cami_patente, ORDEN_TRABAJO_ESTADO, ORDEN_TRABAJO_FECHA
 GO
 
 CREATE PROCEDURE Insercion_Tabla_Tarea_Por_ODT AS

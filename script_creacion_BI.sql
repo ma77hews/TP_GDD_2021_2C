@@ -59,14 +59,13 @@ IF EXISTS (SELECT * FROM  sys.procedures WHERE  NAME = 'Insercion_Hechos_Viajes'
 
 CREATE TABLE [GD2C2021].[SQLI].BI_Dimension_Camion
 (
-	idCamion		INT NOT NULL,
-	patente			NVARCHAR(255),
+	patente			NVARCHAR(255) NOT NULL,
 	numero_chasis	NVARCHAR(255),
 	numero_motor	NVARCHAR(255),
 	fecha_alta		DATETIME2(3)
 )
 
-ALTER TABLE [GD2C2021].[SQLI].BI_Dimension_Camion ADD PRIMARY KEY(idCamion)
+ALTER TABLE [GD2C2021].[SQLI].BI_Dimension_Camion ADD PRIMARY KEY(patente)
 	
 CREATE TABLE [GD2C2021].[SQLI].BI_Dimension_Marca
 (
@@ -209,7 +208,7 @@ ALTER TABLE [GD2C2021].[SQLI].BI_Dimension_Rango_Etario ADD PRIMARY KEY(idRango)
 CREATE TABLE [GD2C2021].[SQLI].BI_Hechos_Viajes
 (
 	tiempo				INT NOT NULL,
-	camion				INT NOT NULL,
+	camion				NVARCHAR(255) NOT NULL,
 	combo_paquete		INT NOT NULL, --Un int que distigue univocamente cada uno de las combinaciones de paquetes
 	recorrido_realizado	INT NOT NULL,
 	precio_recorrido	INT,
@@ -224,7 +223,7 @@ CREATE TABLE [GD2C2021].[SQLI].BI_Hechos_Viajes
 
 ALTER TABLE [GD2C2021].[SQLI].BI_Hechos_Viajes	ADD PRIMARY KEY CLUSTERED(tiempo, camion, recorrido_realizado, combo_paquete, id_rango_etario)
 ALTER TABLE [GD2C2021].[SQLI].BI_Hechos_Viajes	ADD FOREIGN KEY(tiempo)						REFERENCES [GD2C2021].[SQLI].BI_Dimension_Tiempo(idTiempo)					ON DELETE NO ACTION ON UPDATE NO ACTION ;
-ALTER TABLE [GD2C2021].[SQLI].BI_Hechos_Viajes	ADD FOREIGN KEY(camion)						REFERENCES [GD2C2021].[SQLI].BI_Dimension_Camion(idCamion)					ON DELETE NO ACTION ON UPDATE NO ACTION ;
+ALTER TABLE [GD2C2021].[SQLI].BI_Hechos_Viajes	ADD FOREIGN KEY(camion)						REFERENCES [GD2C2021].[SQLI].BI_Dimension_Camion(patente)					ON DELETE NO ACTION ON UPDATE NO ACTION ;
 ALTER TABLE [GD2C2021].[SQLI].BI_Hechos_Viajes	ADD FOREIGN KEY(recorrido_realizado)		REFERENCES [GD2C2021].[SQLI].BI_Dimension_Recorrido(idRecorrido)			ON DELETE NO ACTION ON UPDATE NO ACTION ;
 ALTER TABLE [GD2C2021].[SQLI].BI_Hechos_Viajes	ADD FOREIGN KEY(id_rango_etario)			REFERENCES [GD2C2021].[SQLI].BI_Dimension_Rango_Etario(idRango)				ON DELETE NO ACTION ON UPDATE NO ACTION ;
 ALTER TABLE [GD2C2021].[SQLI].BI_Hechos_Viajes	ADD FOREIGN KEY(combo_paquete)				REFERENCES [GD2C2021].[SQLI].BI_Dimension_Paquete(idPaquete)				ON DELETE NO ACTION ON UPDATE NO ACTION ;
@@ -232,7 +231,7 @@ ALTER TABLE [GD2C2021].[SQLI].BI_Hechos_Viajes	ADD FOREIGN KEY(combo_paquete)			
 CREATE TABLE [GD2C2021].[SQLI].BI_Hechos_Reparaciones
 (
 	tiempo				INT NOT NULL,
-	camion				INT NOT NULL,
+	camion				NVARCHAR(255) NOT NULL,
 	marca				INT NOT NULL,
 	modelo				INT NOT NULL,
 	odt					INT NOT NULL,
@@ -250,7 +249,7 @@ ALTER TABLE [GD2C2021].[SQLI].BI_Hechos_Reparaciones ADD PRIMARY KEY CLUSTERED
 (tiempo, camion, marca, modelo, odt, taller, tarea, herramienta, id_rango_etario)
 
 ALTER TABLE [GD2C2021].[SQLI].BI_Hechos_Reparaciones	ADD FOREIGN KEY(tiempo)				REFERENCES [GD2C2021].[SQLI].BI_Dimension_Tiempo(idTiempo)						ON DELETE NO ACTION ON UPDATE NO ACTION ;
-ALTER TABLE [GD2C2021].[SQLI].BI_Hechos_Reparaciones	ADD FOREIGN KEY(camion)				REFERENCES [GD2C2021].[SQLI].BI_Dimension_Camion(idCamion)						ON DELETE NO ACTION ON UPDATE NO ACTION ;
+ALTER TABLE [GD2C2021].[SQLI].BI_Hechos_Reparaciones	ADD FOREIGN KEY(camion)				REFERENCES [GD2C2021].[SQLI].BI_Dimension_Camion(patente)						ON DELETE NO ACTION ON UPDATE NO ACTION ;
 ALTER TABLE [GD2C2021].[SQLI].BI_Hechos_Reparaciones	ADD FOREIGN KEY(marca)				REFERENCES [GD2C2021].[SQLI].BI_Dimension_Marca(idMarca)						ON DELETE NO ACTION ON UPDATE NO ACTION ;
 ALTER TABLE [GD2C2021].[SQLI].BI_Hechos_Reparaciones	ADD FOREIGN KEY(modelo)				REFERENCES [GD2C2021].[SQLI].BI_Dimension_Modelo(idModelo)						ON DELETE NO ACTION ON UPDATE NO ACTION ;
 ALTER TABLE [GD2C2021].[SQLI].BI_Hechos_Reparaciones	ADD FOREIGN KEY(odt)				REFERENCES [GD2C2021].[SQLI].BI_Dimension_ODT(idODT)							ON DELETE NO ACTION ON UPDATE NO ACTION ;
@@ -263,8 +262,8 @@ GO
 -------------------------------- procedures para realizar las migraciones de las tablas --------------------------------
 CREATE PROCEDURE Insercion_Dimension_Camion AS
 BEGIN
-	INSERT INTO	[GD2C2021].[SQLI].BI_Dimension_Camion(idCamion, patente, numero_chasis, numero_motor, fecha_alta)
-	SELECT		cami_id, cami_patente, cami_nro_chasis, cami_nro_motor, cami_fecha_alta
+	INSERT INTO	[GD2C2021].[SQLI].BI_Dimension_Camion(patente, numero_chasis, numero_motor, fecha_alta)
+	SELECT		cami_patente, cami_nro_chasis, cami_nro_motor, cami_fecha_alta
 	FROM		[GD2C2021].[SQLI].Camion
 END
 GO
@@ -522,7 +521,7 @@ BEGIN
 		
 	FROM [GD2C2021].[SQLI].Orden_De_Trabajo odt
 		JOIN [GD2C2021].[SQLI].Tarea_Por_ODT txo on txo.odt_id = odt.odt_id
-		JOIN [GD2C2021].[SQLI].Camion cam on cam.cami_id = odt.odt_camion
+		JOIN [GD2C2021].[SQLI].Camion cam on cam.cami_patente = odt.odt_camion
 		JOIN [GD2C2021].[SQLI].Marca mar on mar.marca_id = cam.cami_marca
 		JOIN [GD2C2021].[SQLI].Modelo mode on mode.modelo_id = cam.cami_modelo
 		JOIN [GD2C2021].[SQLI].Mecanico mec on mec.meca_nro_legajo = txo.tarea_mecanico
@@ -564,12 +563,12 @@ GO
 
 CREATE VIEW [SQLI].MAX_TIEMPO_FDS_DE_CADA_CAMION_X_CUATRI AS
 
-	SELECT	c.idCamion, t.cuatrimestre, MAX(o.duracion_odt) tiempo_fuera_de_servicio
+	SELECT	c.patente, t.cuatrimestre, MAX(o.duracion_odt) tiempo_fuera_de_servicio
 	FROM	[GD2C2021].[SQLI].BI_Hechos_Reparaciones r
 	JOIN	[GD2C2021].[SQLI].BI_Dimension_Tiempo t on r.tiempo = t.idTiempo
 	JOIN	[GD2C2021].[SQLI].BI_Dimension_ODT o on o.idODT = r.odt
-	JOIN	[GD2C2021].[SQLI].BI_Dimension_Camion c on c.idCamion = r.camion
-	GROUP BY c.idCamion, t.cuatrimestre
+	JOIN	[GD2C2021].[SQLI].BI_Dimension_Camion c on c.patente = r.camion
+	GROUP BY c.patente, t.cuatrimestre
 GO
 
 CREATE VIEW [SQLI].COSTO_MANTENIMIENTO_X_CAMION_X_TALLER_X_CUATRI AS
