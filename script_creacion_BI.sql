@@ -134,38 +134,6 @@ CREATE TABLE [GD2C2021].[SQLI].BI_Dimension_Recorrido
 
 ALTER TABLE [GD2C2021].[SQLI].BI_Dimension_Recorrido ADD PRIMARY KEY(idRecorrido)
 
-/*CREATE TABLE [GD2C2021].[SQLI].BI_Dimension_Chofer
-(
-	legajoChofer		INT NOT NULL,
-	nombre				NVARCHAR(255),
-	apellido			NVARCHAR(255),
-	dni					DECIMAL(18,0),
-	costo_x_hora		INT,
-	direccion			NVARCHAR(255),
-	telefono			INT,
-	mail				NVARCHAR(255),
-	fecha_nacimiento	SMALLDATETIME,
-	edad				NVARCHAR(20)
-)
-
-ALTER TABLE [GD2C2021].[SQLI].BI_Dimension_Chofer ADD PRIMARY KEY(legajoChofer)
-
-CREATE TABLE [GD2C2021].[SQLI].BI_Dimension_Mecanico
-(
-	legajoMecanico		INT NOT NULL,
-	nombre				NVARCHAR(255),
-	apellido			NVARCHAR(255),
-	dni					DECIMAL(18,0),
-	costo_x_hora		INT,
-	direccion			NVARCHAR(255),
-	telefono			INT,
-	mail				NVARCHAR(255),
-	fecha_nacimiento	SMALLDATETIME,
-	edad				NVARCHAR(20)
-)
-
-ALTER TABLE [GD2C2021].[SQLI].BI_Dimension_Mecanico ADD PRIMARY KEY(legajoMecanico)*/
-
 CREATE TABLE [GD2C2021].[SQLI].BI_Dimension_Tiempo
 (
 	idTiempo		INT IDENTITY,
@@ -345,30 +313,6 @@ BEGIN
 END
 GO
 
-/*CREATE PROCEDURE Insercion_Dimension_Chofer AS
-BEGIN
-	INSERT INTO [GD2C2021].[SQLI].BI_Dimension_Chofer(legajoChofer, nombre, apellido, dni, costo_x_hora, direccion, telefono, mail, fecha_nacimiento, edad)
-	SELECT		chofer_nro_legajo, chofer_nombre, chofer_apellido, chofer_dni, chofer_costo_hora, chofer_direccion, chofer_telefono, chofer_mail, chofer_fecha_nac, CASE
-		WHEN (2021 - year(chofer_fecha_nac)) between 18 and 30		THEN '18-30 anios'
-		WHEN (2021 - year(chofer_fecha_nac)) between 31 and 50		THEN '31-50 anios'
-		ELSE	'> 50 anios'
-		END
-	FROM		[GD2C2021].[SQLI].Chofer
-END
-GO
-
-CREATE PROCEDURE Insercion_Dimension_Mecanico AS
-BEGIN
-	INSERT INTO [GD2C2021].[SQLI].BI_Dimension_Mecanico(legajoMecanico, nombre, apellido, dni, costo_x_hora, direccion,	telefono, mail, fecha_nacimiento, edad)
-	SELECT		meca_nro_legajo, meca_nombre, meca_apellido, meca_dni, meca_cost_hora, meca_direccion, meca_telefono, meca_mail, meca_fecha_nac, CASE
-		WHEN (2021 - year(meca_fecha_nac)) between 18 and 30		THEN '18-30 anios'
-		WHEN (2021 - year(meca_fecha_nac)) between 31 and 50		THEN '31-50 anios'
-		ELSE		'> 50 anios'
-		END
-	FROM		[GD2C2021].[SQLI].Mecanico
-END
-GO*/
-
 CREATE PROCEDURE Insercion_Dimension_Tiempo AS
 BEGIN
 	INSERT INTO [GD2C2021].[SQLI].BI_Dimension_Tiempo(anio, cuatrimestre)
@@ -486,7 +430,6 @@ BEGIN
 	JOIN [GD2C2021].[SQLI].Paquete on pack_viaje = viaje_id
 	JOIN [GD2C2021].[SQLI].Tipo_Paquete on t_pack_id = pack_tipo
 	JOIN [GD2C2021].[SQLI].Chofer ch on ch.chofer_nro_legajo = viaje_chofer
-	--Tengo que linkear este ch.chofer_nro_legajo con su rango etario correspondiente
 	JOIN [GD2C2021].[SQLI].BI_Dimension_Rango_Etario r on r.idRango = CASE
 				WHEN DATEDIFF(DD, GETDATE(), ch.chofer_fecha_nac) between 18 and 30 then 1 --Representa '18-30 anios'
 				WHEN DATEDIFF(DD, GETDATE(), ch.chofer_fecha_nac) between 31 and 50 then 2 --Representa '31-50 anios'
@@ -516,7 +459,6 @@ BEGIN
 		JOIN [GD2C2021].[SQLI].Marca mar on mar.marca_id = cam.cami_marca
 		JOIN [GD2C2021].[SQLI].Modelo mode on mode.modelo_id = cam.cami_modelo
 		JOIN [GD2C2021].[SQLI].Mecanico mec on mec.meca_nro_legajo = txo.tarea_mecanico
-		--Tengo que linkear este mec.meca_nro_legajo con su rango etario correspondiente.
 		JOIN [GD2C2021].[SQLI].Taller tal on tal.taller_id = mec.meca_taller 
 		JOIN [GD2C2021].[SQLI].Tareas tar on tar.tarea_codigo = txo.tarea_id
 		JOIN [GD2C2021].[SQLI].BI_Dimension_Rango_Etario r on r.idRango = CASE
@@ -638,11 +580,6 @@ CREATE VIEW [SQLI].FACTURACION_TOTAL_POR_RECORRIDO_POR_CUATRI AS
 GO
 
 CREATE VIEW [SQLI].COSTO_PROM_X_RANGO_ETARIO_CHOFERES AS
-
-	/*SELECT c.edad, (SUM(c.costo_x_hora) / COUNT(DISTINCT c.legajoChofer)) costo
-	FROM [GD2C2021].[SQLI].BI_Hechos_Viajes
-	JOIN [GD2C2021].[SQLI].BI_Dimension_Chofer c on c.legajoChofer = legajo_chofer
-	GROUP BY c.edad*/
 
 	SELECT DISTINCT	r.clasificacion, (SUM(costo_por_hora) / COUNT(*)) costo_promedio
 	FROM	[GD2C2021].[SQLI].BI_Hechos_Viajes
